@@ -185,3 +185,11 @@ from `./apps/website`
 ```sh
 pnpx shadcn@latest init --base radix --preset nova --yes
 ```
+
+8. add shadcn/ui primitives
+
+from `./apps/website`
+
+```sh
+pnpx shadcn@latest add button checkbox input
+```
