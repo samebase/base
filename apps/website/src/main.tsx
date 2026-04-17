@@ -1,6 +1,7 @@
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import ReactDOM from "react-dom/client";
 import { RouterProvider, createRouter } from "@tanstack/react-router";
+import "./style.css";
 import { routeTree } from "./routeTree.gen";
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL;

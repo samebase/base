@@ -150,3 +150,23 @@ commit the generated:
 
 read that query from `./apps/website/src/routes/index.tsx` so the app proves
 the Convex wiring works before adding the first real schema
+
+5. add Tailwind CSS
+
+from `./apps/website`
+
+```sh
+pnpm add tailwindcss @tailwindcss/vite
+```
+
+update `./apps/website/vite.config.ts` to import `@tailwindcss/vite` and add
+`tailwindcss()` to the Vite plugin list while keeping the TanStack Router plugin
+before the React plugin
+
+create `./apps/website/src/style.css` with
+
+```css
+@import "tailwindcss";
+```
+
+import `./style.css` from `./apps/website/src/main.tsx`

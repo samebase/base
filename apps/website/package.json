@@ -11,10 +11,12 @@
     "preview": "vp preview"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.2.2",
     "@tanstack/react-router": "1.168.22",
     "convex": "^1.35.1",
     "react": "19.2.5",
-    "react-dom": "19.2.5"
+    "react-dom": "19.2.5",
+    "tailwindcss": "^4.2.2"
   },
   "devDependencies": {
     "@tanstack/router-plugin": "1.167.22",
