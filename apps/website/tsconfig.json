@@ -4,6 +4,9 @@
     "module": "esnext",
     "jsx": "react-jsx",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "paths": {
+      "@/*": ["./src/*"]
+    },
     "types": ["vite/client"],
     "skipLibCheck": true,
 
