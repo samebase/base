@@ -93,3 +93,60 @@ pnpm --filter website run build
 ```
 
 commit the generated `./apps/website/src/routeTree.gen.ts`
+
+4. add Convex
+
+from `./apps/website`
+
+```sh
+pnpm add convex
+```
+
+create `./apps/website/convex.json` with
+
+```json
+{
+  "$schema": "./node_modules/convex/schemas/convex.schema.json",
+  "aiFiles": {
+    "enabled": false
+  }
+}
+```
+
+from `./apps/website`
+
+```sh
+CONVEX_AGENT_MODE=anonymous pnpx convex dev --once
+```
+
+change `./apps/website/package.json` scripts to
+
+```json
+    "dev": "pnpx convex dev --start \"pnpm run dev:frontend\"",
+    "dev:anon": "CONVEX_AGENT_MODE=anonymous pnpm run dev",
+    "dev:frontend": "vp dev",
+```
+
+also add this root `./package.json` script:
+
+```json
+    "dev:anon": "vp run website#dev:anon",
+```
+
+wrap `RouterProvider` in `ConvexProvider` in `./apps/website/src/main.tsx` and
+create the `ConvexReactClient` with `import.meta.env.VITE_CONVEX_URL`
+
+create `./apps/website/convex/messages.ts` with a tiny `getWelcomeMessage`
+query
+
+run the anonymous bootstrap again so `./apps/website/convex/_generated`
+includes the new `messages` function
+
+commit the generated:
+
+- `./apps/website/convex/README.md`
+- `./apps/website/convex/tsconfig.json`
+- `./apps/website/convex/_generated/*`
+
+read that query from `./apps/website/src/routes/index.tsx` so the app proves
+the Convex wiring works before adding the first real schema
