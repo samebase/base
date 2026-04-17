@@ -3,8 +3,6 @@ packages:
   - packages/*
   - tools/*
 
-catalogMode: prefer
-
 catalog:
   "@types/node": ^24
   typescript: ^5
