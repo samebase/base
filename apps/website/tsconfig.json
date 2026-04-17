@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "es2023",
     "module": "esnext",
+    "jsx": "react-jsx",
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
     "types": ["vite/client"],
     "skipLibCheck": true,
