@@ -121,6 +121,14 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  /* https://github.com/tailwindlabs/tailwindcss/issues/15773 */
+  /* Add back pointer cursor for buttons */
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+
   body {
     @apply bg-background text-foreground;
   }

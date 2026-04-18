@@ -193,3 +193,18 @@ from `./apps/website`
 ```sh
 pnpx shadcn@latest add button checkbox input
 ```
+
+9. add the button cursor fix
+
+update `./apps/website/src/style.css` to add this base rule:
+
+```css
+@layer base {
+  /* https://github.com/tailwindlabs/tailwindcss/issues/15773 */
+  /* Add back pointer cursor for buttons */
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+}
+```
