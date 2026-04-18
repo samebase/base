@@ -208,3 +208,11 @@ update `./apps/website/src/style.css` to add this base rule:
   }
 }
 ```
+
+10. TODO track the generated VS Code workspace settings
+
+- stop ignoring repo `./.vscode` files in `./.gitignore`
+- track the generated `./.vscode/settings.json`
+
+TODO: in the next history rewrite, move this into step 2 so editor defaults are
+tracked from the start
