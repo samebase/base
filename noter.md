@@ -257,3 +257,35 @@ also simplify `./apps/website/src/routes/__root.tsx` and
 ## 12. Add onboarding instruction
 
 Update README.md
+
+## 13. Add convex ai files
+
+replace
+
+```json
+{
+  "$schema": "./node_modules/convex/schemas/convex.schema.json",
+  "aiFiles": {
+    "enabled": false
+  }
+}
+```
+
+with
+
+```json
+{
+  "$schema": "./node_modules/convex/schemas/convex.schema.json",
+  "aiFiles": {
+    "skills": {
+      "agents": ["codex"]
+    }
+  }
+}
+```
+
+run from `apps/website`
+
+```sh
+pnpx convex ai-files install
+```
