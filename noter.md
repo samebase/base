@@ -253,3 +253,7 @@ update `./apps/website/src/routes/index.tsx` to render a simple todo page with:
 
 also simplify `./apps/website/src/routes/__root.tsx` and
 `./apps/website/src/routes/about.tsx` so the starter routes stay plain
+
+## 12. Add onboarding instruction
+
+Update README.md
