@@ -6,9 +6,9 @@ export const Route = createFileRoute("/about")({
 
 function AboutPage() {
   return (
-    <main>
-      <h1>About</h1>
-      <p>This route exists to prove file-based routing works before we add more.</p>
+    <main className="mx-auto max-w-2xl p-4">
+      <h1 className="text-xl">About</h1>
+      <p>This route exists to show file-based routing with one more page.</p>
     </main>
   );
 }

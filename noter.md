@@ -216,3 +216,40 @@ update `./apps/website/src/style.css` to add this base rule:
 
 TODO: in the next history rewrite, move this into step 2 so editor defaults are
 tracked from the start
+
+11. add the todo example
+
+delete `./apps/website/convex/messages.ts`
+
+create `./apps/website/convex/schema.ts` with a `todos` table:
+
+- `text`
+- `done`
+- `createdAt`
+
+create `./apps/website/convex/todos.ts` with:
+
+- `list`
+- `create`
+- `toggle`
+
+from `./apps/website`
+
+```sh
+CONVEX_AGENT_MODE=anonymous pnpx convex dev --once
+```
+
+this updates the generated files:
+
+- `./apps/website/convex/_generated/api.d.ts`
+- `./apps/website/convex/_generated/dataModel.d.ts`
+
+update `./apps/website/src/routes/index.tsx` to render a simple todo page with:
+
+- `api.todos.list`
+- `api.todos.create`
+- `api.todos.toggle`
+- the shadcn `Button`, `Checkbox`, and `Input` primitives
+
+also simplify `./apps/website/src/routes/__root.tsx` and
+`./apps/website/src/routes/about.tsx` so the starter routes stay plain
