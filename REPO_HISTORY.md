@@ -215,3 +215,13 @@ update `./src/routes/__root.tsx` and `./src/routes/about.tsx` to match the
 slightly more polished app shell used by the todo example
 
 run `vp exec convex codegen` so `./convex/_generated/*` matches the new schema
+
+## 13. Add onboarding instruction
+
+create `./README.md` with a short onboarding guide for:
+
+- creating a repo from the template
+- cloning it locally
+- running `vp install`
+- running `vp run dev`
+- using Cloudflare Pages with build output `./dist`
