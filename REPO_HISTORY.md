@@ -51,3 +51,21 @@ vp run build
 ```
 
 the first `vp build` generates and lets us track `./src/routeTree.gen.ts`
+
+## 3. add Tailwind CSS
+
+```sh
+vp add tailwindcss @tailwindcss/vite
+```
+
+update `./vite.config.ts` to import `@tailwindcss/vite` and add `tailwindcss()`
+to the Vite plugin list while keeping the TanStack Router plugin before the
+React plugin
+
+create `./src/style.css` with
+
+```css
+@import "tailwindcss";
+```
+
+import `./style.css` from `./src/main.tsx`
