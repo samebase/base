@@ -89,3 +89,9 @@ this creates `./src/lib/utils.ts` with the `cn()` helper
 
 this updates `./src/style.css` with the shadcn Nova preset, font import, theme
 tokens, and base layer
+
+## 8. enforce Oxc formatting in VS Code
+
+update `./.vscode/settings.json` to add a language-scoped formatter override for
+the common web file types so format on save still uses `oxc.oxc-vscode` even if
+the user has conflicting formatter settings elsewhere

@@ -1,4 +1,8 @@
 {
+  // The user might have their own settins in user settings, but we need to enforce this
+  "[javascript][javascriptreact][typescript][typescriptreact][json][jsonc][yaml][toml][html][css][scss][less][markdown][mdx][graphql]": {
+    "editor.defaultFormatter": "oxc.oxc-vscode"
+  },
   "editor.defaultFormatter": "oxc.oxc-vscode",
   "oxc.fmt.configPath": "./vite.config.ts",
   "editor.formatOnSave": true,
