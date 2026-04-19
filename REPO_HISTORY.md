@@ -156,3 +156,48 @@ commit the generated:
 
 read that query from `./src/routes/index.tsx` so the app proves the Convex
 wiring works before adding the first real schema
+
+## 11. add Convex AI files
+
+replace
+
+```json
+{
+  "$schema": "./node_modules/convex/schemas/convex.schema.json",
+  "aiFiles": {
+    "enabled": false
+  }
+}
+```
+
+with
+
+```json
+{
+  "$schema": "./node_modules/convex/schemas/convex.schema.json",
+  "aiFiles": {
+    "skills": {
+      "agents": ["codex"]
+    }
+  }
+}
+```
+
+```sh
+vp exec convex ai-files install
+```
+
+this updates the Convex section in `./AGENTS.md`
+
+this creates `./CLAUDE.md`
+
+this creates:
+
+- `./convex/_generated/ai/ai-files.state.json`
+- `./convex/_generated/ai/guidelines.md`
+- `./skills-lock.json`
+
+this installs the Convex skills under `./.agents/skills/`
+
+also update `./vite.config.ts` so Vite+ formatting and linting ignore
+`./.agents/**`
