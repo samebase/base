@@ -76,3 +76,16 @@ update `./tsconfig.json` to add the `@/*` path alias
 
 update `./vite.config.ts` to add the `@` alias with
 `fileURLToPath(new URL("./src", import.meta.url))`
+
+## 7. initialize shadcn/ui
+
+```sh
+vp dlx shadcn@latest init --base radix --preset nova --yes
+```
+
+this creates `./components.json`
+
+this creates `./src/lib/utils.ts` with the `cn()` helper
+
+this updates `./src/style.css` with the shadcn Nova preset, font import, theme
+tokens, and base layer
