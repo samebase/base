@@ -95,3 +95,15 @@ tokens, and base layer
 update `./.vscode/settings.json` to add a language-scoped formatter override for
 the common web file types so format on save still uses `oxc.oxc-vscode` even if
 the user has conflicting formatter settings elsewhere
+
+## 9. add the shadcn primitives we need
+
+```sh
+vp dlx shadcn@latest add button checkbox input --yes
+```
+
+this creates:
+
+- `./src/components/ui/button.tsx`
+- `./src/components/ui/checkbox.tsx`
+- `./src/components/ui/input.tsx`
