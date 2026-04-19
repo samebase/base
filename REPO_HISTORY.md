@@ -69,3 +69,10 @@ create `./src/style.css` with
 ```
 
 import `./style.css` from `./src/main.tsx`
+
+## 6. add the @/\* import alias
+
+update `./tsconfig.json` to add the `@/*` path alias
+
+update `./vite.config.ts` to add the `@` alias with
+`fileURLToPath(new URL("./src", import.meta.url))`
