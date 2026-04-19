@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vp dev",
+    "dev": "vp exec convex dev --start \"vp run dev:frontend\"",
+    "dev:anon": "CONVEX_AGENT_MODE=anonymous vp run dev",
+    "dev:frontend": "vp dev",
     "build": "tsc && vp build",
     "preview": "vp preview",
     "prepare": "vp config"
@@ -15,6 +17,7 @@
     "@tanstack/react-router": "^1.168.23",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "convex": "^1.35.1",
     "lucide-react": "^1.8.0",
     "radix-ui": "^1.4.3",
     "react": "^19.2.5",

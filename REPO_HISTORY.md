@@ -107,3 +107,52 @@ this creates:
 - `./src/components/ui/button.tsx`
 - `./src/components/ui/checkbox.tsx`
 - `./src/components/ui/input.tsx`
+
+## 10. add Convex
+
+```sh
+vp add convex@^1.35.1
+```
+
+create `./convex.json` with
+
+```json
+{
+  "$schema": "./node_modules/convex/schemas/convex.schema.json",
+  "aiFiles": {
+    "enabled": false
+  }
+}
+```
+
+```sh
+CONVEX_AGENT_MODE=anonymous vp exec convex dev --once
+```
+
+change `./package.json` scripts to
+
+```json
+    "dev": "vp exec convex dev --start \"vp run dev:frontend\"",
+    "dev:anon": "CONVEX_AGENT_MODE=anonymous vp run dev",
+    "dev:frontend": "vp dev",
+```
+
+wrap `RouterProvider` in `ConvexProvider` in `./src/main.tsx` and create the
+`ConvexReactClient` with `import.meta.env.VITE_CONVEX_URL`
+
+create `./convex/messages.ts` with a tiny `getWelcomeMessage` query
+
+run the anonymous bootstrap again so `./convex/_generated` includes the new
+`messages` function
+
+also update `./vite.config.ts` so Vite+ formatting and linting ignore
+`./convex/_generated/**`
+
+commit the generated:
+
+- `./convex/README.md`
+- `./convex/tsconfig.json`
+- `./convex/_generated/*`
+
+read that query from `./src/routes/index.tsx` so the app proves the Convex
+wiring works before adding the first real schema
