@@ -201,3 +201,17 @@ this installs the Convex skills under `./.agents/skills/`
 
 also update `./vite.config.ts` so Vite+ formatting and linting ignore
 `./.agents/**`
+
+## 12. add the todo example
+
+- remove `./convex/messages.ts`
+- create `./convex/schema.ts`
+- create `./convex/todos.ts`
+
+update `./src/routes/index.tsx` to replace the placeholder Convex welcome
+message with a small todo app wired to the generated shadcn primitives
+
+update `./src/routes/__root.tsx` and `./src/routes/about.tsx` to match the
+slightly more polished app shell used by the todo example
+
+run `vp exec convex codegen` so `./convex/_generated/*` matches the new schema
