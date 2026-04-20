@@ -6,5 +6,6 @@ export default defineSchema({
     text: v.string(),
     done: v.boolean(),
     createdAt: v.number(),
+    sortOrder: v.optional(v.number()),
   }).index("by_created_at", ["createdAt"]),
 });
