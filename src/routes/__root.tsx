@@ -1,24 +1,9 @@
-import { Link, Outlet, createRootRoute } from "@tanstack/react-router";
-import { Button } from "@/components/ui/button";
+import { Outlet, createRootRoute } from "@tanstack/react-router";
 
 export const Route = createRootRoute({
   component: RootComponent,
 });
 
 function RootComponent() {
-  return (
-    <>
-      <nav className="mx-auto flex w-full max-w-5xl px-4 pt-2">
-        <Button asChild variant="link">
-          <Link to="/" activeOptions={{ exact: true }}>
-            Home
-          </Link>
-        </Button>
-        <Button asChild variant="link">
-          <Link to="/about">About</Link>
-        </Button>
-      </nav>
-      <Outlet />
-    </>
-  );
+  return <Outlet />;
 }
