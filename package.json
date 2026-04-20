@@ -8,6 +8,9 @@
     "dev:anon": "CONVEX_AGENT_MODE=anonymous vp run dev",
     "dev:frontend": "vp dev",
     "build": "tsc && vp build",
+    "build:cloudflare": "if [ -n \"$CF_PAGES_BRANCH\" ] && [ \"$CF_PAGES_BRANCH\" != \"main\" ]; then vp run build:cloudflare:preview; else vp run build:cloudflare:production; fi",
+    "build:cloudflare:production": "vp exec convex deploy --cmd 'vp run build'",
+    "build:cloudflare:preview": "vp exec convex deploy --preview-create \"$CF_PAGES_BRANCH\" --cmd 'vp run build'",
     "preview": "vp preview",
     "prepare": "vp config"
   },
