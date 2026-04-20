@@ -8,7 +8,7 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <>
-      <nav className="mx-auto flex w-full max-w-2xl pt-2">
+      <nav className="mx-auto flex w-full max-w-5xl px-4 pt-2">
         <Button asChild variant="link">
           <Link to="/" activeOptions={{ exact: true }}>
             Home
