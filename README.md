@@ -21,6 +21,21 @@ It is designed to stay cheap, small, and easy to understand.
 
 Convex and the other local binaries are installed through the repo.
 
+## Codex web default
+
+In Codex web:
+
+- enable internet access so dependency install, Convex bootstrap, and deploy
+  tooling can work normally
+- if Codex asks for a manual setup script, use `vp install`
+- start the app with `vp run dev`
+
+That script defaults Convex to anonymous mode, so Codex can bootstrap and run
+the project without asking for an env key first.
+
+Use `vp run dev:auth` only when you intentionally want the logged-in Convex
+flow.
+
 ## Manual setup
 
 1. Create a new repo from the template:
@@ -28,7 +43,8 @@ Convex and the other local binaries are installed through the repo.
 2. Clone it locally with `gh repo clone <username>/<app_name>`.
 3. Run `vp install`.
 4. Run `vp run dev`.
-5. Follow the Convex prompts to create or link a project.
+5. Let Convex bootstrap in anonymous mode by default, or use `vp run dev:auth`
+   if you want the logged-in flow instead.
 6. Set up Cloudflare Pages for the repo.
 7. Use build command `vp run build`.
 8. Use output directory `dist`.

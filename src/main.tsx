@@ -6,7 +6,9 @@ import { routeTree } from "./routeTree.gen";
 
 const convexUrl = import.meta.env.VITE_CONVEX_URL;
 if (!convexUrl) {
-  throw new Error("Missing VITE_CONVEX_URL in environment");
+  throw new Error(
+    "Missing VITE_CONVEX_URL. Start the app with `vp run dev` to let Convex bootstrap anonymously by default, or set the variable explicitly.",
+  );
 }
 
 const convex = new ConvexReactClient(convexUrl);

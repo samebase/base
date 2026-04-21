@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vp exec convex dev --start \"vp run dev:frontend\"",
-    "dev:anon": "CONVEX_AGENT_MODE=anonymous vp run dev",
+    "dev": "CONVEX_AGENT_MODE=anonymous vp exec convex dev --start \"vp run dev:frontend\"",
+    "dev:anon": "vp run dev",
+    "dev:auth": "vp exec convex dev --start \"vp run dev:frontend\"",
     "dev:frontend": "vp dev",
     "build": "tsc && vp build",
     "build:cloudflare": "if [ -n \"$CF_PAGES_BRANCH\" ] && [ \"$CF_PAGES_BRANCH\" != \"main\" ]; then vp run build:cloudflare:preview; else vp run build:cloudflare:production; fi",
