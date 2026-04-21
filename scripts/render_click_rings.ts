@@ -163,16 +163,16 @@ async function main() {
   const finalHeight = videoInfo.height + pad * 2;
 
   const blackRingAlpha = buildRingAlphaExpr(localEvents, {
-    animationDuration: 0.22,
+    animationDuration: 0.18,
     startRadius: 12,
-    endRadius: 38,
+    endRadius: 34,
     thickness: 3.3,
     maxOpacity: 210,
   });
   const whiteRingAlpha = buildRingAlphaExpr(localEvents, {
-    animationDuration: 0.2,
+    animationDuration: 0.16,
     startRadius: 10,
-    endRadius: 34,
+    endRadius: 30,
     thickness: 2.1,
     maxOpacity: 255,
   });
@@ -182,7 +182,7 @@ async function main() {
     `color=c=black@0.0:s=${finalWidth}x${finalHeight}:d=${videoInfo.duration.toFixed(3)},format=rgba,geq=r='0':g='0':b='0':a='${blackRingAlpha}'[black_ring]`,
     `color=c=white@0.0:s=${finalWidth}x${finalHeight}:d=${videoInfo.duration.toFixed(3)},format=rgba,geq=r='255':g='255':b='255':a='${whiteRingAlpha}'[white_ring]`,
     `[base][black_ring]overlay=format=auto[tmp]`,
-    `[tmp][white_ring]overlay=format=auto[outv]`,
+    `[tmp][white_ring]overlay=format=auto,fps=30,format=yuv420p[outv]`,
   ].join(";\n");
 
   const filterScriptPath = path.join(
@@ -205,6 +205,10 @@ async function main() {
         "[outv]",
         "-c:v",
         "libx264",
+        "-pix_fmt",
+        "yuv420p",
+        "-profile:v",
+        "high",
         "-preset",
         "fast",
         "-crf",
