@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Tab Switch Demo One</title>
+    <style>
+      :root {
+        color-scheme: light;
+        font-family:
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          radial-gradient(circle at top left, rgba(255, 255, 255, 0.35), transparent 40%),
+          linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+        color: #111827;
+      }
+
+      .shell {
+        width: min(860px, calc(100vw - 48px));
+        margin: 0 auto;
+        padding: 20px 0 140px;
+      }
+
+      .header {
+        position: sticky;
+        top: 12px;
+        z-index: 20;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 18px;
+        margin-bottom: 18px;
+        padding: 14px 18px;
+        border-radius: 22px;
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.18);
+        backdrop-filter: blur(18px);
+      }
+
+      .eyebrow {
+        margin: 0 0 6px;
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #c2410c;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: clamp(1.9rem, 4.6vw, 2.8rem);
+        line-height: 0.95;
+      }
+
+      .header p {
+        margin: 6px 0 0;
+        max-width: 34ch;
+        font-size: 0.96rem;
+        color: #475569;
+      }
+
+      .scoreboard {
+        min-width: 228px;
+        padding: 14px 16px;
+        border-radius: 18px;
+        background: linear-gradient(180deg, rgba(255, 247, 237, 0.95), rgba(255, 255, 255, 0.95));
+        border: 1px solid rgba(251, 146, 60, 0.22);
+      }
+
+      .scoreboard strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #c2410c;
+      }
+
+      .scoreboard ul {
+        display: grid;
+        gap: 8px;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+      }
+
+      .scoreboard li {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.98rem;
+        color: #334155;
+      }
+
+      .scoreboard li::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: rgba(148, 163, 184, 0.55);
+        transition:
+          transform 180ms ease,
+          background 180ms ease;
+      }
+
+      .scoreboard li.done::before {
+        background: #16a34a;
+        transform: scale(1.15);
+      }
+
+      .topfold {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        align-items: stretch;
+        margin-bottom: 18px;
+      }
+
+      .card {
+        position: relative;
+        min-height: 168px;
+        padding: 18px;
+        border-radius: 26px;
+        background: rgba(255, 255, 255, 0.88);
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.16);
+        overflow: hidden;
+      }
+
+      .card h2,
+      .card h3 {
+        margin: 0 0 10px;
+      }
+
+      .card p {
+        margin: 0;
+        color: #475569;
+      }
+
+      button.action-button {
+        width: 100%;
+        min-height: 132px;
+        border: 0;
+        border-radius: 24px;
+        background: linear-gradient(135deg, #fb7185, #f97316);
+        color: white;
+        cursor: pointer;
+        transition:
+          transform 180ms ease,
+          box-shadow 180ms ease;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      }
+
+      button.action-button.active {
+        transform: translateY(-3px);
+        box-shadow: 0 16px 30px rgba(251, 113, 133, 0.35);
+      }
+
+      button.action-button strong {
+        display: block;
+        margin-bottom: 10px;
+        font-size: 1.55rem;
+      }
+
+      .double-target {
+        display: grid;
+        place-items: center;
+        min-height: 132px;
+        border-radius: 24px;
+        background: linear-gradient(160deg, #fff7ed, #ffedd5);
+        border: 3px dashed rgba(234, 88, 12, 0.35);
+        user-select: none;
+        transition:
+          transform 180ms ease,
+          border-color 180ms ease,
+          background 180ms ease;
+      }
+
+      .double-target.active {
+        transform: scale(1.02);
+        border-color: rgba(37, 99, 235, 0.45);
+        background: linear-gradient(160deg, #dbeafe, #eff6ff);
+      }
+
+      .double-target strong {
+        display: block;
+        margin-bottom: 6px;
+        font-size: 1.55rem;
+      }
+
+      .drag-card {
+        padding: 18px;
+        border-radius: 26px;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.16);
+      }
+
+      .drag-topline {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 7px 10px;
+        border-radius: 999px;
+        background: rgba(14, 165, 233, 0.12);
+        color: #0369a1;
+        font-weight: 700;
+      }
+
+      .drag-track {
+        position: relative;
+        height: 68px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #fdba74, #f97316 35%, #0ea5e9 100%);
+        overflow: hidden;
+      }
+
+      .drag-track::after {
+        content: "Drag me across";
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        font-size: 1.02rem;
+        font-weight: 800;
+        color: rgba(255, 255, 255, 0.88);
+        letter-spacing: 0.02em;
+        pointer-events: none;
+      }
+
+      .drag-knob {
+        position: absolute;
+        top: 9px;
+        left: 12px;
+        width: 116px;
+        height: 50px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.92);
+        box-shadow: 0 18px 34px rgba(15, 23, 42, 0.18);
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 1.05rem;
+        color: #0f172a;
+        user-select: none;
+      }
+
+      .drag-readout {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        margin-top: 10px;
+        font-size: 0.92rem;
+        color: #475569;
+      }
+
+      .scroll-section {
+        position: relative;
+        padding-top: 10px;
+      }
+
+      .scroll-meter {
+        position: sticky;
+        top: 134px;
+        margin-left: auto;
+        width: min(250px, 100%);
+        padding: 16px 18px;
+        border-radius: 20px;
+        background: rgba(15, 23, 42, 0.82);
+        color: white;
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.22);
+      }
+
+      .scroll-meter strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 0.9rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: #fdba74;
+      }
+
+      .progress-bar {
+        height: 12px;
+        margin: 12px 0 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.14);
+        overflow: hidden;
+      }
+
+      .progress-bar span {
+        display: block;
+        height: 100%;
+        width: 0%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #fb7185, #f59e0b);
+        transition: width 120ms linear;
+      }
+
+      .story {
+        display: grid;
+        gap: 18px;
+        margin-top: 26px;
+      }
+
+      .story-card {
+        padding: 22px;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.86);
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.13);
+      }
+
+      .story-card strong {
+        display: block;
+        margin-bottom: 8px;
+        font-size: 1.28rem;
+      }
+
+      .story-card p {
+        margin: 0;
+        color: #475569;
+      }
+
+      .story-card.highlight {
+        min-height: 280px;
+        display: grid;
+        align-content: center;
+        text-align: center;
+        background:
+          radial-gradient(circle at top left, rgba(255, 255, 255, 0.25), transparent 40%),
+          linear-gradient(135deg, #fff7ed 0%, rgba(255, 237, 213, 0.85) 100%);
+      }
+
+      .story-card.highlight strong {
+        font-size: clamp(2rem, 4.5vw, 3.2rem);
+        color: #c2410c;
+      }
+
+      @media (max-width: 760px) {
+        .header {
+          position: static;
+          flex-direction: column;
+          align-items: stretch;
+        }
+
+        .topfold {
+          grid-template-columns: 1fr;
+        }
+
+        .scroll-meter {
+          position: static;
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shell">
+      <section class="header">
+        <div>
+          <p class="eyebrow">Tab One</p>
+          <h1>Mouse Demo Lab</h1>
+          <p>
+            Watch the cursor perform a left click, a double click, a drag, a scroll, and then a tab
+            switch.
+          </p>
+        </div>
+        <aside class="scoreboard">
+          <strong>Interaction Feed</strong>
+          <ul>
+            <li id="feed-click">Primary click armed</li>
+            <li id="feed-double">Double click pending</li>
+            <li id="feed-drag">Drag meter at 0%</li>
+            <li id="feed-scroll">Scroll checkpoint waiting</li>
+          </ul>
+        </aside>
+      </section>
+
+      <section class="topfold">
+        <article class="card">
+          <button class="action-button" id="click-target" type="button">
+            <strong id="click-count">Primary Click</strong>
+            <span id="click-message">The first left click will light this tile up.</span>
+          </button>
+        </article>
+
+        <article class="card">
+          <div class="double-target" id="double-target">
+            <div>
+              <strong id="double-label">Double Click</strong>
+              <p id="double-message">This tile flips when the cursor double-clicks it.</p>
+            </div>
+          </div>
+        </article>
+
+        <section class="drag-card">
+          <div class="drag-topline">
+            <div>
+              <h2>Drag Demo</h2>
+              <p>Dragging updates the capsule and progress state in place.</p>
+            </div>
+            <span class="pill" id="drag-percent">0%</span>
+          </div>
+          <div class="drag-track" id="drag-track">
+            <div class="drag-knob" id="drag-knob">Hold + Drag</div>
+          </div>
+          <div class="drag-readout">
+            <span id="drag-status">Waiting for the drag gesture.</span>
+            <span id="drag-detail">Left edge</span>
+          </div>
+        </section>
+      </section>
+
+      <section class="scroll-section">
+        <aside class="scroll-meter">
+          <strong>Scroll Monitor</strong>
+          <div id="scroll-message">Scroll the page to wake up the lower sections.</div>
+          <div class="progress-bar"><span id="scroll-fill"></span></div>
+          <div id="scroll-percent">0%</div>
+        </aside>
+
+        <div class="story">
+          <article class="story-card">
+            <strong>Step 1</strong>
+            <p>The cursor starts with a plain left click on the hot card.</p>
+          </article>
+          <article class="story-card">
+            <strong>Step 2</strong>
+            <p>
+              Then it double-clicks the second tile to prove the event is different from a normal
+              click.
+            </p>
+          </article>
+          <article class="story-card">
+            <strong>Step 3</strong>
+            <p>After that, the drag handle slides across the gradient track.</p>
+          </article>
+          <article class="story-card highlight" id="scroll-checkpoint">
+            <div>
+              <strong>Scroll Checkpoint</strong>
+              <p>
+                Once this card moves into view, the scroll behavior is obvious in the recording.
+              </p>
+            </div>
+          </article>
+          <article class="story-card">
+            <strong>Final move</strong>
+            <p>
+              The cursor goes back to the tab strip so you can still see a real tab-to-tab jump
+              before the right click demo.
+            </p>
+          </article>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const clickTarget = document.getElementById("click-target");
+      const clickCount = document.getElementById("click-count");
+      const clickMessage = document.getElementById("click-message");
+      const doubleTarget = document.getElementById("double-target");
+      const doubleLabel = document.getElementById("double-label");
+      const doubleMessage = document.getElementById("double-message");
+      const dragTrack = document.getElementById("drag-track");
+      const dragKnob = document.getElementById("drag-knob");
+      const dragPercent = document.getElementById("drag-percent");
+      const dragStatus = document.getElementById("drag-status");
+      const dragDetail = document.getElementById("drag-detail");
+      const scrollFill = document.getElementById("scroll-fill");
+      const scrollMessage = document.getElementById("scroll-message");
+      const scrollPercent = document.getElementById("scroll-percent");
+      const scrollCheckpoint = document.getElementById("scroll-checkpoint");
+      const feedClick = document.getElementById("feed-click");
+      const feedDouble = document.getElementById("feed-double");
+      const feedDrag = document.getElementById("feed-drag");
+      const feedScroll = document.getElementById("feed-scroll");
+
+      let clicks = 0;
+      let dragProgress = 0;
+      let dragging = false;
+
+      function markDone(target, text) {
+        target.classList.add("done");
+        target.textContent = text;
+      }
+
+      clickTarget.addEventListener("click", () => {
+        clicks += 1;
+        clickTarget.classList.add("active");
+        clickCount.textContent = `Primary Click x${clicks}`;
+        clickMessage.textContent = "Left click confirmed with a bold visual state change.";
+        markDone(feedClick, "Primary click complete");
+      });
+
+      doubleTarget.addEventListener("dblclick", () => {
+        doubleTarget.classList.add("active");
+        doubleLabel.textContent = "Double Clicked";
+        doubleMessage.textContent = "A double click toggled this tile into its blue state.";
+        markDone(feedDouble, "Double click complete");
+      });
+
+      function updateDrag(clientX) {
+        const rect = dragTrack.getBoundingClientRect();
+        const knobWidth = dragKnob.getBoundingClientRect().width;
+        const maxLeft = rect.width - knobWidth - 12;
+        const raw = clientX - rect.left - knobWidth / 2;
+        const nextLeft = Math.min(Math.max(raw, 12), maxLeft);
+        dragKnob.style.left = `${nextLeft}px`;
+
+        dragProgress = Math.round(((nextLeft - 12) / (maxLeft - 12)) * 100);
+        dragPercent.textContent = `${dragProgress}%`;
+        dragStatus.textContent =
+          dragProgress > 72 ? "Drag crossed the success threshold." : "Dragging in progress...";
+        dragDetail.textContent = dragProgress > 72 ? "Right side reached" : "Still sliding";
+        feedDrag.textContent = `Drag meter at ${dragProgress}%`;
+
+        if (dragProgress > 72) {
+          feedDrag.classList.add("done");
+        }
+      }
+
+      dragKnob.addEventListener("mousedown", (event) => {
+        dragging = true;
+        dragStatus.textContent = "Mouse down captured. Dragging now.";
+        updateDrag(event.clientX);
+      });
+
+      window.addEventListener("mousemove", (event) => {
+        if (!dragging) return;
+        updateDrag(event.clientX);
+      });
+
+      window.addEventListener("mouseup", () => {
+        if (!dragging) return;
+        dragging = false;
+        dragStatus.textContent =
+          dragProgress > 72 ? "Drag finished successfully." : "Drag released before the target.";
+      });
+
+      function updateScroll() {
+        const maxScroll = document.documentElement.scrollHeight - window.innerHeight;
+        const ratio = maxScroll > 0 ? Math.min(Math.max(window.scrollY / maxScroll, 0), 1) : 0;
+        const percent = Math.round(ratio * 100);
+        scrollFill.style.width = `${percent}%`;
+        scrollPercent.textContent = `${percent}%`;
+
+        const checkpointRect = scrollCheckpoint.getBoundingClientRect();
+        const visible = checkpointRect.top < window.innerHeight * 0.75;
+
+        if (visible) {
+          scrollMessage.textContent = "Scroll checkpoint reached. The page clearly moved.";
+          markDone(feedScroll, "Scroll checkpoint reached");
+        } else {
+          scrollMessage.textContent = "Scroll the page to wake up the lower sections.";
+        }
+      }
+
+      window.addEventListener("scroll", updateScroll, { passive: true });
+      window.addEventListener("load", updateScroll);
+    </script>
+  </body>
+</html>

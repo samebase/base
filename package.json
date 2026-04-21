@@ -32,9 +32,11 @@
   },
   "devDependencies": {
     "@tanstack/router-plugin": "^1.167.22",
+    "@types/node": "^24.7.2",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
+    "playwright-core": "^1.59.1",
     "typescript": "~6.0.2",
     "vite": "npm:@voidzero-dev/vite-plus-core@latest",
     "vite-plus": "latest"
