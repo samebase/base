@@ -28,6 +28,7 @@ struct RecorderOptions {
     let bundleID: String
     let titleSubstring: String
     let outputPath: String
+    let startedFile: String?
     let duration: TimeInterval
     let fps: Int32
     let cursorVisible: Bool
@@ -63,6 +64,7 @@ struct RecorderOptions {
             throw RecorderError.invalidArguments("Missing required --output")
         }
 
+        let startedFile = values["started-file"]
         let duration = TimeInterval(values["duration"] ?? "4") ?? 4
         let fps = Int32(values["fps"] ?? "30") ?? 30
         let cursorVisible = (values["cursor"] ?? "true") == "true"
@@ -71,6 +73,7 @@ struct RecorderOptions {
         self.bundleID = bundleID
         self.titleSubstring = titleSubstring
         self.outputPath = outputPath
+        self.startedFile = startedFile
         self.duration = duration
         self.fps = fps
         self.cursorVisible = cursorVisible
@@ -143,6 +146,13 @@ final class ChromeWindowRecorder {
         try stream.addRecordingOutput(recordingOutput)
 
         try await stream.startCapture()
+        if let startedFile = options.startedFile {
+            try "started\n".write(
+                to: URL(fileURLWithPath: startedFile),
+                atomically: true,
+                encoding: .utf8
+            )
+        }
         try await Task.sleep(for: .seconds(0.8))
         try await Task.sleep(for: .seconds(options.duration))
         do {

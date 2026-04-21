@@ -10,6 +10,8 @@ RAW_OUTPUT="$TMP_DIR/chrome-landing-tabs-demo.raw.mp4"
 OUTPUT_PATH="$TMP_DIR/chrome-landing-tabs-demo.mp4"
 READY_FILE="$TMP_DIR/chrome-landing-ready.txt"
 COORDS_FILE="$TMP_DIR/chrome-landing-coords.json"
+RECORDER_STARTED_FILE="$TMP_DIR/chrome-landing-recorder-started.txt"
+CLICK_EVENTS_FILE="$TMP_DIR/chrome-landing-click-events.json"
 
 GITHUB_URL="https://github.com/"
 CONVEX_URL="https://www.convex.dev/"
@@ -19,6 +21,7 @@ CODEX_URL="https://openai.com/codex"
 mkdir -p "$TMP_DIR"
 PROFILE_DIR="$(mktemp -d "$TMP_DIR/chrome-profile.XXXXXX")"
 rm -f "$RAW_OUTPUT" "$OUTPUT_PATH" "$READY_FILE" "$COORDS_FILE"
+rm -f "$RECORDER_STARTED_FILE" "$CLICK_EVENTS_FILE"
 
 swiftc \
   -parse-as-library \
@@ -39,7 +42,7 @@ swiftc \
 cleanup() {
   pkill -f "Google Chrome.*$PROFILE_DIR" >/dev/null 2>&1 || true
   rm -rf "$PROFILE_DIR"
-  rm -f "$READY_FILE" "$COORDS_FILE"
+  rm -f "$READY_FILE" "$COORDS_FILE" "$RECORDER_STARTED_FILE"
 }
 
 trap cleanup EXIT
@@ -107,15 +110,29 @@ WINDOW_FRAME="$(
   --bundle-id com.google.Chrome \
   --title-substring "GitHub" \
   --output "$RAW_OUTPUT" \
+  --started-file "$RECORDER_STARTED_FILE" \
   --duration 13 \
   --fps 30 \
   --cursor true \
-  --click-highlights true &
+  --click-highlights false &
 RECORDER_PID=$!
 
-sleep 0.7
+for _ in $(seq 1 160); do
+  if [[ -f "$RECORDER_STARTED_FILE" ]]; then
+    break
+  fi
+  sleep 0.05
+done
+
+if [[ ! -f "$RECORDER_STARTED_FILE" ]]; then
+  wait "$RECORDER_PID"
+  echo "Chrome landing recorder did not start in time." >&2
+  exit 1
+fi
+
 "$MOUSE_BIN" \
   --actions "$DEMO_ACTIONS" \
+  --event-log "$CLICK_EVENTS_FILE" \
   --move-duration 0.6 \
   --pause-before-click 0.08 \
   --pause-after-click 0.36 \
@@ -127,14 +144,12 @@ sleep 0.7
 wait "$RECORDER_PID"
 wait "$DEMO_PID"
 
-ffmpeg -hide_banner -y \
-  -i "$RAW_OUTPUT" \
-  -vf "pad=iw+96:ih+96:48:48:color=0xF3F4F6" \
-  -c:v libx264 \
-  -preset fast \
-  -crf 18 \
-  -movflags +faststart \
-  "$OUTPUT_PATH" >/dev/null 2>&1
+node --experimental-strip-types "$ROOT_DIR/scripts/render_click_rings.ts" \
+  --input "$RAW_OUTPUT" \
+  --output "$OUTPUT_PATH" \
+  --events "$CLICK_EVENTS_FILE" \
+  --window-frame "$WINDOW_FRAME" \
+  --pad 48
 
 ffprobe -hide_banner "$OUTPUT_PATH" 2>&1 | sed -n '1,120p'
 printf '\nSaved padded landing demo to %s\n' "$OUTPUT_PATH"

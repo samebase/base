@@ -11,12 +11,14 @@ TAB_ONE_URL="file://$ROOT_DIR/demo-assets/tab-one.html"
 TAB_TWO_URL="file://$ROOT_DIR/demo-assets/tab-two.html"
 READY_FILE="$TMP_DIR/chrome-ready.txt"
 COORDS_FILE="$TMP_DIR/demo-coords.json"
+RECORDER_STARTED_FILE="$TMP_DIR/chrome-tab-recorder-started.txt"
 
 mkdir -p "$TMP_DIR"
 PROFILE_DIR="$(mktemp -d "$TMP_DIR/chrome-profile.XXXXXX")"
 rm -f "$OUTPUT_PATH"
 rm -f "$READY_FILE"
 rm -f "$COORDS_FILE"
+rm -f "$RECORDER_STARTED_FILE"
 
 swiftc \
   -parse-as-library \
@@ -39,6 +41,7 @@ cleanup() {
   rm -rf "$PROFILE_DIR"
   rm -f "$READY_FILE"
   rm -f "$COORDS_FILE"
+  rm -f "$RECORDER_STARTED_FILE"
 }
 
 trap cleanup EXIT
@@ -99,13 +102,26 @@ WINDOW_FRAME="$(
   --bundle-id com.google.Chrome \
   --title-substring "Tab Switch Demo One" \
   --output "$OUTPUT_PATH" \
+  --started-file "$RECORDER_STARTED_FILE" \
   --duration 11 \
   --fps 30 \
   --cursor true \
   --click-highlights true &
 RECORDER_PID=$!
 
-sleep 0.7
+for _ in $(seq 1 160); do
+  if [[ -f "$RECORDER_STARTED_FILE" ]]; then
+    break
+  fi
+  sleep 0.05
+done
+
+if [[ ! -f "$RECORDER_STARTED_FILE" ]]; then
+  wait "$RECORDER_PID"
+  echo "Chrome tab recorder did not start in time." >&2
+  exit 1
+fi
+
 "$MOUSE_BIN" \
   --actions "$DEMO_ACTIONS" \
   --move-duration 0.75 \

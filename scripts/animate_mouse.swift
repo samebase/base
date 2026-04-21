@@ -43,6 +43,7 @@ struct MouseAnimationOptions {
     let requireFrontmostBundle: String?
     let requireWindowOwner: String?
     let requireWindowFrame: CGRect?
+    let eventLogPath: String?
 
     init(arguments: [String]) throws {
         var values: [String: String] = [:]
@@ -87,6 +88,7 @@ struct MouseAnimationOptions {
         self.requireFrontmostBundle = values["require-frontmost-bundle"]
         self.requireWindowOwner = values["require-window-owner"]
         self.requireWindowFrame = try Self.parseRect(values["require-window-frame"])
+        self.eventLogPath = values["event-log"]
     }
 
     private static func parseActions(_ rawActions: String) throws -> [MouseAction] {
@@ -195,6 +197,45 @@ struct MouseAnimationOptions {
         }
 
         return CGRect(x: x, y: y, width: width, height: height)
+    }
+}
+
+struct ClickEvent: Encodable {
+    let time: Double
+    let x: Int
+    let y: Int
+}
+
+final class ClickEventLogger {
+    private let outputURL: URL
+    private let startTime: TimeInterval
+    private var events: [ClickEvent] = []
+
+    init?(path: String?) {
+        guard let path else {
+            return nil
+        }
+
+        self.outputURL = URL(fileURLWithPath: path)
+        self.startTime = ProcessInfo.processInfo.systemUptime
+    }
+
+    func recordClick(at point: CGPoint) {
+        let timestamp = ProcessInfo.processInfo.systemUptime - startTime
+        events.append(
+            ClickEvent(
+                time: (timestamp * 1000).rounded() / 1000,
+                x: Int(point.x.rounded()),
+                y: Int(point.y.rounded())
+            )
+        )
+    }
+
+    func flush() throws {
+        let directory = outputURL.deletingLastPathComponent()
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let payload = try JSONEncoder().encode(events)
+        try payload.write(to: outputURL)
     }
 }
 
@@ -483,6 +524,7 @@ enum MouseAnimationCLI {
         do {
             let options = try MouseAnimationOptions(arguments: Array(CommandLine.arguments.dropFirst()))
             var currentPoint = currentMouseLocation()
+            let clickLogger = ClickEventLogger(path: options.eventLogPath)
             let validateSafety = {
                 try verifyFrontmostBundle(options.requireFrontmostBundle)
                 _ = try verifyWindowFrame(
@@ -528,6 +570,7 @@ enum MouseAnimationCLI {
                         expectedFrame: options.requireWindowFrame
                     )
                     click(at: point)
+                    clickLogger?.recordClick(at: point)
                     sleepSeconds(options.pauseAfterClick)
                     currentPoint = point
                 case .doubleClick(let point):
@@ -550,7 +593,11 @@ enum MouseAnimationCLI {
                         insideWindowOwner: options.requireWindowOwner,
                         expectedFrame: options.requireWindowFrame
                     )
-                    doubleClick(at: point, interval: options.doubleClickInterval)
+                    click(at: point, button: .left, clickCount: 1)
+                    clickLogger?.recordClick(at: point)
+                    sleepSeconds(options.doubleClickInterval)
+                    click(at: point, button: .left, clickCount: 2)
+                    clickLogger?.recordClick(at: point)
                     sleepSeconds(options.pauseAfterClick)
                     currentPoint = point
                 case .rightClick(let point):
@@ -676,6 +723,8 @@ enum MouseAnimationCLI {
                     sleepSeconds(duration)
                 }
             }
+
+            try clickLogger?.flush()
         } catch {
             fputs("animate_mouse.swift failed: \(error)\n", stderr)
             exit(1)
