@@ -72,38 +72,22 @@ DEMO_ACTIONS="$(
     const fs = require("node:fs");
     const coords = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
     const parts = [
-      `move:${coords.github.support.x},${coords.github.support.y}`,
-      "wait:0.35",
-      `move:${coords.github.focus.x},${coords.github.focus.y}`,
-      "wait:0.25",
-      "scroll:0,760",
-      "wait:0.35",
-      "scroll:0,-220",
-      "wait:1.05",
-      `move:${coords.convex.support.x},${coords.convex.support.y}`,
-      "wait:0.3",
-      `move:${coords.convex.focus.x},${coords.convex.focus.y}`,
-      "wait:0.25",
-      "scroll:0,780",
-      "wait:0.3",
-      "scroll:0,-220",
-      "wait:0.8",
-      `move:${coords.cloudflare.support.x},${coords.cloudflare.support.y}`,
-      "wait:0.3",
-      `move:${coords.cloudflare.focus.x},${coords.cloudflare.focus.y}`,
-      "wait:0.25",
-      "scroll:0,820",
-      "wait:0.3",
-      "scroll:0,-260",
-      "wait:0.8",
-      `move:${coords.codex.support.x},${coords.codex.support.y}`,
-      "wait:0.3",
-      `move:${coords.codex.focus.x},${coords.codex.focus.y}`,
-      "wait:0.25",
-      "scroll:0,720",
-      "wait:0.35",
-      "scroll:0,-220",
-      "wait:0.9",
+      `click:${coords.github.page.x},${coords.github.page.y}`,
+      "wait:0.45",
+      `click:${coords.tabs.convex.x},${coords.tabs.convex.y}`,
+      "wait:0.65",
+      `click:${coords.convex.page.x},${coords.convex.page.y}`,
+      "wait:0.45",
+      `click:${coords.tabs.cloudflare.x},${coords.tabs.cloudflare.y}`,
+      "wait:0.65",
+      `click:${coords.cloudflare.page.x},${coords.cloudflare.page.y}`,
+      "wait:0.45",
+      `click:${coords.tabs.codex.x},${coords.tabs.codex.y}`,
+      "wait:0.65",
+      `click:${coords.codex.page.x},${coords.codex.page.y}`,
+      "wait:0.45",
+      `click:${coords.tabs.github.x},${coords.tabs.github.y}`,
+      "wait:0.65",
     ];
     process.stdout.write(parts.join(";"));
   ' "$COORDS_FILE"
@@ -134,9 +118,9 @@ osascript -e 'tell application "Google Chrome" to activate'
 sleep 0.35
 "$MOUSE_BIN" \
   --actions "$DEMO_ACTIONS" \
-  --move-duration 0.55 \
+  --move-duration 0.6 \
   --pause-before-click 0.08 \
-  --pause-after-click 0.3 \
+  --pause-after-click 0.36 \
   --require-frontmost-bundle com.google.Chrome \
   --require-window-owner "Google Chrome" \
   --require-window-frame "$WINDOW_FRAME" \

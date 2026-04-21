@@ -16,8 +16,7 @@ type WindowFrame = {
 };
 
 type LandingPageCoords = {
-  focus: ScreenPoint;
-  support: ScreenPoint;
+  page: ScreenPoint;
 };
 
 type LandingCoords = {
@@ -25,6 +24,12 @@ type LandingCoords = {
   convex: LandingPageCoords;
   cloudflare: LandingPageCoords;
   codex: LandingPageCoords;
+  tabs: {
+    github: ScreenPoint;
+    convex: ScreenPoint;
+    cloudflare: ScreenPoint;
+    codex: ScreenPoint;
+  };
   windowFrame: WindowFrame;
 };
 
@@ -43,10 +48,6 @@ function parseArgs(argv: string[]): ParsedArgs {
   }
 
   return values;
-}
-
-function wait(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 const args = parseArgs(process.argv.slice(2));
@@ -96,7 +97,6 @@ try {
   await codexPage.goto(codexUrl, { waitUntil: "load" });
 
   async function measurePage(page: typeof githubPage) {
-    await page.bringToFront();
     await page.waitForLoadState("domcontentloaded");
 
     return page.evaluate(() => {
@@ -111,13 +111,9 @@ try {
       const innerHeight = window.innerHeight;
 
       return {
-        focus: toScreenPoint(
-          Math.min(Math.max(innerWidth * 0.58, 320), innerWidth - 180),
-          Math.min(Math.max(innerHeight * 0.38, 200), innerHeight - 150),
-        ),
-        support: toScreenPoint(
-          Math.min(Math.max(innerWidth * 0.74, 360), innerWidth - 120),
-          Math.min(Math.max(innerHeight * 0.28, 160), innerHeight - 180),
+        page: toScreenPoint(
+          Math.min(Math.max(innerWidth * 0.82, 540), innerWidth - 96),
+          Math.min(Math.max(innerHeight * 0.36, 210), innerHeight - 150),
         ),
         windowFrame: {
           x: Math.round(window.screenX),
@@ -133,24 +129,43 @@ try {
   const convexCoords = await measurePage(convexPage);
   const cloudflareCoords = await measurePage(cloudflarePage);
   const codexCoords = await measurePage(codexPage);
+  const tabCoords = await githubPage.evaluate(() => {
+    const chromeX = Math.max((window.outerWidth - window.innerWidth) / 2, 0);
+    const chromeY = Math.max(window.outerHeight - window.innerHeight - chromeX, 0);
+    const screenX = window.screenX;
+    const screenY = window.screenY;
+    const leftInset = Math.max(chromeX + 126, 164);
+    const rightInset = 176;
+    const availableWidth = Math.max(window.outerWidth - leftInset - rightInset, 560);
+    const tabWidth = availableWidth / 4;
+    const tabCenterY = Math.round(screenY + Math.max(Math.min(chromeY * 0.38, 28), 16));
+    const centerAt = (index: number): ScreenPoint => ({
+      x: Math.round(screenX + leftInset + tabWidth * (index + 0.5)),
+      y: tabCenterY,
+    });
+
+    return {
+      github: centerAt(0),
+      convex: centerAt(1),
+      cloudflare: centerAt(2),
+      codex: centerAt(3),
+    };
+  });
 
   const coords: LandingCoords = {
     github: {
-      focus: githubCoords.focus,
-      support: githubCoords.support,
+      page: githubCoords.page,
     },
     convex: {
-      focus: convexCoords.focus,
-      support: convexCoords.support,
+      page: convexCoords.page,
     },
     cloudflare: {
-      focus: cloudflareCoords.focus,
-      support: cloudflareCoords.support,
+      page: cloudflareCoords.page,
     },
     codex: {
-      focus: codexCoords.focus,
-      support: codexCoords.support,
+      page: codexCoords.page,
     },
+    tabs: tabCoords,
     windowFrame: githubCoords.windowFrame,
   };
 
@@ -158,14 +173,7 @@ try {
 
   await githubPage.bringToFront();
   await fs.writeFile(readyFile, "ready\n");
-
-  await wait(3200);
-  await convexPage.bringToFront();
-  await wait(3000);
-  await cloudflarePage.bringToFront();
-  await wait(3000);
-  await codexPage.bringToFront();
-  await wait(3400);
+  await githubPage.waitForTimeout(16_000);
 } finally {
   await context.close();
 }
