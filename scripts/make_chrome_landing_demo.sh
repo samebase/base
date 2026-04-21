@@ -114,8 +114,6 @@ WINDOW_FRAME="$(
 RECORDER_PID=$!
 
 sleep 0.7
-osascript -e 'tell application "Google Chrome" to activate'
-sleep 0.35
 "$MOUSE_BIN" \
   --actions "$DEMO_ACTIONS" \
   --move-duration 0.6 \
