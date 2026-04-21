@@ -85,6 +85,16 @@ DEMO_ACTIONS="$(
   ' "$COORDS_FILE"
 )"
 
+WINDOW_FRAME="$(
+  node -e '
+    const fs = require("node:fs");
+    const coords = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+    process.stdout.write(
+      `${coords.windowFrame.x},${coords.windowFrame.y},${coords.windowFrame.width},${coords.windowFrame.height}`,
+    );
+  ' "$COORDS_FILE"
+)"
+
 "$RECORDER_BIN" \
   --bundle-id com.google.Chrome \
   --title-substring "Tab Switch Demo One" \
@@ -106,6 +116,7 @@ sleep 0.35
   --pause-after-click 0.65 \
   --require-frontmost-bundle com.google.Chrome \
   --require-window-owner "Google Chrome" \
+  --require-window-frame "$WINDOW_FRAME" \
   --scroll-step-pause 0.02
 
 wait "$RECORDER_PID"

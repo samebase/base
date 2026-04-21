@@ -42,6 +42,7 @@ struct MouseAnimationOptions {
     let scrollStepPause: TimeInterval
     let requireFrontmostBundle: String?
     let requireWindowOwner: String?
+    let requireWindowFrame: CGRect?
 
     init(arguments: [String]) throws {
         var values: [String: String] = [:]
@@ -85,6 +86,7 @@ struct MouseAnimationOptions {
         self.scrollStepPause = TimeInterval(values["scroll-step-pause"] ?? "0.015") ?? 0.015
         self.requireFrontmostBundle = values["require-frontmost-bundle"]
         self.requireWindowOwner = values["require-window-owner"]
+        self.requireWindowFrame = try Self.parseRect(values["require-window-frame"])
     }
 
     private static func parseActions(_ rawActions: String) throws -> [MouseAction] {
@@ -175,6 +177,25 @@ struct MouseAnimationOptions {
 
         return CGPoint(x: x, y: y)
     }
+
+    private static func parseRect(_ rawRect: String?) throws -> CGRect? {
+        guard let rawRect else {
+            return nil
+        }
+
+        let components = rawRect.split(separator: ",")
+        guard
+            components.count == 4,
+            let x = Double(components[0]),
+            let y = Double(components[1]),
+            let width = Double(components[2]),
+            let height = Double(components[3])
+        else {
+            throw MouseAnimationError.invalidArguments("Invalid rect: \(rawRect)")
+        }
+
+        return CGRect(x: x, y: y, width: width, height: height)
+    }
 }
 
 func currentMouseLocation() -> CGPoint {
@@ -234,9 +255,9 @@ func verifyFrontmostBundle(_ expectedBundle: String?) throws {
     }
 }
 
-func verifyPoint(_ point: CGPoint, insideWindowOwner ownerName: String?) throws {
+func verifyWindowFrame(ownerName: String?, expectedFrame: CGRect?) throws -> CGRect? {
     guard let ownerName else {
-        return
+        return nil
     }
 
     guard let frame = frontmostWindowFrame(ownerName: ownerName) else {
@@ -245,6 +266,42 @@ func verifyPoint(_ point: CGPoint, insideWindowOwner ownerName: String?) throws 
         )
     }
 
+    if let expectedFrame {
+        let tolerance: CGFloat = 8
+        let deltas = (
+            abs(frame.origin.x - expectedFrame.origin.x),
+            abs(frame.origin.y - expectedFrame.origin.y),
+            abs(frame.width - expectedFrame.width),
+            abs(frame.height - expectedFrame.height)
+        )
+
+        guard
+            deltas.0 <= tolerance,
+            deltas.1 <= tolerance,
+            deltas.2 <= tolerance,
+            deltas.3 <= tolerance
+        else {
+            throw MouseAnimationError.safetyCheckFailed(
+                "Aborted mouse automation because the visible \(ownerName) window frame \(NSStringFromRect(frame)) no longer matched the expected frame \(NSStringFromRect(expectedFrame))."
+            )
+        }
+    }
+
+    return frame
+}
+
+func verifyPoint(
+    _ point: CGPoint,
+    insideWindowOwner ownerName: String?,
+    expectedFrame: CGRect?
+) throws {
+    guard let ownerName else {
+        return
+    }
+
+    guard let frame = try verifyWindowFrame(ownerName: ownerName, expectedFrame: expectedFrame) else {
+        return
+    }
     let insetFrame = frame.insetBy(dx: 2, dy: 2)
     guard insetFrame.contains(point) else {
         throw MouseAnimationError.safetyCheckFailed(
@@ -253,18 +310,24 @@ func verifyPoint(_ point: CGPoint, insideWindowOwner ownerName: String?) throws 
     }
 }
 
-func verifyCurrentPointerInsideWindow(ownerName: String?) throws {
+func verifyCurrentPointerInsideWindow(ownerName: String?, expectedFrame: CGRect?) throws {
     guard let ownerName else {
         return
     }
 
-    try verifyPoint(currentMouseLocation(), insideWindowOwner: ownerName)
+    try verifyPoint(currentMouseLocation(), insideWindowOwner: ownerName, expectedFrame: expectedFrame)
 }
 
-func moveCursor(from start: CGPoint, to end: CGPoint, duration: TimeInterval) {
+func moveCursor(
+    from start: CGPoint,
+    to end: CGPoint,
+    duration: TimeInterval,
+    validator: (() throws -> Void)? = nil
+) throws {
     let steps = max(Int(duration * 120), 1)
 
     for step in 1...steps {
+        try validator?()
         let progress = Double(step) / Double(steps)
         let eased = 1 - pow(1 - progress, 3)
         let point = CGPoint(
@@ -354,10 +417,16 @@ func mouseUp(at point: CGPoint, button: CGMouseButton = .left, clickCount: Int64
     )?.post(tap: .cghidEventTap)
 }
 
-func dragCursor(from start: CGPoint, to end: CGPoint, duration: TimeInterval) {
+func dragCursor(
+    from start: CGPoint,
+    to end: CGPoint,
+    duration: TimeInterval,
+    validator: (() throws -> Void)? = nil
+) throws {
     let steps = max(Int(duration * 120), 1)
 
     for step in 1...steps {
+        try validator?()
         let progress = Double(step) / Double(steps)
         let eased = 1 - pow(1 - progress, 3)
         let point = CGPoint(
@@ -414,81 +483,193 @@ enum MouseAnimationCLI {
         do {
             let options = try MouseAnimationOptions(arguments: Array(CommandLine.arguments.dropFirst()))
             var currentPoint = currentMouseLocation()
+            let validateSafety = {
+                try verifyFrontmostBundle(options.requireFrontmostBundle)
+                _ = try verifyWindowFrame(
+                    ownerName: options.requireWindowOwner,
+                    expectedFrame: options.requireWindowFrame
+                )
+            }
 
             for action in options.actions {
                 switch action {
                 case .move(let point):
-                    moveCursor(from: currentPoint, to: point, duration: options.moveDuration)
+                    try validateSafety()
+                    try verifyPoint(
+                        point,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
+                    try moveCursor(
+                        from: currentPoint,
+                        to: point,
+                        duration: options.moveDuration,
+                        validator: validateSafety
+                    )
                     currentPoint = point
                 case .click(let point):
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(point, insideWindowOwner: options.requireWindowOwner)
-                    moveCursor(from: currentPoint, to: point, duration: options.moveDuration)
+                    try validateSafety()
+                    try verifyPoint(
+                        point,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
+                    try moveCursor(
+                        from: currentPoint,
+                        to: point,
+                        duration: options.moveDuration,
+                        validator: validateSafety
+                    )
                     sleepSeconds(options.pauseBeforeClick)
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(point, insideWindowOwner: options.requireWindowOwner)
+                    try validateSafety()
+                    try verifyPoint(
+                        point,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
                     click(at: point)
                     sleepSeconds(options.pauseAfterClick)
                     currentPoint = point
                 case .doubleClick(let point):
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(point, insideWindowOwner: options.requireWindowOwner)
-                    moveCursor(from: currentPoint, to: point, duration: options.moveDuration)
+                    try validateSafety()
+                    try verifyPoint(
+                        point,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
+                    try moveCursor(
+                        from: currentPoint,
+                        to: point,
+                        duration: options.moveDuration,
+                        validator: validateSafety
+                    )
                     sleepSeconds(options.pauseBeforeClick)
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(point, insideWindowOwner: options.requireWindowOwner)
+                    try validateSafety()
+                    try verifyPoint(
+                        point,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
                     doubleClick(at: point, interval: options.doubleClickInterval)
                     sleepSeconds(options.pauseAfterClick)
                     currentPoint = point
                 case .rightClick(let point):
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(point, insideWindowOwner: options.requireWindowOwner)
-                    moveCursor(from: currentPoint, to: point, duration: options.moveDuration)
+                    try validateSafety()
+                    try verifyPoint(
+                        point,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
+                    try moveCursor(
+                        from: currentPoint,
+                        to: point,
+                        duration: options.moveDuration,
+                        validator: validateSafety
+                    )
                     sleepSeconds(options.pauseBeforeClick)
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(point, insideWindowOwner: options.requireWindowOwner)
+                    try validateSafety()
+                    try verifyPoint(
+                        point,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
                     click(at: point, button: .right)
                     sleepSeconds(options.pauseAfterClick)
                     currentPoint = point
                 case .mouseDown(let point):
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(point, insideWindowOwner: options.requireWindowOwner)
-                    moveCursor(from: currentPoint, to: point, duration: options.moveDuration)
+                    try validateSafety()
+                    try verifyPoint(
+                        point,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
+                    try moveCursor(
+                        from: currentPoint,
+                        to: point,
+                        duration: options.moveDuration,
+                        validator: validateSafety
+                    )
                     sleepSeconds(options.pauseBeforeClick)
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(point, insideWindowOwner: options.requireWindowOwner)
+                    try validateSafety()
+                    try verifyPoint(
+                        point,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
                     mouseDown(at: point)
                     sleepSeconds(options.mouseDownPause)
                     currentPoint = point
                 case .mouseUp(let point):
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(point, insideWindowOwner: options.requireWindowOwner)
-                    moveCursor(from: currentPoint, to: point, duration: options.moveDuration)
+                    try validateSafety()
+                    try verifyPoint(
+                        point,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
+                    try moveCursor(
+                        from: currentPoint,
+                        to: point,
+                        duration: options.moveDuration,
+                        validator: validateSafety
+                    )
                     sleepSeconds(options.pauseBeforeClick)
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(point, insideWindowOwner: options.requireWindowOwner)
+                    try validateSafety()
+                    try verifyPoint(
+                        point,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
                     mouseUp(at: point)
                     sleepSeconds(options.pauseAfterClick)
                     currentPoint = point
                 case .drag(let start, let end):
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(start, insideWindowOwner: options.requireWindowOwner)
-                    try verifyPoint(end, insideWindowOwner: options.requireWindowOwner)
-                    moveCursor(from: currentPoint, to: start, duration: options.moveDuration)
+                    try validateSafety()
+                    try verifyPoint(
+                        start,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
+                    try verifyPoint(
+                        end,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
+                    try moveCursor(
+                        from: currentPoint,
+                        to: start,
+                        duration: options.moveDuration,
+                        validator: validateSafety
+                    )
                     sleepSeconds(options.pauseBeforeClick)
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(start, insideWindowOwner: options.requireWindowOwner)
+                    try validateSafety()
+                    try verifyPoint(
+                        start,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
                     mouseDown(at: start)
                     sleepSeconds(options.mouseDownPause)
-                    dragCursor(from: start, to: end, duration: options.dragDuration)
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyPoint(end, insideWindowOwner: options.requireWindowOwner)
+                    try dragCursor(
+                        from: start,
+                        to: end,
+                        duration: options.dragDuration,
+                        validator: validateSafety
+                    )
+                    try validateSafety()
+                    try verifyPoint(
+                        end,
+                        insideWindowOwner: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
                     mouseUp(at: end)
                     sleepSeconds(options.pauseAfterClick)
                     currentPoint = end
                 case .scroll(let deltaX, let deltaY):
-                    try verifyFrontmostBundle(options.requireFrontmostBundle)
-                    try verifyCurrentPointerInsideWindow(ownerName: options.requireWindowOwner)
+                    try validateSafety()
+                    try verifyCurrentPointerInsideWindow(
+                        ownerName: options.requireWindowOwner,
+                        expectedFrame: options.requireWindowFrame
+                    )
                     scroll(deltaX: deltaX, deltaY: deltaY, stepPause: options.scrollStepPause)
                     sleepSeconds(options.pauseAfterClick)
                 case .wait(let duration):
