@@ -28,13 +28,15 @@ Start with **a Google or an Apple** account on a **phone or desktop**
       GitHub by Microsoft is the place where engineers store their code.
 - [ ] **2: Create Convex using Github :** https://www.convex.dev/<br>
       <img src="./docs/logos/convex.svg" alt="Convex" height="32"><br>
-      Convex is the best database I have personally used. The simplicity of my stack proves how good it is.
+      Convex is the best database I have personally used. The simplicity of my stack proves how good it is. It also has its own Node server.
 - [ ] **3: Create CloudFlare using Github :** https://www.cloudflare.com/<br>
       <img src="./docs/logos/cloudflare.jpg" alt="Cloudflare" height="32"><br>
+      Your frontend code is deployed as static files.
       Ensures the safety of your app and users
 - [ ] **4: Create an OpenAI using Google/Apple :** https://openai.com/<br>
       <img src="./docs/logos/openai.svg" alt="OpenAI" height="32"><br>
       We'll rely on Codex Cloud to make changes to the code.
+      But i usually use Codex locally (there are later instructions for that)
 
 It's fine if you signed up differently, as long as you have these 4 accounts you can deploy an app.
 
