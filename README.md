@@ -21,21 +21,20 @@ Since you already have Cloudflare you can use Cloudflare Tunnels instead of grok
 
 ## 1: Create Github, Convex, Cloudflare & OpenAI accounts
 
-- https://github.com/<br>
-  <img src="./docs/logos/github.svg" alt="GitHub" height="36">
-- https://www.convex.dev/<br>
-  <img src="./docs/logos/convex.svg" alt="Convex" height="36">
-- https://www.cloudflare.com/<br>
-  <img src="./docs/logos/cloudflare.jpg" alt="Cloudflare" height="36">
-- https://openai.com/<br>
-  <img src="./docs/logos/openai.svg" alt="OpenAI" height="36">
-
 Start with **a Google or an Apple** account on a **phone or desktop**
 
-- [ ] **1: Create Github using Google/Apple :** GitHub by Microsoft is the place where engineers store their code.
-- [ ] **2: Create Convex using Github :** Convex is the best database I have personally used. The simplicity of my stack proves how good it is.
-- [ ] **3: Create CloudFlare using Github :** Ensures the safety of your app and users
-- [ ] **4: Create an OpenAI using Google/Apple :** We'll rely on Codex Cloud to make changes to the code.
+- [ ] **1: Create Github using Google/Apple :** https://github.com/<br>
+      <img src="./docs/logos/github.svg" alt="GitHub" height="32"><br>
+      GitHub by Microsoft is the place where engineers store their code.
+- [ ] **2: Create Convex using Github :** https://www.convex.dev/<br>
+      <img src="./docs/logos/convex.svg" alt="Convex" height="32"><br>
+      Convex is the best database I have personally used. The simplicity of my stack proves how good it is.
+- [ ] **3: Create CloudFlare using Github :** https://www.cloudflare.com/<br>
+      <img src="./docs/logos/cloudflare.jpg" alt="Cloudflare" height="32"><br>
+      Ensures the safety of your app and users
+- [ ] **4: Create an OpenAI using Google/Apple :** https://openai.com/<br>
+      <img src="./docs/logos/openai.svg" alt="OpenAI" height="32"><br>
+      We'll rely on Codex Cloud to make changes to the code.
 
 It's fine if you signed up differently, as long as you have these 4 accounts you can deploy an app.
 
