@@ -21,6 +21,40 @@ Since you already have Cloudflare you can use Cloudflare Tunnels instead of grok
 
 ## 1: Create Github, Convex, Cloudflare & OpenAI accounts
 
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="./docs/logos/github-lockup-white.svg">
+          <img src="./docs/logos/github-lockup-black.svg" alt="GitHub" height="40">
+        </picture>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://www.convex.dev/">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="./docs/logos/convex-wordmark-dark.svg">
+          <img src="./docs/logos/convex-wordmark-light.svg" alt="Convex" height="40">
+        </picture>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://www.cloudflare.com/">
+        <img src="./docs/logos/cloudflare-logo.jpg" alt="Cloudflare" height="40">
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://openai.com/">
+        <picture>
+          <source media="(prefers-color-scheme: dark)" srcset="./docs/logos/openai-wordmark-dark.svg">
+          <img src="./docs/logos/openai-wordmark-light.svg" alt="OpenAI" height="40">
+        </picture>
+      </a>
+    </td>
+  </tr>
+</table>
+
 Start with **a Google or an Apple** account on a **phone or desktop**
 
 - [ ] **1: Create Github using Google/Apple :** GitHub by Microsoft is the place where engineers store their code.
