@@ -88,6 +88,12 @@ It's not clear what the issue is, but very often, Cloudflare doesn't notice that
 
 Try opening Cloudflare Pages from a Desktop instead of Mobile, this usually helps.
 
+
+
+https://github.com/user-attachments/assets/d18ddb8e-7a5b-49bc-9b80-b8d00d6dd671
+
+
+
 <details>
 <summary>Connecting CloudFlare Pages to Github issues</summary>
 
