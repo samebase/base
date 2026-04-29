@@ -14,9 +14,6 @@ For the fastest Codex Cloud startup, add this environment setup script:
 curl -fsSL https://vite.plus | bash
 ```
 
-If that is not configured, the repo instructions in `AGENTS.md` tell Codex how
-to install Vite+ before running project commands.
-
 "notermd" organization name was choose with "-" because default Android keyboard makes it hard typing a "-".
 
 We need just 1 `CONVEX_DEPLOY_KEY` for **Production** and one for **Preview**,
