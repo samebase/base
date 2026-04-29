@@ -8,6 +8,15 @@
 The web-app is deployed Cloudflare Pages and uses Convex as database.
 Stack: Vite+, Tanstack Router, Tailwind, ShadCN (BaseUI)
 
+For the fastest Codex Cloud startup, add this environment setup script:
+
+```bash
+curl -fsSL https://vite.plus | bash
+```
+
+If that is not configured, the repo instructions in `AGENTS.md` tell Codex how
+to install Vite+ before running project commands.
+
 "notermd" organization name was choose with "-" because default Android keyboard makes it hard typing a "-".
 
 We need just 1 `CONVEX_DEPLOY_KEY` for **Production** and one for **Preview**,
@@ -88,11 +97,7 @@ It's not clear what the issue is, but very often, Cloudflare doesn't notice that
 
 Try opening Cloudflare Pages from a Desktop instead of Mobile, this usually helps.
 
-
-
 https://github.com/user-attachments/assets/d18ddb8e-7a5b-49bc-9b80-b8d00d6dd671
-
-
 
 <details>
 <summary>Connecting CloudFlare Pages to Github issues</summary>
