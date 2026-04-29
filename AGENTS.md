@@ -1,3 +1,24 @@
+## Vite+ Bootstrap
+
+If `vp` is not available, install Vite+ before running project commands.
+These are their official instructions:
+
+macOS / Linux:
+
+```bash
+curl -fsSL https://vite.plus | bash
+```
+
+Windows:
+
+```powershell
+irm https://vite.plus/ps1 | iex
+```
+
+After installing, open a new shell or source the shell config shown by the installer, then run `vp install`.
+
+In Codex Cloud, the fastest setup is to add the macOS / Linux install command as the environment setup script. If that is not configured, install Vite+ from this section before continuing.
+
 <!--VITE PLUS START-->
 
 # Using Vite+, the Unified Toolchain for the Web
