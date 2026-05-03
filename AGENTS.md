@@ -19,6 +19,14 @@ After installing, open a new shell or source the shell config shown by the insta
 
 In Codex Cloud, the fastest setup is to add the macOS / Linux install command as the environment setup script. If that is not configured, install Vite+ from this section before continuing.
 
+## Generated Content
+
+Be explicit about generated content. When an agent creates or substantially
+rewrites a generated file, script, or artifact, include a clear generated-content
+note in the file itself when the format supports comments. Prefer a first-line
+comment for source files, and include the generating model or workflow when it
+is known.
+
 <!--VITE PLUS START-->
 
 # Using Vite+, the Unified Toolchain for the Web
