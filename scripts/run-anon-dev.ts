@@ -1,4 +1,4 @@
-#!/usr/bin/env node
+// Generated with GPT-5.5 Extra High.
 /// <reference types="node" />
 import { spawn } from "node:child_process";
 import process from "node:process";
