@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/// <reference types="node" />
 import { spawn } from "node:child_process";
 import process from "node:process";
 

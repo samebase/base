@@ -136,7 +136,7 @@ Prefer `vp run anon` when Vite+ is installed because `vp run` is the project
 toolchain wrapper. `pnpm anon` is the package-manager shorthand and is useful
 when a tool already runs package scripts through PNPM.
 
-This repo's `anon` script is a Node launcher instead of
+This repo's `anon` script is a TypeScript launcher run by Node instead of
 `CONVEX_AGENT_MODE=anonymous ...` shell syntax, so the same command works on
 PowerShell, macOS, and Linux.
 
