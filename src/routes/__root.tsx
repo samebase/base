@@ -17,6 +17,9 @@ function RootComponent() {
         <Button asChild variant="link">
           <Link to="/about">About</Link>
         </Button>
+        <Button asChild variant="link">
+          <Link to="/localStorage">localStorage</Link>
+        </Button>
       </nav>
       <Outlet />
     </>
