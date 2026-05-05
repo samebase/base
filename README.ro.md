@@ -3,12 +3,10 @@
 Limbă: [English](README.md) | Română
 
 <details>
-<summary>
-## Pe scurt
-</summary>
+<summary>Pe scurt</summary>
 
 Aplicația web este publicată pe Cloudflare Pages și folosește Convex ca bază de date.
-Stack: Vite+, Tanstack Router, Tailwind, ShadCN (BaseUI)
+Stack: Vite+, TanStack Router, Tailwind, ShadCN (BaseUI)
 
 Pentru cel mai rapid startup în Codex Cloud, adaugă acest script de configurare a mediului:
 
@@ -18,12 +16,12 @@ curl -fsSL https://vite.plus | bash
 
 Numele organizației "notermd" a fost ales fără "-" deoarece tastatura Android implicită face dificilă tastarea unui "-".
 
-Avem nevoie doar de 1 `CONVEX_DEPLOY_KEY` pentru **Production** și unul pentru **Preview**,
-în felul acesta fiecare PR are propriul link și propria bază de date, diferite de bazele de date Production/Dev.
+Avem nevoie de un `CONVEX_DEPLOY_KEY` pentru **Production** și unul pentru **Preview**.
+În felul acesta fiecare PR are propriul link și propria bază de date, separată de bazele de date Production și Dev.
 
-Apoi folosim OpenAI Codex Cloud pentru a face modificări;
-dar poți folosi orice vrei, există instrucțiuni pentru rulare locală și în git worktrees deoarece Codex suportă asta de la început.
-Deoarece ai deja Cloudflare, poți folosi Cloudflare Tunnels în loc de grok ca să poți partaja chiar și un server care rulează pe mașina personală. Asta înseamnă că se poate extinde ușor ca să suporte un server extern care poate fi accesat prin expunerea unui singur port (putem expune Convex prin Vite, deci nu avem nevoie de 2 porturi).
+Apoi folosim OpenAI Codex Cloud pentru a face modificări.
+Dar poți folosi orice vrei; există și instrucțiuni pentru rulare locală și în git worktrees deoarece Codex suportă asta de la început.
+Deoarece ai deja Cloudflare, poți folosi Cloudflare Tunnels în loc de ngrok ca să poți partaja chiar și un server care rulează pe mașina personală. Asta înseamnă că se poate extinde ușor ca să suporte un server extern care poate fi accesat prin expunerea unui singur port (putem expune Convex prin Vite, deci nu avem nevoie de 2 porturi).
 
 </details>
 
@@ -118,7 +116,7 @@ Poți verifica toate aplicațiile GitHub instalate aici: https://github.com/sett
 Dacă apeși "Done", nu vei mai putea vedea deploy key-ul din nou, dar este în regulă, îl poți șterge și poți crea un deploy key nou.
 
 <details>
-<summary>### Ce sunt CONVEX_DEPLOY_KEY?</summary>
+<summary>Ce sunt valorile CONVEX_DEPLOY_KEY?</summary>
 
 Sunt un fel de parolă folosită între servere.
 În cazul nostru este folosită de Cloudflare ca să actualizeze baza de date la fiecare modificare.
@@ -154,39 +152,79 @@ https://github.com/user-attachments/assets/c57eb076-45c8-49f4-b232-eda605b3eace
 
 Orice modificare pe care o faci în branch-ul `main` din repo-ul tău GitHub va fi publicată automat.
 
-## 6: Conectează Codex la GitHub
+## 6: Schimbă aplicația cu Codex Cloud
 
-OpenAI Codex folosește aceeași metodă de conectare ca Cloudflare, deci poți întâlni unele probleme, dar trebuie să faci asta o singură dată.
+Codex Cloud folosește aceeași conectare prin GitHub App ca Cloudflare. Este mai
+clar decât să începi cu chei SSH, deoarece GitHub îți arată exact ce
+repository-uri poate accesa aplicația și o poți revoca mai târziu din setările
+GitHub.
 
-## 7: Obține un deployment separat pentru fiecare modificare
+- [ ] Deschide [Codex Cloud](https://chatgpt.com/codex)
+- [ ] Conectează repository-ul GitHub copiat de tine
+- [ ] Adaugă acest environment setup script ca să primească Vite+ înainte să ruleze comenzi în repo:
 
-Vedeai erori în Pull Requests deoarece Cloudflare publică un preview și acesta nu se poate conecta la baza ta de date de production.
-Ca să rezolvi asta, poți crea un "Preview Deploy Key" din Convex și să îl setezi în Cloudflare, în felul acesta fiecare Pull Request va avea propria bază de date.
+```bash
+curl -fsSL https://vite.plus | bash
+```
 
-- [ ]
+- [ ] Cere-i lui Codex o funcționalitate foarte mică, de exemplu:
 
-## 8: Ștergerea aplicației
+```text
+Add one small visible improvement to the home page. Keep it minimal, run the project checks, and open a pull request.
+```
 
-Ca să ștergi o aplicație publicată va trebui să
+La început, preview-ul Cloudflare poate eșua deoarece branch-urile de preview nu
+ar trebui să refolosească baza de date Convex de production. Repari asta o
+singură dată:
 
-- [ ] Ștergi aplicația Cloudflare Pages
-- [ ] Ștergi proiectul Convex
-- [ ] Ștergi repository-ul GitHub
+- [ ] În Convex, creează un al doilea deploy key pentru Preview
+- [ ] În Cloudflare Pages, adaugă `CONVEX_DEPLOY_KEY` pentru mediul Preview
+- [ ] Repornește deploy-ul Cloudflare care a eșuat pentru pull request
 
-## 9: Creează o aplicație dintr-un singur pas folosind noter.md
+După ce preview-ul PR-ului funcționează, fă merge. Apoi cere-i lui Codex să
+șteargă din nou funcționalitatea mică și să deschidă alt PR. Asta dovedește
+tot circuitul: creezi o schimbare, o previzualizezi, o publici și o elimini
+curat.
 
-noter.md se conectează o singură dată cu GitHub, Cloudflare și Convex,
-apoi îți permite să creezi o aplicație cu o singură apăsare de buton.
-Îți permite și să o ștergi complet la fel de ușor.
+## 7: Șterge aplicația pas cu pas
 
-Astfel aplicațiile devin de unică folosință, poți crea o aplicație și apoi crea un joc pe care să îl folosești într-o ieșire de seară cu prietenii
+Totul în acest setup este de unică folosință. Ca să elimini complet o aplicație:
 
-- SAU -
+- [ ] Șterge proiectul Cloudflare Pages
+- [ ] Șterge proiectul Convex
+- [ ] Șterge sau arhivează repository-ul GitHub
+- [ ] Revocă accesul GitHub App pentru Cloudflare sau Codex dacă nu mai vrei
+      acele servicii conectate la contul tău GitHub
 
-poți decide să continui să o menții și să îți bazezi afacerea pe ea deoarece este
+## 8: Fă asta mai repede cu noter.md
 
-### De ce este noter.md gratuit?
+Fluxul manual de mai sus este util deoarece înveți ce se întâmplă. Scopul
+`noter.md` este să conectezi GitHub, Cloudflare și Convex o singură dată, apoi
+să creezi sau să ștergi o aplicație dintr-o singură acțiune.
 
-Am deja această funcționalitate și mult mai mult pentru propriile mele aplicații, nu mă costă mult să o împărtășesc cu toată lumea.
-Dacă vrei mai multe lucruri, cum ar fi editarea fișierelor din mers, monitorizarea mai multor aplicații sau a mai multor branch-uri ale aceleiași aplicații, atunci
-începe să mă coste mai mult, deci asta nu este lansat încă.
+Asta face aplicațiile de unică folosință: creezi un joc de weekend, îl trimiți
+prietenilor, îl ștergi mai târziu sau îl păstrezi și îl transformi într-un
+produs real. Lucrul din `~/dev/my/noter` merge spre a face deploy-ul,
+preview-ul, agenții locali și cleanup-ul să pară un singur produs, nu mai multe
+dashboard-uri.
+
+## 9: Folosește aplicația local de pe mașina ta
+
+Setup-ul local este cel mai bun când vrei ca un agent precum Codex, Conductor,
+T3Code sau alt tool de coding să lucreze direct pe mașina ta. Începe prin a
+întreba Codex:
+
+```text
+What is https://github.com/notermd/app? Is it safe for me to run locally? Explain what it needs, then help me install Vite+ and start it.
+```
+
+Notele detaliate pentru macOS, Windows, iPhone/iPad, Linux, GitHub CLI, Vite+ și
+`vp run anon` sunt în [docs/local-setup.md](docs/local-setup.md).
+
+## De ce este noter.md gratuit?
+
+Am deja această funcționalitate și mult mai mult pentru propriile mele
+aplicații, deci nu mă costă mult să împărtășesc versiunea de bază. Lucrurile mai
+avansate, precum editarea fișierelor din mers, monitorizarea mai multor aplicații
+sau lucrul pe mai multe branch-uri ale aceleiași aplicații, încep să coste mai
+mult la operare, deci nu sunt lansate încă.

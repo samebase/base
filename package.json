@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "anon": "node ./scripts/run-anon-dev.ts",
     "dev": "vp exec convex dev --start \"vp run dev:frontend\"",
-    "dev:anon": "CONVEX_AGENT_MODE=anonymous vp run dev",
+    "dev:anon": "vp run anon",
     "dev:frontend": "vp dev",
     "build": "tsc && vp build",
     "build:cloudflare": "if [ -n \"$CF_PAGES_BRANCH\" ] && [ \"$CF_PAGES_BRANCH\" != \"main\" ]; then vp run build:cloudflare:preview; else vp run build:cloudflare:production; fi",
@@ -33,6 +34,7 @@
   },
   "devDependencies": {
     "@tanstack/router-plugin": "^1.167.22",
+    "@types/node": "^25.6.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
