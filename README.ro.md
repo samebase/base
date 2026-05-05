@@ -3,25 +3,37 @@
 Limbă: [English](README.md) | Română
 
 <details>
-<summary>Pe scurt</summary>
+<summary>Rezumat tehnic</summary>
 
-Aplicația web este publicată pe Cloudflare Pages și folosește Convex ca bază de date.
-Stack: Vite+, TanStack Router, Tailwind, ShadCN (BaseUI)
+Acest template este o aplicație web Vite+ gata de producție. Frontend-ul
+folosește React, TypeScript, TanStack Router, Tailwind CSS, Radix UI și
+componente în stil shadcn/ui. Vite+ oferă suprafața de comenzi prin `vp`:
+instalarea dependințelor, Vite dev/build, verificările TypeScript, formatarea,
+linting-ul, testele și orchestrarea task-urilor stau într-un singur toolchain, nu în
+mai multe CLI-uri separate.
+
+Backend-ul este Convex. Dezvoltarea locală pornește Convex și Vite împreună cu
+`vp run dev`, care apelează `convex dev --start "vp run dev:frontend"`.
+Deploy-urile Cloudflare rulează Convex înainte și apoi construiesc frontend-ul
+static cu `vp run build`, astfel încât funcțiile Convex și binding-urile client
+generate rămân aliniate cu aplicația publicată.
+
+Cloudflare Pages servește output-ul static din `dist`. Branch-ul `main`
+folosește deploy key-ul Convex de Production, iar branch-urile de preview
+folosesc un `CONVEX_DEPLOY_KEY` separat pentru Preview, astfel încât fiecare pull
+request poate primi propriul URL Cloudflare și propria bază de date Convex de
+preview.
+
+Codex Cloud poate lucra pe acest repository instalând Vite+ în environment setup
+script. Agenții locali sau git worktrees pot folosi `vp run anon`, care pornește
+aceeași aplicație în modul Convex anonim fără să depindă de sintaxă shell-only
+pentru variabile de mediu.
 
 Pentru cel mai rapid startup în Codex Cloud, adaugă acest script de configurare a mediului:
 
 ```bash
 curl -fsSL https://vite.plus | bash
 ```
-
-Numele organizației "notermd" a fost ales fără "-" deoarece tastatura Android implicită face dificilă tastarea unui "-".
-
-Avem nevoie de un `CONVEX_DEPLOY_KEY` pentru **Production** și unul pentru **Preview**.
-În felul acesta fiecare PR are propriul link și propria bază de date, separată de bazele de date Production și Dev.
-
-Apoi folosim OpenAI Codex Cloud pentru a face modificări.
-Dar poți folosi orice vrei; există și instrucțiuni pentru rulare locală și în git worktrees deoarece Codex suportă asta de la început.
-Deoarece ai deja Cloudflare, poți folosi Cloudflare Tunnels în loc de ngrok ca să poți partaja chiar și un server care rulează pe mașina personală. Asta înseamnă că se poate extinde ușor ca să suporte un server extern care poate fi accesat prin expunerea unui singur port (putem expune Convex prin Vite, deci nu avem nevoie de 2 porturi).
 
 </details>
 
@@ -220,6 +232,21 @@ What is https://github.com/notermd/app? Is it safe for me to run locally? Explai
 
 Notele detaliate pentru macOS, Windows, iPhone/iPad, Linux, GitHub CLI, Vite+ și
 `vp run anon` sunt în [docs/local-setup.md](docs/local-setup.md).
+
+## Note interesante
+
+Numele organizației `notermd` a fost ales fără "-" deoarece tastatura Android
+implicită face enervantă tastarea unei cratime.
+
+Deoarece acest stack folosește deja Cloudflare, Cloudflare Tunnels poate
+înlocui ngrok atunci când vrei să partajezi un server care rulează pe mașina
+personală. Aplicația poate fi extinsă ca să expună un singur port deoarece Vite
+poate proxya Convex, deci nu trebuie să expui separat portul de frontend și
+portul de backend.
+
+Istoricul git din acest template este intenționat mic și curat. "Use this
+template" îți oferă cel mai simplu început, iar "Fork" păstrează istoricul
+complet dacă vrei ca tool-urile AI să inspecteze evoluția aplicației.
 
 ## De ce este noter.md gratuit?
 

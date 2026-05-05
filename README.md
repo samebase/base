@@ -1,25 +1,35 @@
 # Deploy a production-ready, real-time web-app for 0$/month & no account
 
 <details>
-<summary>TLDR</summary>
+<summary>Technical Summary</summary>
 
-The web app is deployed on Cloudflare Pages and uses Convex as its database.
-Stack: Vite+, TanStack Router, Tailwind, ShadCN (BaseUI)
+This template is a production-ready Vite+ web app. The frontend uses React,
+TypeScript, TanStack Router, Tailwind CSS, Radix UI, and shadcn/ui-style
+components. Vite+ provides the project command surface through `vp`: dependency
+installation, Vite dev/build, TypeScript checks, formatting, linting, tests, and
+task orchestration stay behind one toolchain instead of several separate CLIs.
+
+The backend is Convex. Local development runs Convex and Vite together through
+`vp run dev`, which calls `convex dev --start "vp run dev:frontend"`.
+Cloudflare deploys run Convex first and then build the static frontend with
+`vp run build`, so Convex functions and generated client bindings stay aligned
+with the deployed app.
+
+Cloudflare Pages serves the static `dist` output. The `main` branch uses the
+Production Convex deploy key, while preview branches use a separate Preview
+`CONVEX_DEPLOY_KEY`, so each pull request can get its own Cloudflare URL and
+isolated Convex preview database.
+
+Codex Cloud can work on this repository by installing Vite+ in its environment
+setup script. Local agents or git worktrees can use `vp run anon`, which starts
+the same app in anonymous Convex mode without relying on shell-only environment
+syntax.
 
 For the fastest Codex Cloud startup, add this environment setup script:
 
 ```bash
 curl -fsSL https://vite.plus | bash
 ```
-
-"notermd" organization name was chosen without "-" because the default Android keyboard makes it hard to type a "-".
-
-We need one `CONVEX_DEPLOY_KEY` for **Production** and one for **Preview**.
-That way each PR has its own link and database, separate from the Production and Dev databases.
-
-Then we use OpenAI Codex Cloud to make some changes.
-But you can use anything you want; there are also instructions for running it locally and in git worktrees since Codex supports that from the start.
-Since you already have Cloudflare you can use Cloudflare Tunnels instead of ngrok so you can share even a server running on a personal machine. This implies that it's easily extendable to support an external server that can be accessed by exposing a single port (we can expose Convex through Vite so no need for 2 ports).
 
 </details>
 
@@ -214,6 +224,20 @@ What is https://github.com/notermd/app? Is it safe for me to run locally? Explai
 
 Detailed macOS, Windows, iPhone/iPad, Linux, GitHub CLI, Vite+, and
 `vp run anon` notes live in [docs/local-setup.md](docs/local-setup.md).
+
+## Interesting Notes
+
+The `notermd` organization name was chosen without "-" because the default
+Android keyboard makes it annoying to type a hyphen.
+
+Since this stack already uses Cloudflare, Cloudflare Tunnels can replace ngrok
+when you want to share a server running on a personal machine. The app can be
+extended to expose a single port because Vite can proxy Convex, so you do not
+need to expose separate frontend and backend ports.
+
+The git history in this template is intentionally small and curated. "Use this
+template" gives you the cleanest start, while "Fork" preserves the full history
+if you want AI tools to inspect the evolution of the app.
 
 ## Why is noter.md free?
 
