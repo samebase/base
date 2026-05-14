@@ -149,3 +149,13 @@ Add the first real app behavior:
 - the root and about routes switch to the shadcn-styled app shell
 
 The Convex bindings are regenerated after the schema and functions are added.
+
+## 11. add the QR share block
+
+```sh
+vp add qrcode.react
+vp run build
+```
+
+Render a QR code for the current browser URL above the todo list. The URL is
+read after mount so TanStack Start's prerendered HTML stays stable.
