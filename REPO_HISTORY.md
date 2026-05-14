@@ -77,3 +77,19 @@ vp run build
 Force common web file types to use the Oxc VS Code formatter. The setting is
 tracked even though the generated Vite `.gitignore` ignores most `.vscode`
 files, because this template wants format-on-save to match the project.
+
+## 7. add the shadcn primitives we need
+
+```sh
+vp exec shadcn add button checkbox input --yes
+vp run build
+```
+
+Generate the same UI primitives used by the starter todo UI:
+
+- `src/components/ui/button.tsx`
+- `src/components/ui/checkbox.tsx`
+- `src/components/ui/input.tsx`
+
+No product UI changes yet; this keeps generated primitive code separate from
+the app example.
