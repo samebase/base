@@ -2,6 +2,7 @@ import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/r
 import type { ReactNode } from "react";
 import { ConvexClientProvider } from "../lib/convex";
 import appCss from "../style.css?url";
+import { Button } from "#components/ui/button";
 
 export const Route = createRootRoute({
   head: () => ({
@@ -30,13 +31,19 @@ export const Route = createRootRoute({
 function RootComponent() {
   return (
     <RootDocument>
-      <nav className="nav">
-        <Link to="/" activeOptions={{ exact: true }}>
-          Home
-        </Link>
-        <Link to="/about">About</Link>
-      </nav>
-      <Outlet />
+      <ConvexClientProvider>
+        <nav className="mx-auto flex w-full max-w-2xl pt-2">
+          <Button asChild variant="link">
+            <Link to="/" activeOptions={{ exact: true }}>
+              Home
+            </Link>
+          </Button>
+          <Button asChild variant="link">
+            <Link to="/about">About</Link>
+          </Button>
+        </nav>
+        <Outlet />
+      </ConvexClientProvider>
     </RootDocument>
   );
 }
@@ -48,7 +55,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
         <HeadContent />
       </head>
       <body>
-        <ConvexClientProvider>{children}</ConvexClientProvider>
+        {children}
         <Scripts />
       </body>
     </html>
