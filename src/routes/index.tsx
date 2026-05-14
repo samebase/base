@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery } from "convex/react";
-import { type FormEvent, useState } from "react";
+import { QRCodeSVG } from "qrcode.react";
+import { type FormEvent, useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -12,11 +13,17 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const [draft, setDraft] = useState("");
+  const [shareUrl, setShareUrl] = useState("");
   const text = draft.trim();
 
   const todos = useQuery(api.todos.list, {});
   const createTodo = useMutation(api.todos.create);
   const toggleTodo = useMutation(api.todos.toggle);
+
+  useEffect(() => {
+    // Read the browser URL after mount so prerendered HTML stays stable.
+    setShareUrl(window.location.href);
+  }, []);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -31,6 +38,19 @@ function HomePage() {
 
   return (
     <main className="mx-auto flex max-w-xl flex-col gap-6 p-4">
+      <div className="mx-auto aspect-square w-full max-w-sm">
+        {shareUrl ? (
+          <QRCodeSVG
+            value={shareUrl}
+            size={384}
+            level="M"
+            marginSize={4}
+            title="Share this app"
+            className="size-full"
+          />
+        ) : null}
+      </div>
+
       <h1 className="text-lg">Todo list</h1>
 
       <form className="flex gap-2" onSubmit={onSubmit}>
