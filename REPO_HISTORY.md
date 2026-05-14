@@ -41,3 +41,19 @@ vp run build
 Add the Tailwind Vite plugin and import Tailwind from `src/style.css`. The app
 still uses plain CSS classes at this step; Tailwind is present before shadcn/ui
 so the styling layers stay easy to inspect.
+
+## 4. add package import aliases
+
+```sh
+vp run build
+```
+
+Add Node package imports for app-internal aliases instead of a TypeScript
+`@/*` path alias. The mapping lives in `package.json` `imports`:
+
+- `#components/*`, `#lib/*`, and `#hooks/*` map into `src/`
+- TypeScript, Vite, and shadcn resolve the same specifiers, so there is no
+  duplicate `compilerOptions.paths` or Vite `resolve.alias` entry
+- named roots are used because Node 22 rejects `#/...` specifiers
+
+`docs/package-imports.md` records the research behind this choice.
