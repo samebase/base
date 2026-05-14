@@ -29,7 +29,7 @@ if (!process.env.CONVEX_DEPLOY_KEY) {
   }
 
   console.warn("CONVEX_DEPLOY_KEY is not set; building static assets without deploying Convex.");
-  await run("vp", ["run", "build"]);
+  await run("vp", ["run", "build:app"]);
   process.exit(0);
 }
 
@@ -41,9 +41,9 @@ if (branch && branch !== "main") {
     "--preview-name",
     branch,
     "--cmd",
-    "vp run build",
+    "vp run build:app",
   ]);
   process.exit(0);
 }
 
-await run("vp", ["exec", "convex", "deploy", "--cmd", "vp run build"]);
+await run("vp", ["exec", "convex", "deploy", "--cmd", "vp run build:app"]);
