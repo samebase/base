@@ -10,8 +10,8 @@
   },
   "scripts": {
     "dev": "vp exec convex dev --start \"vp run dev:frontend\"",
-    "dev:anon": "CONVEX_AGENT_MODE=anonymous vp run dev",
     "dev:frontend": "vp dev",
+    "dev:worktree": "node ./scripts/run-worktree-dev.ts",
     "build": "tsc && vp build",
     "preview": "vp preview",
     "prepare": "vp config"
