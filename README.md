@@ -68,9 +68,9 @@ The repository's scripts and `wrangler.jsonc` provide the deployment contract:
   "scripts": {
     "build": "vp run build:cloudflare",
     "build:app": "tsc && vp build",
-    "build:cloudflare": "node ./scripts/build-cloudflare.js",
-    "deploy": "node ./scripts/deploy-cloudflare.js deploy",
-    "deploy:preview": "node ./scripts/deploy-cloudflare.js preview",
+    "build:cloudflare": "node ./scripts/build-cloudflare.ts",
+    "deploy": "node ./scripts/deploy-cloudflare.ts deploy",
+    "deploy:preview": "node ./scripts/deploy-cloudflare.ts preview",
   },
 }
 

@@ -1,8 +1,9 @@
+/// <reference types="node" />
 import { spawn } from "node:child_process";
 import process from "node:process";
 
-function run(command, args) {
-  return new Promise((resolve, reject) => {
+function run(command: string, args: string[]) {
+  return new Promise<void>((resolve, reject) => {
     const child = spawn(command, args, {
       shell: process.platform === "win32",
       stdio: "inherit",

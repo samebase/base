@@ -1,12 +1,15 @@
+/// <reference types="node" />
 import { spawn } from "node:child_process";
 import process from "node:process";
 
 const modes = {
   deploy: ["deploy"],
   preview: ["versions", "upload"],
-};
+} as const;
 
-function isMode(value) {
+type Mode = keyof typeof modes;
+
+function isMode(value: string | undefined): value is Mode {
   return value === "deploy" || value === "preview";
 }
 
@@ -30,8 +33,8 @@ function readWorkerName() {
   return workerName;
 }
 
-function run(command, args) {
-  return new Promise((resolve, reject) => {
+function run(command: string, args: string[]) {
+  return new Promise<void>((resolve, reject) => {
     const child = spawn(command, args, {
       shell: process.platform === "win32",
       stdio: "inherit",
@@ -52,7 +55,7 @@ function run(command, args) {
 const [modeArg, ...extraArgs] = process.argv.slice(2);
 
 if (!isMode(modeArg)) {
-  throw new Error("Usage: node ./scripts/deploy-cloudflare.js <deploy|preview> [wrangler flags]");
+  throw new Error("Usage: node ./scripts/deploy-cloudflare.ts <deploy|preview> [wrangler flags]");
 }
 
 const workerName = readWorkerName();

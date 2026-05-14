@@ -260,3 +260,21 @@ Keeping these scripts as ESM JavaScript lets the dashboard defaults stay simple:
 - `pnpm run deploy:preview`
 
 No extra TypeScript runner is needed in the deployment path.
+
+## 18. pin Node 24 for TypeScript helper scripts
+
+```sh
+printf "24\n" > .node-version
+vp run check
+CLOUDFLARE_WORKER_NAME=app-start-workers vp run deploy:dry-run
+CLOUDFLARE_WORKER_NAME=app-start-workers vp run deploy:preview:dry-run
+WORKERS_CI=1 WRANGLER_CI_OVERRIDE_NAME=app-start-workers vp run deploy:dry-run
+WORKERS_CI=1 WRANGLER_CI_OVERRIDE_NAME=app-start-workers vp run deploy:preview:dry-run
+```
+
+Pin Cloudflare Workers Builds to Node 24 with `.node-version` and switch the
+Cloudflare helper scripts back to TypeScript.
+
+Node 24 can run TypeScript files that only use erasable TypeScript syntax, so
+the build and deploy scripts stay typed without adding a runtime TypeScript
+loader to the deploy path.
