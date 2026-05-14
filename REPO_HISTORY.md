@@ -122,3 +122,14 @@ Add Convex as the backend layer while keeping the first backend state empty:
 
 The app can run with a real `VITE_CONVEX_URL`, and shows a small setup message
 when that environment variable is missing.
+
+## 9. add Convex AI files
+
+```sh
+vp exec convex ai-files install
+vp run build
+```
+
+Enable Convex AI files for Codex and install the generated guidance files. This
+adds the agent instructions, Convex AI guidelines, and the generated skills lock
+so future agents know how to work inside the Convex backend.
