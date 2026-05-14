@@ -57,3 +57,23 @@ Add Node package imports for app-internal aliases instead of a TypeScript
 - named roots are used because Node 22 rejects `#/...` specifiers
 
 `docs/package-imports.md` records the research behind this choice.
+
+## 5. initialize shadcn/ui
+
+```sh
+vp add class-variance-authority clsx lucide-react radix-ui shadcn tailwind-merge tw-animate-css
+pnpm approve-builds msw
+vp run build
+```
+
+Add the shadcn Nova preset foundation:
+
+- `components.json`
+- `src/lib/utils.ts`
+- shadcn theme imports and CSS variables in `src/style.css`
+- a system `--font-sans` stack, so the starter has no webfont swap on first load
+- a pointer cursor on enabled buttons, which Tailwind v4 no longer applies by
+  default
+
+This commit prepares the theme and `cn()` helper, but does not add concrete UI
+primitives yet.
