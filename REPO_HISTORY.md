@@ -237,3 +237,26 @@ The wrapper runs the Cloudflare build path locally before Wrangler, but skips
 that build during Workers Builds because the dashboard already ran
 `pnpm run build`. `wrangler.jsonc` stays focused on assets, SPA fallback, and
 preview URLs.
+
+## 17. run Cloudflare scripts as plain JavaScript
+
+```sh
+vp run check
+CONVEX_DEPLOY_KEY=<redacted> vp run build:cloudflare
+CLOUDFLARE_WORKER_NAME=app-start-workers vp run deploy:dry-run
+WORKERS_CI=1 WRANGLER_CI_OVERRIDE_NAME=app-start-workers vp run deploy:dry-run
+CLOUDFLARE_WORKER_NAME=app-start-workers vp run deploy:preview:dry-run
+WORKERS_CI=1 WRANGLER_CI_OVERRIDE_NAME=app-start-workers vp run deploy:preview:dry-run
+```
+
+Rename the Cloudflare build and deploy helper scripts from `.ts` to `.js`.
+Local Node can run TypeScript directly in some environments, but Cloudflare
+Workers Builds uses Node 22 and does not execute `.ts` files with plain `node`.
+
+Keeping these scripts as ESM JavaScript lets the dashboard defaults stay simple:
+
+- `pnpm run build`
+- `pnpm run deploy`
+- `pnpm run deploy:preview`
+
+No extra TypeScript runner is needed in the deployment path.
