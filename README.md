@@ -7,14 +7,15 @@ This template is a client-first TanStack Start app. TanStack Start is used in
 SPA mode, so the build creates a static `dist/client/index.html` shell and
 client assets. The browser talks to Convex for real-time data.
 
-Cloudflare Workers Static Assets serves the static files. The deployment
-settings live in `wrangler.jsonc`, so the repository owns the build command,
-asset directory, and SPA fallback behavior instead of relying on dashboard-only
-Pages settings.
+Cloudflare Workers Static Assets serves the static files. The Cloudflare
+dashboard runs `pnpm run build`, which delegates to the Cloudflare-aware build
+script. `wrangler.jsonc` owns the Worker name, asset directory, SPA fallback,
+and local Wrangler deploy behavior.
 
 Local development runs Convex and the frontend together through `vp run dev`.
 Cloudflare builds run Convex deploy first when `CONVEX_DEPLOY_KEY` is present,
-then build the static frontend.
+then build the static frontend. Local dry-runs can still build static assets
+without a Convex deploy key.
 
 </details>
 
@@ -51,14 +52,27 @@ GitHub repository.
 
 Use these settings:
 
+- Project name: `notermd-app`, matching `wrangler.jsonc`
 - Production branch: `main`
-- Build command: leave empty
-- Deploy command: keep Cloudflare's Wrangler default
-- Build variable or secret: `CONVEX_DEPLOY_KEY`
+- Build command: keep `pnpm run build`
+- Deploy command: keep `npx wrangler deploy`
+- Non-production branch deploy command: keep `npx wrangler versions upload`
+- Path: keep `/`
+- Build secret: `CONVEX_DEPLOY_KEY`
 
-The repository's `wrangler.jsonc` provides the deployment contract:
+The repository's scripts and `wrangler.jsonc` provide the deployment contract:
 
 ```jsonc
+// package.json
+{
+  "scripts": {
+    "build": "vp run build:cloudflare",
+    "build:app": "tsc && vp build",
+    "build:cloudflare": "node ./scripts/build-cloudflare.ts",
+  },
+}
+
+// wrangler.jsonc
 {
   "assets": {
     "directory": "./dist/client",
@@ -96,7 +110,9 @@ pnpm run anon
 pnpm run deploy:dry-run
 ```
 
-This runs the same Wrangler build path without uploading anything.
+This runs the same Wrangler build path without uploading anything. If
+`CONVEX_DEPLOY_KEY` is not set locally, the Cloudflare build script skips Convex
+deploy and only builds the static app.
 
 ## Why Workers
 
@@ -104,9 +120,10 @@ Cloudflare Pages works well for static apps, but several important settings live
 in the dashboard: build command, output directory, and Pages-specific deploy
 behavior.
 
-With Workers Static Assets, the important settings live in `wrangler.jsonc`.
-That makes the deployment easier to audit, easier for agents to modify, and
-easier for users to reproduce.
+With Workers Static Assets, the deploy shape is split cleanly: Cloudflare's Git
+build step runs `pnpm run build`, and `wrangler.jsonc` describes what Wrangler
+deploys. That makes the deployment easier to audit, easier for agents to
+modify, and easier for users to reproduce.
 
 ## Read the history
 

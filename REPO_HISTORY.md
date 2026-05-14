@@ -194,3 +194,23 @@ Create user-facing setup docs:
 
 The README points users at `wrangler.jsonc` as the source of truth for the
 Workers build command, asset directory, and SPA fallback.
+
+## 15. align Workers build defaults
+
+```sh
+vp run build
+vp run deploy:dry-run
+```
+
+Update the Cloudflare setup path after walking through the current Workers Git
+dashboard:
+
+- `build` now delegates to the Cloudflare-aware build script
+- `build:app` keeps the plain TanStack/static build visible
+- the README keeps Cloudflare's default `pnpm run build` and
+  `npx wrangler deploy` commands
+- the README notes that the Cloudflare project name must match
+  `wrangler.jsonc` `name`
+
+This keeps the dashboard setup simple for users while preserving an explicit
+Cloudflare build script in `package.json`.
