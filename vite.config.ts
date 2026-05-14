@@ -1,8 +1,27 @@
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
+  fmt: {
+    ignorePatterns: ["src/routeTree.gen.ts"],
+  },
+  lint: {
+    ignorePatterns: ["src/routeTree.gen.ts"],
+    options: { typeAware: true, typeCheck: true },
+  },
+  plugins: [
+    tanstackStart({
+      spa: {
+        enabled: true,
+        prerender: {
+          outputPath: "/index.html",
+        },
+      },
+    }),
+    react(),
+  ],
   staged: {
     "*": "vp check --fix",
   },
-  lint: { options: { typeAware: true, typeCheck: true } },
 });
