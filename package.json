@@ -12,8 +12,10 @@
     "build": "vp run build:cloudflare",
     "build:app": "tsc && vp build",
     "build:cloudflare": "node ./scripts/build-cloudflare.ts",
-    "deploy": "wrangler deploy",
-    "deploy:dry-run": "wrangler deploy --dry-run",
+    "deploy": "node ./scripts/deploy-cloudflare.ts deploy",
+    "deploy:preview": "node ./scripts/deploy-cloudflare.ts preview",
+    "deploy:dry-run": "node ./scripts/deploy-cloudflare.ts deploy --dry-run",
+    "deploy:preview:dry-run": "node ./scripts/deploy-cloudflare.ts preview --dry-run",
     "preview": "vp preview",
     "prepare": "vp config"
   },
