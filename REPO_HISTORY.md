@@ -123,3 +123,19 @@ vp run build
 Enable Convex AI files for Codex and install the generated guidance files. This
 adds the agent instructions, Convex AI guidelines, and the generated skills lock
 so future agents know how to work inside the Convex backend.
+
+## 10. add the todo example
+
+```sh
+vp exec convex codegen --typecheck=disable
+vp run build
+```
+
+Add the first real app behavior:
+
+- `convex/schema.ts` defines the `todos` table
+- `convex/todos.ts` exposes list, create, and toggle functions
+- `src/routes/index.tsx` renders the todo UI with Convex hooks
+- the root and about routes switch to the shadcn-styled app shell
+
+The Convex bindings are regenerated after the schema and functions are added.
