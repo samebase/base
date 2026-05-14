@@ -103,3 +103,22 @@ Generate the same UI primitives used by the starter todo UI:
 
 No product UI changes yet; this keeps generated primitive code separate from
 the app example.
+
+## 8. add Convex
+
+```sh
+vp add convex
+pnpm approve-builds esbuild
+CONVEX_AGENT_MODE=anonymous vp exec convex dev --once --typecheck=disable
+vp run build
+```
+
+Add Convex as the backend layer while keeping the first backend state empty:
+
+- `convex.json` disables Convex AI files for this step
+- `convex/schema.ts` starts with an empty schema
+- `src/lib/convex.tsx` wires the React provider at the route root
+- generated Convex bindings under `convex/_generated/` are committed
+
+The app can run with a real `VITE_CONVEX_URL`, and shows a small setup message
+when that environment variable is missing.
