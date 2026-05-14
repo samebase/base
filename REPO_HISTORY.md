@@ -41,3 +41,12 @@ vp run build
 Add the Tailwind Vite plugin and import Tailwind from `src/style.css`. The app
 still uses plain CSS classes at this step; Tailwind is present before shadcn/ui
 so the styling layers stay easy to inspect.
+
+## 4. add the @/\* import alias
+
+```sh
+vp run build
+```
+
+Add the `@/*` TypeScript path alias and the matching Vite alias so generated
+shadcn/ui imports use the same shape as the current `notermd/app` template.
