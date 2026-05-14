@@ -77,3 +77,13 @@ Add the shadcn Nova preset foundation:
 
 This commit prepares the theme and `cn()` helper, but does not add concrete UI
 primitives yet.
+
+## 6. enforce Oxc formatting in VS Code
+
+```sh
+vp run build
+```
+
+Force common web file types to use the Oxc VS Code formatter. The setting is
+tracked even though the generated Vite `.gitignore` ignores most `.vscode`
+files, because this template wants format-on-save to match the project.
