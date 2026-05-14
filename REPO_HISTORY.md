@@ -178,3 +178,19 @@ contract:
 `scripts/build-cloudflare.ts` deploys Convex first when `CONVEX_DEPLOY_KEY` is
 set, creates Convex preview deployments when `WORKERS_CI_BRANCH` is set, and
 falls back to a static-only build for local dry-runs without a deploy key.
+
+## 14. teach Workers self-deployment
+
+```sh
+vp run build
+```
+
+Create user-facing setup docs:
+
+- `README.md` explains how to copy the app, create a Convex project, and deploy
+  through Cloudflare Workers
+- `docs/local-setup.md` explains local Vite+, Convex, and anonymous-agent setup
+- `docs/logos/` stores the service logos used by the README
+
+The README points users at `wrangler.jsonc` as the source of truth for the
+Workers build command, asset directory, and SPA fallback.
