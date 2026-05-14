@@ -149,3 +149,13 @@ vp run build
 
 Render a QR code for the current browser URL above the todo list. The URL is
 read after mount so TanStack Start's prerendered HTML stays stable.
+
+## 12. add the local dev workflow
+
+```sh
+vp run build
+```
+
+Add `scripts/run-anon-dev.ts` so anonymous Convex mode works on macOS, Linux,
+and Windows without relying on shell-specific environment variable syntax. The
+user-facing `dev:anon` script now delegates to that Node wrapper.
