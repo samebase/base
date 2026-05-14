@@ -6,10 +6,10 @@ import { defineConfig } from "vite-plus";
 
 export default defineConfig({
   fmt: {
-    ignorePatterns: ["src/routeTree.gen.ts"],
+    ignorePatterns: ["convex/_generated/**", "src/routeTree.gen.ts"],
   },
   lint: {
-    ignorePatterns: ["src/routeTree.gen.ts"],
+    ignorePatterns: ["convex/_generated/**", "src/routeTree.gen.ts"],
     options: { typeAware: true, typeCheck: true },
   },
   plugins: [
