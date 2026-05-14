@@ -30,3 +30,14 @@ Replace the generated Vite demo with a small TanStack Start route shell:
 
 TanStack Start is configured in SPA mode, with `/index.html` as the prerendered
 shell for static hosting.
+
+## 3. add Tailwind CSS
+
+```sh
+vp add tailwindcss @tailwindcss/vite
+vp run build
+```
+
+Add the Tailwind Vite plugin and import Tailwind from `src/style.css`. The app
+still uses plain CSS classes at this step; Tailwind is present before shadcn/ui
+so the styling layers stay easy to inspect.
