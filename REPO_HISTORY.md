@@ -159,3 +159,22 @@ vp run build
 Add `scripts/run-anon-dev.ts` so anonymous Convex mode works on macOS, Linux,
 and Windows without relying on shell-specific environment variable syntax. The
 user-facing `dev:anon` script now delegates to that Node wrapper.
+
+## 13. deploy static assets with Workers
+
+```sh
+vp add -D wrangler
+vp exec wrangler --version
+vp run deploy:dry-run
+```
+
+Create `wrangler.jsonc` so the repository owns the Cloudflare Workers deploy
+contract:
+
+- the build command runs `pnpm run build:cloudflare`
+- static assets are served from `./dist/client`
+- missing paths fall back to the SPA shell
+
+`scripts/build-cloudflare.ts` deploys Convex first when `CONVEX_DEPLOY_KEY` is
+set, creates Convex preview deployments when `WORKERS_CI_BRANCH` is set, and
+falls back to a static-only build for local dry-runs without a deploy key.
