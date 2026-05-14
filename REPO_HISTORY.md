@@ -278,3 +278,13 @@ Cloudflare helper scripts back to TypeScript.
 Node 24 can run TypeScript files that only use erasable TypeScript syntax, so
 the build and deploy scripts stay typed without adding a runtime TypeScript
 loader to the deploy path.
+
+## 19. explain the Node 24 build pin
+
+```sh
+vp run build
+```
+
+Document why `.node-version` exists in the README: Cloudflare Workers Builds
+uses the file to select Node 24, and Node 24 can execute the small TypeScript
+helper scripts directly.

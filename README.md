@@ -11,6 +11,8 @@ Cloudflare Workers Static Assets serves the static files. The Cloudflare
 dashboard runs `pnpm run build`, which delegates to the Cloudflare-aware build
 script. `wrangler.jsonc` owns the asset directory, SPA fallback, and preview URL
 behavior.
+`.node-version` pins Workers Builds to Node 24 so `node` can run the small
+TypeScript helper scripts directly.
 
 Local development runs Convex and the frontend together through `vp run dev`.
 Cloudflare builds run Convex deploy first when `CONVEX_DEPLOY_KEY` is present,
@@ -83,6 +85,9 @@ The repository's scripts and `wrangler.jsonc` provide the deployment contract:
   },
 }
 ```
+
+The `.node-version` file pins Cloudflare's build image to Node 24. That keeps
+the helper scripts typed while still running them with plain `node`.
 
 ## 5. Run locally
 
