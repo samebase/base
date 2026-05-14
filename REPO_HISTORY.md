@@ -208,3 +208,31 @@ delegates to the Cloudflare-aware build script while `build:app` keeps the
 plain TanStack/static build visible. The README points users at
 `wrangler.jsonc` as the source of truth for the Workers build command, asset
 directory, and SPA fallback.
+
+## 15. remove the fixed Worker name
+
+```sh
+vp run check
+CLOUDFLARE_WORKER_NAME=app-start-workers vp run deploy:dry-run
+CLOUDFLARE_WORKER_NAME=app-start-workers vp run deploy:preview:dry-run
+```
+
+Remove `name` from `wrangler.jsonc` so the template does not force every user
+or automated Samebase app provisioning to rename either Cloudflare or the
+repository.
+
+Add `scripts/deploy-cloudflare.ts` so Cloudflare Workers Builds can pass the
+actual connected Worker name through `WRANGLER_CI_OVERRIDE_NAME`:
+
+- `pnpm run deploy` wraps `wrangler deploy --name <worker>`
+- `pnpm run deploy:preview` wraps `wrangler versions upload --name <worker>`
+- local dry-runs can set `CLOUDFLARE_WORKER_NAME`
+
+The wrapper runs the Cloudflare build path locally before Wrangler, but skips
+that build during Workers Builds because the dashboard already ran
+`pnpm run build`. `wrangler.jsonc` stays focused on assets, SPA fallback, and
+preview URLs.
+
+`.node-version` pins Workers Builds to Node 24. Node 24 runs these TypeScript
+helper scripts directly because they only use erasable TypeScript syntax, so no
+runtime TypeScript loader enters the deploy path.
