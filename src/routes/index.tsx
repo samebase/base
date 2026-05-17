@@ -3,9 +3,9 @@ import { useMutation, useQuery } from "convex/react";
 import { QRCodeSVG } from "qrcode.react";
 import { type FormEvent, useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
+import { Button } from "#components/ui/button";
+import { Checkbox } from "#components/ui/checkbox";
+import { Input } from "#components/ui/input";
 
 export const Route = createFileRoute("/")({
   component: HomePage,

@@ -2,7 +2,7 @@ import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/r
 import type { ReactNode } from "react";
 import { ConvexClientProvider } from "../lib/convex";
 import appCss from "../style.css?url";
-import { Button } from "@/components/ui/button";
+import { Button } from "#components/ui/button";
 
 export const Route = createRootRoute({
   head: () => ({

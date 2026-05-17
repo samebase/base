@@ -3,6 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "imports": {
+    "#components/*": "./src/components/*.tsx",
+    "#lib/*": "./src/lib/*.ts",
+    "#hooks/*": "./src/hooks/*.ts"
+  },
   "scripts": {
     "anon": "node ./scripts/run-anon-dev.ts",
     "dev": "vp exec convex dev --start \"vp run dev:frontend\"",
