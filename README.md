@@ -15,9 +15,10 @@ behavior.
 TypeScript helper scripts directly.
 
 Local development runs Convex and the frontend together through `vp run dev`.
-Cloudflare builds run Convex deploy first when `CONVEX_DEPLOY_KEY` is present,
-then build the static frontend. Local deploy dry-runs run that same build path
-before asking Wrangler to validate the upload.
+Cloudflare builds run Convex deploy first by selecting `PROD_CONVEX_DEPLOY_KEY`
+for `main` and `PREVIEW_CONVEX_DEPLOY_KEY` for other branches, then build the
+static frontend. Local deploy dry-runs run that same build path before asking
+Wrangler to validate the upload.
 
 </details>
 
@@ -43,9 +44,10 @@ history into one commit.
 ## 3. Create a Convex project
 
 Open [dashboard.convex.dev](https://dashboard.convex.dev/), create a project,
-and create a Production deploy key.
+and create deploy keys for Production and Preview builds.
 
-Keep the key ready. Cloudflare will use it as `CONVEX_DEPLOY_KEY` during builds.
+Keep both keys ready. Cloudflare will use them as `PROD_CONVEX_DEPLOY_KEY` and
+`PREVIEW_CONVEX_DEPLOY_KEY` during builds.
 
 ## 4. Create a Cloudflare Worker from GitHub
 
@@ -60,7 +62,8 @@ Use these settings:
 - Deploy command: `pnpm run deploy`
 - Non-production branch deploy command: `pnpm run deploy:preview`
 - Path: keep `/`
-- Build secret: `CONVEX_DEPLOY_KEY`
+- Build secret: `PROD_CONVEX_DEPLOY_KEY`
+- Build secret: `PREVIEW_CONVEX_DEPLOY_KEY`
 
 The repository's scripts and `wrangler.jsonc` provide the deployment contract:
 
@@ -116,8 +119,8 @@ CLOUDFLARE_WORKER_NAME=my-worker pnpm run deploy:dry-run
 ```
 
 This runs the Cloudflare build path, then asks Wrangler to validate the upload
-without publishing anything. If `CONVEX_DEPLOY_KEY` is not set locally, the
-Cloudflare build script skips Convex deploy and only builds the static app.
+without publishing anything. If neither split Convex deploy key is set locally,
+the Cloudflare build script skips Convex deploy and only builds the static app.
 
 Preview-version checks use the same local name:
 

@@ -288,3 +288,24 @@ vp run build
 Document why `.node-version` exists in the README: Cloudflare Workers Builds
 uses the file to select Node 24, and Node 24 can execute the small TypeScript
 helper scripts directly.
+
+## 20. split Workers Convex deploy keys
+
+```sh
+vp run check
+WORKERS_CI=1 CONVEX_DEPLOY_KEY=legacy node ./scripts/build-cloudflare.ts
+WORKERS_CI=1 WORKERS_CI_BRANCH=feature node ./scripts/build-cloudflare.ts
+```
+
+Use the same Convex deploy-key contract as noter.md production and
+noter-managed app provisioning:
+
+- `PROD_CONVEX_DEPLOY_KEY` is selected for the `main` branch.
+- `PREVIEW_CONVEX_DEPLOY_KEY` is selected for non-production branches.
+- `CONVEX_DEPLOY_KEY` is passed only to the Convex child process, because that
+  is the name the Convex CLI expects.
+
+The dashboard setup now asks users to create both split build secrets. A local
+dry-run with no split keys still builds static assets only, while a local run
+with split keys but no branch fails closed instead of guessing which Convex
+deployment to touch.
