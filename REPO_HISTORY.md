@@ -236,3 +236,27 @@ preview URLs.
 `.node-version` pins Workers Builds to Node 24. Node 24 runs these TypeScript
 helper scripts directly because they only use erasable TypeScript syntax, so no
 runtime TypeScript loader enters the deploy path.
+
+## 16. split the Convex deploy keys
+
+```sh
+vp run check
+WORKERS_CI=1 CONVEX_DEPLOY_KEY=legacy node ./scripts/build-cloudflare.ts
+WORKERS_CI=1 WORKERS_CI_BRANCH=feature node ./scripts/build-cloudflare.ts
+```
+
+Production and preview builds must not share a Convex deployment:
+
+- `CONVEX_DEPLOY_KEY` is selected only when `WORKERS_CI_BRANCH` is `main`. It
+  is a Convex production deploy key with exactly `deployment:deploy`,
+  `deployment:env:view`, `deployment:env:write`, and `deployment:data:view`.
+  Do not grant data write, function-run, logs, backups, or integration
+  permissions.
+- `PREVIEW_CONVEX_DEPLOY_KEY` is required for every non-production branch and
+  is Convex's project-level Preview deploy key.
+- a run with either key but no `WORKERS_CI_BRANCH` fails closed instead of
+  guessing which Convex deployment to touch.
+
+The Workers dashboard does not expose a Pages-style per-environment selector
+for build variables, so `scripts/build-cloudflare.ts` selects the key from
+`WORKERS_CI_BRANCH`. `docs/cloudflare-workers-builds.md` records the contract.
