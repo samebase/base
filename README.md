@@ -5,7 +5,8 @@
 
 This template is a client-first TanStack Start app. TanStack Start is used in
 SPA mode, so the build creates a static `dist/client/index.html` shell and
-client assets. The browser talks to Convex for real-time data.
+client assets. The browser talks to Convex for real-time data and Convex Auth
+guest sessions.
 
 Cloudflare Workers Static Assets serves the static files. The Cloudflare
 dashboard runs `pnpm run build`, which delegates to the Cloudflare-aware build
@@ -19,6 +20,9 @@ Cloudflare builds run Convex deploy first by selecting `PROD_CONVEX_DEPLOY_KEY`
 for `main` and `PREVIEW_CONVEX_DEPLOY_KEY` for other branches, then build the
 static frontend. Local deploy dry-runs run that same build path before asking
 Wrangler to validate the upload.
+
+The app includes minimal auth out of the box: users can continue as guests, and
+todos are stored per Convex Auth user.
 
 </details>
 
@@ -106,6 +110,9 @@ Start Convex and TanStack Start together:
 pnpm run dev
 ```
 
+The dev script creates Convex Auth JWT keys in your development deployment if
+they are missing.
+
 For an isolated local agent or worktree backend:
 
 ```sh
@@ -121,6 +128,8 @@ CLOUDFLARE_WORKER_NAME=my-worker pnpm run deploy:dry-run
 This runs the Cloudflare build path, then asks Wrangler to validate the upload
 without publishing anything. If neither split Convex deploy key is set locally,
 the Cloudflare build script skips Convex deploy and only builds the static app.
+When a Convex deploy key is selected, the build script creates Convex Auth JWT
+keys in that deployment if they are missing.
 
 Preview-version checks use the same local name:
 

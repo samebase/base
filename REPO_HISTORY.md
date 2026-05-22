@@ -309,3 +309,29 @@ The dashboard setup now asks users to create both split build secrets. A local
 dry-run with no split keys still builds static assets only, while a local run
 with split keys but no branch fails closed instead of guessing which Convex
 deployment to touch.
+
+## 21. add guest auth
+
+```sh
+vp add @convex-dev/auth @auth/core@0.37.0
+CONVEX_AGENT_MODE=anonymous vp exec convex dev --once --typecheck=disable
+vp run check
+vp run build
+```
+
+Add Convex Auth with the anonymous provider so the starter app has a real
+authenticated identity without any external auth service.
+
+Todos now belong to the signed-in guest user:
+
+- `convex/auth.ts`, `convex/auth.config.ts`, and `convex/http.ts` configure
+  Convex Auth
+- `convex/schema.ts` adds the auth tables and stores `todos.userId`
+- `convex/todos.ts` derives the user from Convex Auth instead of trusting the
+  client
+- the home route prompts unauthenticated users to continue as a guest and lets
+  signed-in users sign out
+
+The dev and Cloudflare build scripts configure Convex Auth JWT keys only when a
+deployment does not already have them, so new deployments work without rotating
+existing sessions on every build.

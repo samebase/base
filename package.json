@@ -10,7 +10,7 @@
   },
   "scripts": {
     "anon": "node ./scripts/run-anon-dev.ts",
-    "dev": "vp exec convex dev --start \"vp run dev:frontend\"",
+    "dev": "node ./scripts/run-dev.ts",
     "dev:anon": "vp run anon",
     "dev:frontend": "vp dev",
     "check": "tsc && tsc --project convex/tsconfig.json",
@@ -25,6 +25,8 @@
     "prepare": "vp config"
   },
   "dependencies": {
+    "@auth/core": "0.37.0",
+    "@convex-dev/auth": "^0.0.92",
     "@fontsource-variable/geist": "^5.2.8",
     "@tailwindcss/vite": "^4.3.0",
     "@tanstack/react-router": "^1.169.2",

@@ -40,6 +40,10 @@ function readDeployKey(deployKeyName: DeployKeyName, branch: string) {
   throw new Error(`Set ${deployKeyName} in Cloudflare Workers build variables for ${branch}.`);
 }
 
+async function ensureConvexAuth(env: NodeJS.ProcessEnv) {
+  await run("node", ["./scripts/ensure-convex-auth.ts"], env);
+}
+
 const branch = process.env.WORKERS_CI_BRANCH;
 
 if (process.env.CONVEX_DEPLOY_KEY) {
@@ -69,18 +73,22 @@ if (!branch) {
 }
 
 if (branch !== "main") {
+  const previewEnv = {
+    ...process.env,
+    CONVEX_DEPLOY_KEY: readDeployKey(PREVIEW_CONVEX_DEPLOY_KEY, branch),
+  };
   await run(
     "vp",
     ["exec", "convex", "deploy", "--preview-create", branch, "--cmd", "vp run build:app"],
-    {
-      ...process.env,
-      CONVEX_DEPLOY_KEY: readDeployKey(PREVIEW_CONVEX_DEPLOY_KEY, branch),
-    },
+    previewEnv,
   );
+  await ensureConvexAuth(previewEnv);
   process.exit(0);
 }
 
-await run("vp", ["exec", "convex", "deploy", "--cmd", "vp run build:app"], {
+const productionEnv = {
   ...process.env,
   CONVEX_DEPLOY_KEY: readDeployKey(PROD_CONVEX_DEPLOY_KEY, branch),
-});
+};
+await run("vp", ["exec", "convex", "deploy", "--cmd", "vp run build:app"], productionEnv);
+await ensureConvexAuth(productionEnv);

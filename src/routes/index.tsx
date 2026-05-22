@@ -1,5 +1,6 @@
+import { useAuthActions } from "@convex-dev/auth/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useMutation, useQuery } from "convex/react";
+import { Authenticated, AuthLoading, Unauthenticated, useMutation, useQuery } from "convex/react";
 import { QRCodeSVG } from "qrcode.react";
 import { type FormEvent, useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
@@ -12,29 +13,12 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
-  const [draft, setDraft] = useState("");
   const [shareUrl, setShareUrl] = useState("");
-  const text = draft.trim();
-
-  const todos = useQuery(api.todos.list, {});
-  const createTodo = useMutation(api.todos.create);
-  const toggleTodo = useMutation(api.todos.toggle);
 
   useEffect(() => {
     // Read the browser URL after mount so prerendered HTML stays stable.
     setShareUrl(window.location.href);
   }, []);
-
-  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
-    if (!text) {
-      return;
-    }
-
-    await createTodo({ text });
-    setDraft("");
-  };
 
   return (
     <main className="mx-auto flex max-w-xl flex-col gap-6 p-4">
@@ -51,7 +35,91 @@ function HomePage() {
         ) : null}
       </div>
 
+      <AuthLoading>
+        <section className="flex flex-col gap-3">
+          <h1 className="text-lg">Todo list</h1>
+        </section>
+      </AuthLoading>
+      <Unauthenticated>
+        <GuestSignIn />
+      </Unauthenticated>
+      <Authenticated>
+        <TodoWorkspace />
+      </Authenticated>
+    </main>
+  );
+}
+
+function GuestSignIn() {
+  const { signIn } = useAuthActions();
+  const [isPending, setIsPending] = useState(false);
+  const [error, setError] = useState("");
+
+  const continueAsGuest = () => {
+    setError("");
+    setIsPending(true);
+    void signIn("anonymous")
+      .catch((signInError: unknown) => {
+        setError(signInError instanceof Error ? signInError.message : "Could not start session");
+      })
+      .finally(() => setIsPending(false));
+  };
+
+  return (
+    <section className="flex flex-col gap-3">
       <h1 className="text-lg">Todo list</h1>
+      <Button type="button" disabled={isPending} onClick={continueAsGuest}>
+        {isPending ? "Starting" : "Continue as guest"}
+      </Button>
+      {error ? (
+        <p className="text-destructive text-sm" role="alert">
+          {error}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+function TodoWorkspace() {
+  const { signOut } = useAuthActions();
+  const [draft, setDraft] = useState("");
+  const [isCreating, setIsCreating] = useState(false);
+  const [isSigningOut, setIsSigningOut] = useState(false);
+  const text = draft.trim();
+
+  const todos = useQuery(api.todos.list, {});
+  const createTodo = useMutation(api.todos.create);
+  const toggleTodo = useMutation(api.todos.toggle);
+
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!text || isCreating) {
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      await createTodo({ text });
+      setDraft("");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const onSignOut = () => {
+    setIsSigningOut(true);
+    void signOut().finally(() => setIsSigningOut(false));
+  };
+
+  return (
+    <>
+      <div className="flex items-center justify-between gap-3">
+        <h1 className="text-lg">Todo list</h1>
+        <Button type="button" variant="outline" disabled={isSigningOut} onClick={onSignOut}>
+          {isSigningOut ? "Signing out" : "Sign out"}
+        </Button>
+      </div>
 
       <form className="flex gap-2" onSubmit={onSubmit}>
         <Input
@@ -59,8 +127,8 @@ function HomePage() {
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
         />
-        <Button type="submit" disabled={!text}>
-          Add
+        <Button type="submit" disabled={!text || isCreating}>
+          {isCreating ? "Adding" : "Add"}
         </Button>
       </form>
 
@@ -86,6 +154,6 @@ function HomePage() {
           </li>
         ))}
       </ul>
-    </main>
+    </>
   );
 }
