@@ -178,8 +178,11 @@ function TodoWorkspace() {
                 }}
               />
 
-              <span className={todo.done ? "text-muted-foreground line-through" : ""}>
-                {todo.text}
+              <span className="flex min-w-0 flex-col">
+                <span className={todo.done ? "text-muted-foreground line-through" : ""}>
+                  {todo.text}
+                </span>
+                <span className="text-muted-foreground text-xs">Created by {todo.creatorName}</span>
               </span>
             </label>
           </li>

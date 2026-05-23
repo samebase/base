@@ -9,6 +9,7 @@ const vTodo = object({
   _id: id("todos"),
   _creationTime: number(),
   userId: id("users"),
+  creatorName: string(),
   text: string(),
   done: boolean(),
   createdAt: number(),
@@ -31,11 +32,22 @@ export const list = query({
   returns: listResultValidator,
   handler: async (ctx) => {
     const userId = await getRequiredUserId(ctx);
-    return await ctx.db
+    const user = await ctx.db.get(userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    const todos = await ctx.db
       .query("todos")
       .withIndex("by_user_created_at", (q) => q.eq("userId", userId))
       .order("desc")
       .collect();
+    const creatorName = user.name ?? "Guest";
+
+    return todos.map((todo) => ({
+      ...todo,
+      creatorName,
+    }));
   },
 });
 
