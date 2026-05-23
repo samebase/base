@@ -73,6 +73,10 @@ function readDeployKey(args: {
   );
 }
 
+async function ensureConvexAuth(env: NodeJS.ProcessEnv) {
+  await run("node", ["./scripts/ensure-convex-auth.ts"], env);
+}
+
 export function selectConvexDeployPlan(env: NodeJS.ProcessEnv): ConvexDeployPlan {
   const branch = env.WORKERS_CI_BRANCH;
 
@@ -133,6 +137,7 @@ export async function main(env: NodeJS.ProcessEnv = process.env) {
     CONVEX_DEPLOY_KEY: plan.deployKey,
   };
   await run("vp", plan.args, convexEnv);
+  await ensureConvexAuth(convexEnv);
 }
 
 const entrypoint = process.argv[1];

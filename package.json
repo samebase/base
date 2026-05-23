@@ -9,7 +9,7 @@
     "#hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
-    "dev": "vp exec convex dev --start \"vp run dev:frontend\"",
+    "dev": "node ./scripts/run-dev.ts",
     "dev:frontend": "vp dev",
     "dev:worktree": "node ./scripts/run-worktree-dev.ts",
     "check": "tsc && tsc --project convex/tsconfig.json",
@@ -24,6 +24,8 @@
     "prepare": "vp config"
   },
   "dependencies": {
+    "@auth/core": "0.37.0",
+    "@convex-dev/auth": "^0.0.92",
     "@tailwindcss/vite": "^4.3.0",
     "@tanstack/react-router": "^1.169.2",
     "@tanstack/react-start": "^1.167.65",

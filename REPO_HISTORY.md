@@ -260,3 +260,29 @@ Production and preview builds must not share a Convex deployment:
 The Workers dashboard does not expose a Pages-style per-environment selector
 for build variables, so `scripts/build-cloudflare.ts` selects the key from
 `WORKERS_CI_BRANCH`. `docs/cloudflare-workers-builds.md` records the contract.
+
+## 17. add guest auth
+
+```sh
+vp add @convex-dev/auth @auth/core@0.37.0
+CONVEX_AGENT_MODE=anonymous vp exec convex dev --once --typecheck=disable
+vp run check
+vp run build
+```
+
+Add Convex Auth with the anonymous provider so the starter app has a real
+authenticated identity without any external auth service:
+
+- `convex/auth.ts`, `convex/auth.config.ts`, and `convex/http.ts` configure
+  Convex Auth
+- `convex/schema.ts` adds the auth tables and stores `todos.userId`
+- `convex/todos.ts` derives the user from Convex Auth instead of trusting the
+  client when creating or toggling todos
+- `convex/guests.ts` assigns each guest a readable display name from a fixed
+  pool
+- the home route prompts unauthenticated users to continue as a guest and lets
+  signed-in users sign out
+
+The dev and Cloudflare build scripts configure Convex Auth JWT keys only when a
+deployment does not already have them, so new deployments work without rotating
+existing sessions on every build.
