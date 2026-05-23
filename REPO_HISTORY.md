@@ -156,9 +156,9 @@ read after mount so TanStack Start's prerendered HTML stays stable.
 vp run build
 ```
 
-Add `scripts/run-anon-dev.ts` so anonymous Convex mode works on macOS, Linux,
+Add `scripts/run-worktree-dev.ts` so anonymous Convex mode works on macOS, Linux,
 and Windows without relying on shell-specific environment variable syntax. The
-user-facing `dev:anon` script now delegates to that Node wrapper.
+user-facing `dev:worktree` script now delegates to that Node wrapper.
 
 ## 13. deploy static assets with Workers
 

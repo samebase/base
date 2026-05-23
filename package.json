@@ -9,10 +9,9 @@
     "#hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
-    "anon": "node ./scripts/run-anon-dev.ts",
     "dev": "node ./scripts/run-dev.ts",
-    "dev:anon": "vp run anon",
     "dev:frontend": "vp dev",
+    "dev:worktree": "node ./scripts/run-worktree-dev.ts",
     "check": "tsc && tsc --project convex/tsconfig.json",
     "build": "vp run build:cloudflare",
     "build:app": "tsc && vp build",

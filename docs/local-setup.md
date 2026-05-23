@@ -38,15 +38,15 @@ if they are missing.
 
 Open the local URL printed by Vite.
 
-## Run anonymous mode
+## Run worktree mode
 
-Use anonymous mode for Codex, Conductor, or a separate git worktree where you
+Use worktree mode for Codex, Conductor, or a separate git worktree where you
 want an isolated local backend.
 
 ```sh
-pnpm run anon
+pnpm run dev:worktree
 ```
 
-This repo's `anon` script is a TypeScript launcher run by Node instead of
-`CONVEX_AGENT_MODE=anonymous ...` shell syntax, so the same command works on
+This repo's `dev:worktree` script is a TypeScript launcher run by Node instead
+of `CONVEX_AGENT_MODE=anonymous ...` shell syntax, so the same command works on
 PowerShell, macOS, and Linux.

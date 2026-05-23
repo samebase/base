@@ -12,7 +12,7 @@ const child = spawn("vp", ["run", "dev"], {
 });
 
 child.on("error", (error) => {
-  console.error(`Failed to start anonymous dev mode: ${error.message}`);
+  console.error(`Failed to start worktree dev mode: ${error.message}`);
   process.exit(1);
 });
 

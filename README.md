@@ -116,7 +116,7 @@ they are missing.
 For an isolated local agent or worktree backend:
 
 ```sh
-pnpm run anon
+pnpm run dev:worktree
 ```
 
 ## 6. Validate deploy config locally
