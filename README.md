@@ -22,7 +22,7 @@ static frontend. Local deploy dry-runs run that same build path before asking
 Wrangler to validate the upload.
 
 The app includes minimal auth out of the box: users can continue as guests, and
-todos are stored per Convex Auth user.
+the public todo list keeps guest author attribution.
 
 </details>
 

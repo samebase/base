@@ -286,3 +286,19 @@ authenticated identity without any external auth service:
 The dev and Cloudflare build scripts configure Convex Auth JWT keys only when a
 deployment does not already have them, so new deployments work without rotating
 existing sessions on every build.
+
+## 18. share the todo list publicly
+
+```sh
+vp run check
+vp run build
+```
+
+The todo list becomes public while writes stay authenticated:
+
+- `convex/todos.ts` returns every user's todos with the author's display name,
+  and the home route renders the creator under each todo
+- todo text is capped at 280 characters and each user keeps at most 50 todos,
+  so a public list cannot be flooded
+- `convex/guests.ts` falls back to a generated guest name when the fixed pool
+  runs out

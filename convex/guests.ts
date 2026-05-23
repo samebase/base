@@ -17,6 +17,7 @@ const GUEST_NAME_POOL = [
   "Ivy",
   "Juniper",
 ] as const;
+const FALLBACK_GUEST_NAME_SPACE = 36 ** 6;
 
 const viewerResultValidator = object({
   name: union(string(), nullValue()),
@@ -34,6 +35,14 @@ function shuffledGuestNames() {
     candidates[swapIndex] = current;
   }
   return candidates;
+}
+
+function fallbackGuestName(userId: string) {
+  let hash = 0;
+  for (const character of userId) {
+    hash = (hash * 31 + character.charCodeAt(0)) % FALLBACK_GUEST_NAME_SPACE;
+  }
+  return `Guest ${hash.toString(36).padStart(6, "0")}`;
 }
 
 async function getRequiredUserId(ctx: { auth: Auth }) {
@@ -103,6 +112,16 @@ export const ensureName = mutation({
       }
     }
 
-    throw new Error("All guest names are taken. Add more names in convex/guests.ts.");
+    // Anonymous sessions can outnumber the friendly pool in public previews.
+    const name = fallbackGuestName(userId);
+    await ctx.db.insert("guestNames", {
+      name,
+      userId,
+      createdAt: Date.now(),
+    });
+    await ctx.db.patch(userId, {
+      name,
+    });
+    return { name };
   },
 });

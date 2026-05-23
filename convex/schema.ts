@@ -9,7 +9,9 @@ export default defineSchema({
     text: v.string(),
     done: v.boolean(),
     createdAt: v.number(),
-  }).index("by_user_created_at", ["userId", "createdAt"]),
+  })
+    .index("by_created_at", ["createdAt"])
+    .index("by_user_created_at", ["userId", "createdAt"]),
   guestNames: defineTable({
     name: v.string(),
     userId: v.id("users"),
