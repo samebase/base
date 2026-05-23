@@ -3,16 +3,16 @@ import type { Auth } from "convex/server";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-const { array, boolean, id, null: nullValue, number, object, string } = v;
+const { array, boolean, id, null: nullValue, object, string } = v;
+
+const MAX_TODOS_PER_USER = 50;
+const MAX_TODO_TEXT_LENGTH = 280;
 
 const vTodo = object({
   _id: id("todos"),
-  _creationTime: number(),
-  userId: id("users"),
   creatorName: string(),
   text: string(),
   done: boolean(),
-  createdAt: number(),
 });
 
 const listResultValidator = array(vTodo);
@@ -41,12 +41,14 @@ export const list = query({
       .query("todos")
       .withIndex("by_user_created_at", (q) => q.eq("userId", userId))
       .order("desc")
-      .collect();
+      .take(MAX_TODOS_PER_USER);
     const creatorName = user.name ?? "Guest";
 
     return todos.map((todo) => ({
-      ...todo,
+      _id: todo._id,
       creatorName,
+      text: todo.text,
+      done: todo.done,
     }));
   },
 });
@@ -61,6 +63,18 @@ export const create = mutation({
     const text = args.text.trim();
     if (!text) {
       throw new Error("Todo text cannot be empty");
+    }
+    if (text.length > MAX_TODO_TEXT_LENGTH) {
+      throw new Error(`Todo text must be ${MAX_TODO_TEXT_LENGTH} characters or fewer`);
+    }
+
+    const existingTodos = await ctx.db
+      .query("todos")
+      .withIndex("by_user_created_at", (q) => q.eq("userId", userId))
+      .order("desc")
+      .take(MAX_TODOS_PER_USER);
+    if (existingTodos.length >= MAX_TODOS_PER_USER) {
+      throw new Error(`Todo limit reached: keep at most ${MAX_TODOS_PER_USER} todos`);
     }
 
     await ctx.db.insert("todos", {

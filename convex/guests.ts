@@ -36,6 +36,10 @@ function shuffledGuestNames() {
   return candidates;
 }
 
+function fallbackGuestName(userId: string) {
+  return `Guest ${userId}`;
+}
+
 async function getRequiredUserId(ctx: { auth: Auth }) {
   const userId = await getAuthUserId(ctx);
   if (!userId) {
@@ -103,6 +107,16 @@ export const ensureName = mutation({
       }
     }
 
-    throw new Error("All guest names are taken. Add more names in convex/guests.ts.");
+    // Anonymous sessions can outnumber the friendly pool in public previews.
+    const name = fallbackGuestName(userId);
+    await ctx.db.insert("guestNames", {
+      name,
+      userId,
+      createdAt: Date.now(),
+    });
+    await ctx.db.patch(userId, {
+      name,
+    });
+    return { name };
   },
 });

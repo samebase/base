@@ -8,6 +8,9 @@ import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
 import { Input } from "#components/ui/input";
 
+const TODO_LIMIT = 50;
+const TODO_TEXT_LIMIT = 280;
+
 export const Route = createFileRoute("/")({
   component: HomePage,
 });
@@ -87,6 +90,7 @@ function TodoWorkspace() {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [guestNameStatus, setGuestNameStatus] = useState<"idle" | "pending" | "failed">("idle");
   const [guestNameError, setGuestNameError] = useState("");
+  const [createError, setCreateError] = useState("");
   const text = draft.trim();
 
   const viewer = useQuery(api.guests.viewer, {});
@@ -95,6 +99,7 @@ function TodoWorkspace() {
   const createTodo = useMutation(api.todos.create);
   const toggleTodo = useMutation(api.todos.toggle);
   const guestName = viewer?.name ?? "Guest";
+  const todoLimitReached = todos ? todos.length >= TODO_LIMIT : false;
 
   useEffect(() => {
     if (viewer === undefined || viewer.name || guestNameStatus !== "idle") {
@@ -117,14 +122,17 @@ function TodoWorkspace() {
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
-    if (!text || isCreating) {
+    if (!text || isCreating || todoLimitReached) {
       return;
     }
 
+    setCreateError("");
     setIsCreating(true);
     try {
       await createTodo({ text });
       setDraft("");
+    } catch (error: unknown) {
+      setCreateError(error instanceof Error ? error.message : "Could not add todo");
     } finally {
       setIsCreating(false);
     }
@@ -156,12 +164,21 @@ function TodoWorkspace() {
         <Input
           placeholder="New todo"
           value={draft}
+          maxLength={TODO_TEXT_LIMIT}
           onChange={(event) => setDraft(event.target.value)}
         />
-        <Button type="submit" disabled={!text || isCreating}>
+        <Button type="submit" disabled={!text || isCreating || todoLimitReached}>
           {isCreating ? "Adding" : "Add"}
         </Button>
       </form>
+      {todoLimitReached ? (
+        <p className="text-muted-foreground text-sm">Todo limit reached</p>
+      ) : null}
+      {createError ? (
+        <p className="text-destructive text-sm" role="alert">
+          {createError}
+        </p>
+      ) : null}
 
       <ul className="space-y-2">
         {todos?.map((todo) => (
