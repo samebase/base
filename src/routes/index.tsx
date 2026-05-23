@@ -85,11 +85,34 @@ function TodoWorkspace() {
   const [draft, setDraft] = useState("");
   const [isCreating, setIsCreating] = useState(false);
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [guestNameStatus, setGuestNameStatus] = useState<"idle" | "pending" | "failed">("idle");
+  const [guestNameError, setGuestNameError] = useState("");
   const text = draft.trim();
 
+  const viewer = useQuery(api.guests.viewer, {});
   const todos = useQuery(api.todos.list, {});
+  const ensureGuestName = useMutation(api.guests.ensureName);
   const createTodo = useMutation(api.todos.create);
   const toggleTodo = useMutation(api.todos.toggle);
+  const guestName = viewer?.name ?? "Guest";
+
+  useEffect(() => {
+    if (viewer === undefined || viewer.name || guestNameStatus !== "idle") {
+      return;
+    }
+
+    // Also covers a saved anonymous session restored before this component mounts.
+    setGuestNameStatus("pending");
+    setGuestNameError("");
+    void ensureGuestName({})
+      .then(() => {
+        setGuestNameStatus("idle");
+      })
+      .catch((error: unknown) => {
+        setGuestNameStatus("failed");
+        setGuestNameError(error instanceof Error ? error.message : "Could not reserve guest name");
+      });
+  }, [ensureGuestName, guestNameStatus, viewer]);
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -115,11 +138,19 @@ function TodoWorkspace() {
   return (
     <>
       <div className="flex items-center justify-between gap-3">
-        <h1 className="text-lg">Todo list</h1>
+        <div className="flex min-w-0 flex-col">
+          <h1 className="text-lg">Todo list</h1>
+          <p className="text-muted-foreground text-sm">{guestName}</p>
+        </div>
         <Button type="button" variant="outline" disabled={isSigningOut} onClick={onSignOut}>
           {isSigningOut ? "Signing out" : "Sign out"}
         </Button>
       </div>
+      {guestNameError ? (
+        <p className="text-destructive text-sm" role="alert">
+          {guestNameError}
+        </p>
+      ) : null}
 
       <form className="flex gap-2" onSubmit={onSubmit}>
         <Input
