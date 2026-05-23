@@ -1,11 +1,13 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
 import type { Auth } from "convex/server";
+import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-const { array, boolean, id, null: nullValue, object, string } = v;
+const { array, boolean, id, null: nullValue, number, object, string, union } = v;
 
 const MAX_TODOS_PER_USER = 50;
+const MAX_VISIBLE_TODOS = 50;
 const MAX_TODO_TEXT_LENGTH = 280;
 
 const vTodo = object({
@@ -13,9 +15,13 @@ const vTodo = object({
   creatorName: string(),
   text: string(),
   done: boolean(),
+  viewerCanToggle: boolean(),
 });
 
-const listResultValidator = array(vTodo);
+const listResultValidator = object({
+  todos: array(vTodo),
+  viewerTodoCount: union(number(), nullValue()),
+});
 const createResultValidator = nullValue();
 const toggleResultValidator = nullValue();
 
@@ -31,25 +37,43 @@ export const list = query({
   args: {},
   returns: listResultValidator,
   handler: async (ctx) => {
-    const userId = await getRequiredUserId(ctx);
-    const user = await ctx.db.get(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
     const todos = await ctx.db
       .query("todos")
-      .withIndex("by_user_created_at", (q) => q.eq("userId", userId))
+      .withIndex("by_created_at")
       .order("desc")
-      .take(MAX_TODOS_PER_USER);
-    const creatorName = user.name ?? "Guest";
+      .take(MAX_VISIBLE_TODOS);
+    const viewerUserId = await getAuthUserId(ctx);
+    const creatorNames = new Map<Id<"users">, string>();
+    let viewerTodoCount: number | null = null;
 
-    return todos.map((todo) => ({
-      _id: todo._id,
-      creatorName,
-      text: todo.text,
-      done: todo.done,
-    }));
+    for (const todo of todos) {
+      if (creatorNames.has(todo.userId)) {
+        continue;
+      }
+
+      const user = await ctx.db.get(todo.userId);
+      creatorNames.set(todo.userId, user?.name ?? "Guest");
+    }
+
+    if (viewerUserId) {
+      const viewerTodos = await ctx.db
+        .query("todos")
+        .withIndex("by_user_created_at", (q) => q.eq("userId", viewerUserId))
+        .order("desc")
+        .take(MAX_TODOS_PER_USER);
+      viewerTodoCount = viewerTodos.length;
+    }
+
+    return {
+      todos: todos.map((todo) => ({
+        _id: todo._id,
+        creatorName: creatorNames.get(todo.userId) ?? "Guest",
+        text: todo.text,
+        done: todo.done,
+        viewerCanToggle: viewerUserId === todo.userId,
+      })),
+      viewerTodoCount,
+    };
   },
 });
 

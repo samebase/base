@@ -4,6 +4,7 @@ import { Authenticated, AuthLoading, Unauthenticated, useMutation, useQuery } fr
 import { QRCodeSVG } from "qrcode.react";
 import { type FormEvent, useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
+import type { Id } from "../../convex/_generated/dataModel";
 import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
 import { Input } from "#components/ui/input";
@@ -11,12 +12,24 @@ import { Input } from "#components/ui/input";
 const TODO_LIMIT = 50;
 const TODO_TEXT_LIMIT = 280;
 
+type VisibleTodo = {
+  _id: Id<"todos">;
+  creatorName: string;
+  text: string;
+  done: boolean;
+  viewerCanToggle: boolean;
+};
+
 export const Route = createFileRoute("/")({
   component: HomePage,
 });
 
 function HomePage() {
   const [shareUrl, setShareUrl] = useState("");
+  const todoState = useQuery(api.todos.list, {});
+  const todos = todoState?.todos ?? [];
+  const viewerTodoCount = todoState?.viewerTodoCount ?? null;
+  const todoLimitReached = viewerTodoCount !== null && viewerTodoCount >= TODO_LIMIT;
 
   useEffect(() => {
     // Read the browser URL after mount so prerendered HTML stays stable.
@@ -47,8 +60,9 @@ function HomePage() {
         <GuestSignIn />
       </Unauthenticated>
       <Authenticated>
-        <TodoWorkspace />
+        <TodoWorkspace todoLimitReached={todoLimitReached} />
       </Authenticated>
+      <TodoList todos={todos} />
     </main>
   );
 }
@@ -83,7 +97,7 @@ function GuestSignIn() {
   );
 }
 
-function TodoWorkspace() {
+function TodoWorkspace({ todoLimitReached }: { todoLimitReached: boolean }) {
   const { signOut } = useAuthActions();
   const [draft, setDraft] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -94,12 +108,9 @@ function TodoWorkspace() {
   const text = draft.trim();
 
   const viewer = useQuery(api.guests.viewer, {});
-  const todos = useQuery(api.todos.list, {});
   const ensureGuestName = useMutation(api.guests.ensureName);
   const createTodo = useMutation(api.todos.create);
-  const toggleTodo = useMutation(api.todos.toggle);
   const guestName = viewer?.name ?? "Guest";
-  const todoLimitReached = todos ? todos.length >= TODO_LIMIT : false;
 
   useEffect(() => {
     if (viewer === undefined || viewer.name || guestNameStatus !== "idle") {
@@ -179,32 +190,46 @@ function TodoWorkspace() {
           {createError}
         </p>
       ) : null}
-
-      <ul className="space-y-2">
-        {todos?.map((todo) => (
-          <li key={todo._id}>
-            <label
-              htmlFor={`todo-${todo._id}`}
-              className="flex cursor-pointer items-center gap-3 border p-2"
-            >
-              <Checkbox
-                id={`todo-${todo._id}`}
-                checked={todo.done}
-                onCheckedChange={() => {
-                  void toggleTodo({ id: todo._id });
-                }}
-              />
-
-              <span className="flex min-w-0 flex-col">
-                <span className={todo.done ? "text-muted-foreground line-through" : ""}>
-                  {todo.text}
-                </span>
-                <span className="text-muted-foreground text-xs">Created by {todo.creatorName}</span>
-              </span>
-            </label>
-          </li>
-        ))}
-      </ul>
     </>
+  );
+}
+
+function TodoList({ todos }: { todos: VisibleTodo[] }) {
+  const toggleTodo = useMutation(api.todos.toggle);
+
+  return (
+    <ul className="space-y-2">
+      {todos.map((todo) => (
+        <li key={todo._id}>
+          <label
+            htmlFor={`todo-${todo._id}`}
+            className={
+              todo.viewerCanToggle
+                ? "flex cursor-pointer items-center gap-3 border p-2"
+                : "flex items-center gap-3 border p-2"
+            }
+          >
+            <Checkbox
+              id={`todo-${todo._id}`}
+              checked={todo.done}
+              disabled={!todo.viewerCanToggle}
+              onCheckedChange={() => {
+                if (!todo.viewerCanToggle) {
+                  return;
+                }
+                void toggleTodo({ id: todo._id });
+              }}
+            />
+
+            <span className="flex min-w-0 flex-col">
+              <span className={todo.done ? "text-muted-foreground line-through" : ""}>
+                {todo.text}
+              </span>
+              <span className="text-muted-foreground text-xs">Created by {todo.creatorName}</span>
+            </span>
+          </label>
+        </li>
+      ))}
+    </ul>
   );
 }

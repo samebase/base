@@ -322,15 +322,16 @@ vp run build
 Add Convex Auth with the anonymous provider so the starter app has a real
 authenticated identity without any external auth service.
 
-Todos now belong to the signed-in guest user:
+Todos now keep guest authors while the list stays public:
 
 - `convex/auth.ts`, `convex/auth.config.ts`, and `convex/http.ts` configure
   Convex Auth
-- `convex/schema.ts` adds the auth tables and stores `todos.userId`
+- `convex/schema.ts` adds the auth tables and stores `todos.userId` for author
+  attribution
 - `convex/todos.ts` derives the user from Convex Auth instead of trusting the
-  client
+  client when creating or toggling todos
 - the home route prompts unauthenticated users to continue as a guest and lets
-  signed-in users sign out
+  signed-in users sign out while the todo list remains visible publicly
 
 The dev and Cloudflare build scripts configure Convex Auth JWT keys only when a
 deployment does not already have them, so new deployments work without rotating
