@@ -16,7 +16,7 @@ export const cloudflarePrerenderPages = [
     path: "/",
     prerender: {
       enabled: true,
-      outputPath: "/_home.html",
+      outputPath: "/_landing.html",
     },
   },
   {

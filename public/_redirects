@@ -6,7 +6,7 @@
 # the SPA shell owns that file. These exact aliases expose prerendered
 # public pages without catching hashed assets.
 
-/ /_home.html 200
+/ /_landing.html 200
 
 /about /about/index.html 200
 /about/ /about/index.html 200

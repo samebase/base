@@ -13,7 +13,7 @@ const pages = [
     path: "/",
     prerender: {
       enabled: true,
-      outputPath: "/_home.html",
+      outputPath: "/_landing.html",
     },
   },
   {
@@ -33,7 +33,7 @@ describe("generate-cloudflare-redirects", () => {
         "# the SPA shell owns that file. These exact aliases expose prerendered",
         "# public pages without catching hashed assets.",
         "",
-        "/ /_home.html 200",
+        "/ /_landing.html 200",
         "",
         "/about /about/index.html 200",
         "/about/ /about/index.html 200",
@@ -61,7 +61,7 @@ describe("generate-cloudflare-redirects", () => {
         "# the SPA shell owns that file. These exact aliases expose prerendered",
         "# public pages without catching hashed assets.",
         "",
-        "/ /_home.html 200",
+        "/ /_landing.html 200",
         "",
         "/about /about/index.html 200",
         "/about/ /about/index.html 200",
@@ -74,7 +74,7 @@ describe("generate-cloudflare-redirects", () => {
   });
 
   it("requires the generated block tags", () => {
-    expect(() => replaceGeneratedRedirectsBlock("/ /_home.html 200\n", "")).toThrow(
+    expect(() => replaceGeneratedRedirectsBlock("/ /_landing.html 200\n", "")).toThrow(
       "Missing # @notermd/app-prerender-redirects:start",
     );
   });
