@@ -5,8 +5,8 @@
   "assets": {
     "directory": "./dist/client",
     "html_handling": "none",
-    // vite.config.ts emits the TanStack Start SPA shell to /index.html because
-    // Cloudflare Workers Static Assets uses that file for SPA fallback.
+    // Cloudflare's single-page-application asset mode serves /index.html for
+    // unknown app routes. Keep vite.config.ts emitting the Start shell there.
     "not_found_handling": "single-page-application",
   },
 }

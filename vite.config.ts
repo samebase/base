@@ -40,8 +40,9 @@ export default defineConfig({
         // distinct from the explicit / home prerender entry.
         maskPath: "/#__spa-shell",
         prerender: {
-          // Cloudflare Workers Static Assets serves /index.html for SPA fallback.
-          // TanStack Start's default shell is /_shell.html, so emit it here instead.
+          // wrangler.jsonc uses Cloudflare's single-page-application asset mode,
+          // and that mode serves /index.html for unknown app routes. TanStack
+          // Start defaults the SPA shell to /_shell.html, so emit it here instead.
           outputPath: "/index.html",
         },
       },
