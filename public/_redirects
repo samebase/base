@@ -1,5 +1,6 @@
-# Cloudflare Workers _redirects apply before asset serving. Keep this file
-# limited to exact prerender aliases so hashed assets bypass redirects.
+# Cloudflare's single-page-application asset mode serves /index.html for
+# unknown app routes, so the SPA shell owns that file. These exact aliases
+# expose the prerendered / and /about pages without catching hashed assets.
 
 / /_home.html 200
 /about /about/index.html 200

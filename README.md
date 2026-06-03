@@ -88,6 +88,9 @@ The repository's scripts and `wrangler.jsonc` provide the deployment contract:
   "preview_urls": true,
   "assets": {
     "directory": "./dist/client",
+    "html_handling": "none",
+    // Cloudflare's single-page-application asset mode serves /index.html for
+    // unknown app routes. Keep vite.config.ts emitting the Start shell there.
     "not_found_handling": "single-page-application",
   },
 }
