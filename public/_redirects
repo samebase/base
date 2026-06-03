@@ -1,0 +1,7 @@
+# Cloudflare Workers _redirects apply before asset serving. Keep this file
+# limited to exact prerender aliases so hashed assets bypass redirects.
+
+/ /_home.html 200
+/about /about/index.html 200
+/about/ /about/index.html 200
+/about/index.html /about/index.html 200

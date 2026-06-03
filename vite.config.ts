@@ -14,8 +14,30 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     tanstackStart({
+      pages: [
+        {
+          path: "/",
+          prerender: {
+            enabled: true,
+            outputPath: "/_home.html",
+          },
+        },
+        {
+          path: "/about",
+          prerender: {
+            enabled: true,
+          },
+        },
+      ],
+      prerender: {
+        autoStaticPathsDiscovery: false,
+        crawlLinks: false,
+        enabled: true,
+      },
       spa: {
         enabled: true,
+        // A trailing slash keeps the SPA shell prerender distinct from the /about page.
+        maskPath: "/about/",
         prerender: {
           outputPath: "/index.html",
         },
