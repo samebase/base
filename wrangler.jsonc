@@ -4,6 +4,9 @@
   "preview_urls": true,
   "assets": {
     "directory": "./dist/client",
+    "html_handling": "none",
+    // Cloudflare SPA mode serves /index.html for unknown app routes. Keep
+    // vite.config.ts emitting the TanStack Start shell there.
     "not_found_handling": "single-page-application",
   },
 }

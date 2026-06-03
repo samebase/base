@@ -302,3 +302,22 @@ The todo list becomes public while writes stay authenticated:
   so a public list cannot be flooded
 - `convex/guests.ts` falls back to a generated guest name when the fixed pool
   runs out
+
+## 19. prerender the home and about routes
+
+```sh
+vp run check
+vp run build
+vp run deploy:dry-run
+```
+
+Prerender the public routes during the static build:
+
+- `scripts/cloudflare-prerender-pages.ts` is the source of truth for the
+  prerendered pages
+- `vite.config.ts` prerenders them through TanStack Start and keeps the SPA
+  shell on `/index.html` for Cloudflare's SPA fallback
+- `scripts/generate-cloudflare-redirects.ts` rewrites only the tagged generated
+  block in `public/_redirects`, and `verify:cloudflare-redirects` fails
+  `vp run check` when the committed file drifts
+- vitest covers the redirects generator and the Convex deploy key selection
