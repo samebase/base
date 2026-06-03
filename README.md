@@ -76,11 +76,13 @@ The repository's scripts and `wrangler.jsonc` provide the deployment contract:
 {
   "scripts": {
     "build": "vp run build:cloudflare",
-    "build:app": "tsc && node ./scripts/generate-cloudflare-redirects.ts && vp build",
+    "build:app": "tsc && pnpm run generate:cloudflare-redirects && vp build",
     "build:cloudflare": "node ./scripts/build-cloudflare.ts",
+    "check": "tsc && tsc --project convex/tsconfig.json && pnpm run verify:cloudflare-redirects",
     "deploy": "node ./scripts/deploy-cloudflare.ts deploy",
     "deploy:preview": "node ./scripts/deploy-cloudflare.ts preview",
-    "generate:redirects": "node ./scripts/generate-cloudflare-redirects.ts",
+    "generate:cloudflare-redirects": "node ./scripts/generate-cloudflare-redirects.ts",
+    "verify:cloudflare-redirects": "pnpm run generate:cloudflare-redirects && git diff --exit-code -- public/_redirects",
   },
 }
 
@@ -90,8 +92,8 @@ The repository's scripts and `wrangler.jsonc` provide the deployment contract:
   "assets": {
     "directory": "./dist/client",
     "html_handling": "none",
-    // Cloudflare's single-page-application asset mode serves /index.html for
-    // unknown app routes. Keep vite.config.ts emitting the Start shell there.
+    // Cloudflare SPA mode serves /index.html for unknown app routes. Keep
+    // vite.config.ts emitting the TanStack Start shell there.
     "not_found_handling": "single-page-application",
   },
 }
@@ -100,8 +102,10 @@ The repository's scripts and `wrangler.jsonc` provide the deployment contract:
 `scripts/cloudflare-prerender-pages.ts` is the source of truth for public
 prerendered pages. `scripts/generate-cloudflare-redirects.ts` rewrites only the
 tagged generated block in `public/_redirects`, so custom Cloudflare redirects can
-live outside that block. Keep broad or catch-all custom rules after the generated
-block so exact prerender aliases win first.
+live outside that block. `_redirects` is applied before asset serving, so keep
+custom rules exact; Cloudflare SPA mode owns app-route fallback through
+`/index.html`. The committed `_redirects` file is the review surface for the
+generated exact aliases.
 
 The `.node-version` file pins Cloudflare's build image to Node 24. That keeps
 the helper scripts typed while still running them with plain `node`.

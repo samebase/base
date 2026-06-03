@@ -1,23 +1,28 @@
 export type CloudflarePrerenderPage = {
   path: `/${string}`;
-  outputPath: `/${string}`;
-  redirectAliases: readonly [`/${string}`, ...`/${string}`[]];
+  prerender: {
+    enabled: true;
+    outputPath?: `/${string}`;
+  };
 };
 
 /**
- * Public pages that are prerendered as exact Cloudflare Static Assets aliases.
- * /index.html belongs to Cloudflare's SPA fallback shell, so / is emitted as
- * /_home.html and exposed through the generated _redirects block.
+ * Public pages that TanStack Start prerenders and Cloudflare exposes through
+ * exact _redirects aliases. Cloudflare SPA mode owns /index.html, so / must
+ * use a separate output file.
  */
 export const cloudflarePrerenderPages = [
   {
     path: "/",
-    outputPath: "/_home.html",
-    redirectAliases: ["/"],
+    prerender: {
+      enabled: true,
+      outputPath: "/_home.html",
+    },
   },
   {
     path: "/about",
-    outputPath: "/about/index.html",
-    redirectAliases: ["/about", "/about/", "/about/index.html"],
+    prerender: {
+      enabled: true,
+    },
   },
 ] as const satisfies readonly CloudflarePrerenderPage[];

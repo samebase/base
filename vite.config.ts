@@ -18,10 +18,7 @@ export default defineConfig({
     tanstackStart({
       pages: cloudflarePrerenderPages.map((page) => ({
         path: page.path,
-        prerender: {
-          enabled: true,
-          outputPath: page.outputPath,
-        },
+        prerender: page.prerender,
       })),
       prerender: {
         autoStaticPathsDiscovery: false,
@@ -30,11 +27,10 @@ export default defineConfig({
       },
       spa: {
         enabled: true,
-        // wrangler.jsonc uses Cloudflare's single-page-application asset mode,
-        // and that mode serves /index.html for unknown app routes. TanStack
-        // Start defaults the SPA shell to /_shell.html, so emit it here
-        // instead. The hash marker keeps the shell request on the public root
-        // route while staying distinct from the explicit / prerender entry.
+        // Cloudflare SPA mode serves /index.html for unknown app routes.
+        // TanStack Start defaults the SPA shell to /_shell.html, so emit it
+        // here instead. The hash marker keeps the shell request on the public
+        // root route while staying distinct from the explicit / prerender entry.
         maskPath: "/#__spa-shell",
         prerender: {
           outputPath: "/index.html",
