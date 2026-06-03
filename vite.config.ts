@@ -36,8 +36,9 @@ export default defineConfig({
       },
       spa: {
         enabled: true,
-        // A trailing slash keeps the SPA shell prerender distinct from the /about page.
-        maskPath: "/about/",
+        // Keep the shell request on the public root route while staying
+        // distinct from the explicit / home prerender entry.
+        maskPath: "/#__spa-shell",
         prerender: {
           // Cloudflare Workers Static Assets serves /index.html for SPA fallback.
           // TanStack Start's default shell is /_shell.html, so emit it here instead.
