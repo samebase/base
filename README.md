@@ -76,10 +76,11 @@ The repository's scripts and `wrangler.jsonc` provide the deployment contract:
 {
   "scripts": {
     "build": "vp run build:cloudflare",
-    "build:app": "tsc && vp build",
+    "build:app": "tsc && node ./scripts/generate-cloudflare-redirects.ts && vp build",
     "build:cloudflare": "node ./scripts/build-cloudflare.ts",
     "deploy": "node ./scripts/deploy-cloudflare.ts deploy",
     "deploy:preview": "node ./scripts/deploy-cloudflare.ts preview",
+    "generate:redirects": "node ./scripts/generate-cloudflare-redirects.ts",
   },
 }
 
@@ -95,6 +96,12 @@ The repository's scripts and `wrangler.jsonc` provide the deployment contract:
   },
 }
 ```
+
+`scripts/cloudflare-prerender-pages.ts` is the source of truth for public
+prerendered pages. `scripts/generate-cloudflare-redirects.ts` rewrites only the
+tagged generated block in `public/_redirects`, so custom Cloudflare redirects can
+live outside that block. Keep broad or catch-all custom rules after the generated
+block so exact prerender aliases win first.
 
 The `.node-version` file pins Cloudflare's build image to Node 24. That keeps
 the helper scripts typed while still running them with plain `node`.

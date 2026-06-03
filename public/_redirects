@@ -1,8 +1,11 @@
+# Keep custom redirects outside this block; place broad or catch-all rules after it.
+# @notermd/app-prerender-redirects:start
 # Cloudflare's single-page-application asset mode serves /index.html for
 # unknown app routes, so the SPA shell owns that file. These exact aliases
-# expose the prerendered / and /about pages without catching hashed assets.
+# expose prerendered pages without catching hashed assets.
 
 / /_home.html 200
 /about /about/index.html 200
 /about/ /about/index.html 200
 /about/index.html /about/index.html 200
+# @notermd/app-prerender-redirects:end

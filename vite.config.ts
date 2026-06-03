@@ -3,6 +3,8 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite-plus";
 
+import { cloudflarePrerenderPages } from "./scripts/cloudflare-prerender-pages.ts";
+
 export default defineConfig({
   fmt: {
     ignorePatterns: [".agents/**", "convex/_generated/**", "src/routeTree.gen.ts"],
@@ -14,21 +16,13 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     tanstackStart({
-      pages: [
-        {
-          path: "/",
-          prerender: {
-            enabled: true,
-            outputPath: "/_home.html",
-          },
+      pages: cloudflarePrerenderPages.map((page) => ({
+        path: page.path,
+        prerender: {
+          enabled: true,
+          outputPath: page.outputPath,
         },
-        {
-          path: "/about",
-          prerender: {
-            enabled: true,
-          },
-        },
-      ],
+      })),
       prerender: {
         autoStaticPathsDiscovery: false,
         crawlLinks: false,
