@@ -54,7 +54,7 @@ shadcn/ui imports use the same shape as the current `notermd/app` template.
 ## 5. initialize shadcn/ui
 
 ```sh
-vp add @fontsource-variable/geist class-variance-authority clsx lucide-react radix-ui shadcn tailwind-merge tw-animate-css
+vp add class-variance-authority clsx lucide-react radix-ui shadcn tailwind-merge tw-animate-css
 pnpm approve-builds msw
 vp run build
 ```
@@ -64,6 +64,7 @@ Add the shadcn Nova preset foundation:
 - `components.json`
 - `src/lib/utils.ts`
 - shadcn theme imports and CSS variables in `src/style.css`
+- a system `--font-sans` stack, so the starter has no webfont swap on first load
 
 This commit prepares the theme and `cn()` helper, but does not add concrete UI
 primitives yet.
