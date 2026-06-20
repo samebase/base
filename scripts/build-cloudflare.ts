@@ -37,7 +37,15 @@ function readDeployKey(deployKeyName: DeployKeyName, branch: string) {
     return deployKey;
   }
 
-  throw new Error(`Set ${deployKeyName} in Cloudflare Workers build variables for ${branch}.`);
+  if (deployKeyName === PROD_CONVEX_DEPLOY_KEY) {
+    throw new Error(
+      `Set ${PROD_CONVEX_DEPLOY_KEY} in Cloudflare Workers build variables for ${branch}. Use a Convex production deploy key with exactly deployment:deploy and deployment:data:view.`,
+    );
+  }
+
+  throw new Error(
+    `Set ${PREVIEW_CONVEX_DEPLOY_KEY} in Cloudflare Workers build variables for ${branch}. Use a Convex project Preview deploy key.`,
+  );
 }
 
 async function ensureConvexAuth(env: NodeJS.ProcessEnv) {

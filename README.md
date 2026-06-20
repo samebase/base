@@ -47,11 +47,22 @@ history into one commit.
 
 ## 3. Create a Convex project
 
-Open [dashboard.convex.dev](https://dashboard.convex.dev/), create a project,
-and create deploy keys for Production and Preview builds.
+Open [dashboard.convex.dev](https://dashboard.convex.dev/) and create a project.
 
-Keep both keys ready. Cloudflare will use them as `PROD_CONVEX_DEPLOY_KEY` and
-`PREVIEW_CONVEX_DEPLOY_KEY` during builds.
+From the production deployment settings, create the production deploy key with
+exactly these permissions:
+
+- `deployment:deploy`
+- `deployment:data:view`
+
+Do not grant data write, environment variable, function-run, logs, backups, or
+integration permissions to this key. Cloudflare Workers Builds must store it as
+the build secret named `PROD_CONVEX_DEPLOY_KEY`.
+
+From the project settings, create a Preview deploy key. Preview deploy keys use
+Convex's separate project-level preview flow and do not ask for the production
+permission list above. Cloudflare Workers Builds must store it as the build
+secret named `PREVIEW_CONVEX_DEPLOY_KEY`.
 
 ## 4. Create a Cloudflare Worker from GitHub
 
@@ -66,8 +77,10 @@ Use these settings:
 - Deploy command: `pnpm run deploy`
 - Non-production branch deploy command: `pnpm run deploy:preview`
 - Path: keep `/`
-- Build secret: `PROD_CONVEX_DEPLOY_KEY`
-- Build secret: `PREVIEW_CONVEX_DEPLOY_KEY`
+- Build secret: `PROD_CONVEX_DEPLOY_KEY`, using the production key with only
+  `deployment:deploy` and `deployment:data:view`
+- Build secret: `PREVIEW_CONVEX_DEPLOY_KEY`, using the project Preview deploy
+  key
 
 The repository's scripts and `wrangler.jsonc` provide the deployment contract:
 
