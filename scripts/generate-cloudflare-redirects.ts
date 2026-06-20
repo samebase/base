@@ -9,8 +9,8 @@ import {
   type CloudflarePrerenderPage,
 } from "./cloudflare-prerender-pages.ts";
 
-export const generatedRedirectsStartTag = "# @notermd/app-prerender-redirects:start";
-export const generatedRedirectsEndTag = "# @notermd/app-prerender-redirects:end";
+export const generatedRedirectsStartTag = "# @samebase/app-prerender-redirects:start";
+export const generatedRedirectsEndTag = "# @samebase/app-prerender-redirects:end";
 
 const redirectsFilePath = path.resolve("public/_redirects");
 

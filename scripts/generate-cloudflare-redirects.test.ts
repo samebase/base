@@ -61,7 +61,7 @@ describe("generate-cloudflare-redirects", () => {
 
   it("requires the generated block tags", () => {
     expect(() => replaceGeneratedRedirectsBlock("/ /_landing.html 200\n", "")).toThrow(
-      "Missing # @notermd/app-prerender-redirects:start",
+      "Missing # @samebase/app-prerender-redirects:start",
     );
   });
 

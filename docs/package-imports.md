@@ -43,10 +43,10 @@ edge.
   file. Use per-workspace `imports` for private app paths and package `exports`
   for shared workspace APIs.
 
-## Noter follow-up
+## Samebase follow-up
 
-Full Noter has many more `@/...` imports and mixed `.ts` / `.tsx` files under
-the same top-level folders. A future Noter migration should either use explicit
+Full Samebase has many more `@/...` imports and mixed `.ts` / `.tsx` files under
+the same top-level folders. A future Samebase migration should either use explicit
 source extensions with a broad `#src/*` mapping, or define named roots carefully
 enough that each root maps to one source extension.
 
