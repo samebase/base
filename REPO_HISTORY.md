@@ -49,7 +49,7 @@ vp run build
 ```
 
 Add the `@/*` TypeScript path alias and the matching Vite alias so generated
-shadcn/ui imports use the same shape as the current `notermd/app` template.
+shadcn/ui imports use the same shape as the current `samebase/app` template.
 
 ## 5. initialize shadcn/ui
 
@@ -225,7 +225,7 @@ CLOUDFLARE_WORKER_NAME=app-start-workers vp run deploy:preview:dry-run
 ```
 
 Remove `name` from `wrangler.jsonc` so the template does not force every user
-or automated noter.md deployment to rename either Cloudflare or the repository.
+or automated Samebase app provisioning to rename either Cloudflare or the repository.
 
 Add `scripts/deploy-cloudflare.ts` so Cloudflare Workers Builds can pass the
 actual connected Worker name through `WRANGLER_CI_OVERRIDE_NAME`:
@@ -298,8 +298,8 @@ WORKERS_CI=1 CONVEX_DEPLOY_KEY=legacy node ./scripts/build-cloudflare.ts
 WORKERS_CI=1 WORKERS_CI_BRANCH=feature node ./scripts/build-cloudflare.ts
 ```
 
-Use the same Convex deploy-key contract as noter.md production and
-noter-managed app provisioning:
+Use the same Convex deploy-key contract as Samebase production and
+Samebase-managed app provisioning:
 
 - `PROD_CONVEX_DEPLOY_KEY` is selected for the `main` branch.
 - `PREVIEW_CONVEX_DEPLOY_KEY` is selected for non-production branches.
