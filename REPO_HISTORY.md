@@ -337,3 +337,20 @@ Todos now keep guest authors while the list stays public:
 The dev and Cloudflare build scripts configure Convex Auth JWT keys only when a
 deployment does not already have them, so new deployments work without rotating
 existing sessions on every build.
+
+## 22. document least-privilege production deploy keys
+
+```sh
+vp run check
+```
+
+Update the README after Convex added deploy-key permission selection:
+
+- production Workers builds use a Convex production deploy key with exactly
+  `deployment:deploy`, `deployment:env:view`, `deployment:env:write`, and
+  `deployment:data:view`
+- that key is stored in Cloudflare Workers Builds as `PROD_CONVEX_DEPLOY_KEY`
+- data write, function-run, logs, backups, and integration permissions are not
+  needed
+- preview builds still use Convex's separate project-level Preview deploy key
+  stored as `PREVIEW_CONVEX_DEPLOY_KEY`
