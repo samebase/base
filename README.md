@@ -53,11 +53,13 @@ From the production deployment settings, create the production deploy key with
 exactly these permissions:
 
 - `deployment:deploy`
+- `deployment:env:view`
+- `deployment:env:write`
 - `deployment:data:view`
 
-Do not grant data write, environment variable, function-run, logs, backups, or
-integration permissions to this key. Cloudflare Workers Builds must store it as
-the build secret named `PROD_CONVEX_DEPLOY_KEY`.
+Do not grant data write, function-run, logs, backups, or integration permissions
+to this key. Cloudflare Workers Builds must store it as the build secret named
+`PROD_CONVEX_DEPLOY_KEY`.
 
 From the project settings, create a Preview deploy key. Preview deploy keys use
 Convex's separate project-level preview flow and do not ask for the production
@@ -78,7 +80,8 @@ Use these settings:
 - Non-production branch deploy command: `pnpm run deploy:preview`
 - Path: keep `/`
 - Build secret: `PROD_CONVEX_DEPLOY_KEY`, using the production key with only
-  `deployment:deploy` and `deployment:data:view`
+  `deployment:deploy`, `deployment:env:view`, `deployment:env:write`, and
+  `deployment:data:view`
 - Build secret: `PREVIEW_CONVEX_DEPLOY_KEY`, using the project Preview deploy
   key
 

@@ -347,9 +347,10 @@ vp run check
 Update the README after Convex added deploy-key permission selection:
 
 - production Workers builds use a Convex production deploy key with exactly
-  `deployment:deploy` and `deployment:data:view`
+  `deployment:deploy`, `deployment:env:view`, `deployment:env:write`, and
+  `deployment:data:view`
 - that key is stored in Cloudflare Workers Builds as `PROD_CONVEX_DEPLOY_KEY`
-- data write, environment variable, function-run, logs, backups, and integration
-  permissions are not needed
+- data write, function-run, logs, backups, and integration permissions are not
+  needed
 - preview builds still use Convex's separate project-level Preview deploy key
   stored as `PREVIEW_CONVEX_DEPLOY_KEY`
