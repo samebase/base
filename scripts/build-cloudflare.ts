@@ -87,7 +87,7 @@ if (branch !== "main") {
   };
   await run(
     "vp",
-    ["exec", "convex", "deploy", "--preview-create", branch, "--cmd", "vp run build:app"],
+    ["exec", "convex", "deploy", "--preview-name", branch, "--cmd", "vp run build:app"],
     previewEnv,
   );
   await ensureConvexAuth(previewEnv);
