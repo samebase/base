@@ -16,8 +16,8 @@ behavior.
 TypeScript helper scripts directly.
 
 Local development runs Convex and the frontend together through `vp run dev`.
-Cloudflare builds run Convex deploy first by selecting `PROD_CONVEX_DEPLOY_KEY`
-for `main` and `PREVIEW_CONVEX_DEPLOY_KEY` for other branches, then build the
+Cloudflare builds run Convex deploy first by selecting `CONVEX_DEPLOY_KEY` for
+`main` and `PREVIEW_CONVEX_DEPLOY_KEY` for other branches, then build the
 static frontend. Local deploy dry-runs run that same build path before asking
 Wrangler to validate the upload.
 
@@ -59,7 +59,7 @@ exactly these permissions:
 
 Do not grant data write, function-run, logs, backups, or integration permissions
 to this key. Cloudflare Workers Builds must store it as the build secret named
-`PROD_CONVEX_DEPLOY_KEY`.
+`CONVEX_DEPLOY_KEY`.
 
 From the project settings, create a Preview deploy key. Preview deploy keys use
 Convex's separate project-level preview flow and do not ask for the production
@@ -79,7 +79,7 @@ Use these settings:
 - Deploy command: `pnpm run deploy`
 - Non-production branch deploy command: `pnpm run deploy:preview`
 - Path: keep `/`
-- Build secret: `PROD_CONVEX_DEPLOY_KEY`, using the production key with only
+- Build secret: `CONVEX_DEPLOY_KEY`, using the production key with only
   `deployment:deploy`, `deployment:env:view`, `deployment:env:write`, and
   `deployment:data:view`
 - Build secret: `PREVIEW_CONVEX_DEPLOY_KEY`, using the project Preview deploy
@@ -88,8 +88,8 @@ Use these settings:
 Cloudflare Workers Builds can store build variables per production/preview
 trigger through the API, but the dashboard setup path does not expose a
 Pages-style environment selector for build variables. This template uses the two
-split secrets above and lets `scripts/build-cloudflare.ts` select the right one
-from `WORKERS_CI_BRANCH`. See
+secrets above and lets `scripts/build-cloudflare.ts` select the right one from
+`WORKERS_CI_BRANCH`. See
 [`docs/cloudflare-workers-builds.md`](./docs/cloudflare-workers-builds.md) for
 the deployment contract.
 
@@ -164,7 +164,7 @@ CLOUDFLARE_WORKER_NAME=my-worker pnpm run deploy:dry-run
 ```
 
 This runs the Cloudflare build path, then asks Wrangler to validate the upload
-without publishing anything. If neither split Convex deploy key is set locally,
+without publishing anything. If neither Convex deploy key is set locally,
 the Cloudflare build script skips Convex deploy and only builds the static app.
 When a Convex deploy key is selected, the build script creates Convex Auth JWT
 keys in that deployment if they are missing.

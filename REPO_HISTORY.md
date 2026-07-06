@@ -311,6 +311,10 @@ dry-run with no split keys still builds static assets only, while a local run
 with split keys but no branch fails closed instead of guessing which Convex
 deployment to touch.
 
+This was superseded by section 23: production builds now use the conventional
+`CONVEX_DEPLOY_KEY` name, while preview builds still require
+`PREVIEW_CONVEX_DEPLOY_KEY`.
+
 ## 21. add guest auth
 
 ```sh
@@ -354,3 +358,21 @@ Update the README after Convex added deploy-key permission selection:
   needed
 - preview builds still use Convex's separate project-level Preview deploy key
   stored as `PREVIEW_CONVEX_DEPLOY_KEY`
+
+## 23. use the conventional production Convex deploy key
+
+```sh
+pnpm exec vitest run scripts/build-cloudflare.test.ts
+vp run check
+```
+
+Rename the production Workers Builds secret from `PROD_CONVEX_DEPLOY_KEY` to
+`CONVEX_DEPLOY_KEY` so projects that do not have the preview-aware build wrapper
+still deploy production correctly from `main`.
+
+The Cloudflare build script keeps the branch safety check:
+
+- `CONVEX_DEPLOY_KEY` is selected only when `WORKERS_CI_BRANCH` is `main`.
+- `PREVIEW_CONVEX_DEPLOY_KEY` is required for every non-production branch.
+- a local run with either deploy key but no `WORKERS_CI_BRANCH` still fails
+  closed instead of guessing which Convex deployment to touch.
