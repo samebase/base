@@ -85,6 +85,14 @@ Use these settings:
 - Build secret: `PREVIEW_CONVEX_DEPLOY_KEY`, using the project Preview deploy
   key
 
+Cloudflare Workers Builds can store build variables per production/preview
+trigger through the API, but the dashboard setup path does not expose a
+Pages-style environment selector for build variables. This template uses the two
+split secrets above and lets `scripts/build-cloudflare.ts` select the right one
+from `WORKERS_CI_BRANCH`. See
+[`docs/cloudflare-workers-builds.md`](./docs/cloudflare-workers-builds.md) for
+the deployment contract.
+
 The repository's scripts and `wrangler.jsonc` provide the deployment contract:
 
 ```jsonc
