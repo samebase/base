@@ -33,7 +33,13 @@ describe("build-cloudflare", () => {
       kind: "deploy",
       deployKeyName: "CONVEX_DEPLOY_KEY",
       deployKey: "prod-key",
-      args: ["exec", "convex", "deploy", "--cmd", "vp run build:app"],
+      args: [
+        "exec",
+        "convex",
+        "deploy",
+        "--cmd",
+        "vp run build:app && node ./scripts/verify-current-branch-head.ts",
+      ],
     });
   });
 
@@ -56,7 +62,7 @@ describe("build-cloudflare", () => {
         "--preview-name",
         "feature-branch",
         "--cmd",
-        "vp run build:app",
+        "vp run build:app && node ./scripts/verify-current-branch-head.ts",
       ],
     });
   });

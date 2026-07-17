@@ -18,8 +18,9 @@ TypeScript helper scripts directly.
 Local development runs Convex and the frontend together through `vp run dev`.
 Cloudflare builds run Convex deploy first by selecting `CONVEX_DEPLOY_KEY` for
 `main` and `PREVIEW_CONVEX_DEPLOY_KEY` for other branches, then build the
-static frontend. Local deploy dry-runs run that same build path before asking
-Wrangler to validate the upload.
+static frontend. Immediately before Convex pushes functions, the build rejects
+an older commit that is no longer the branch head. Local deploy dry-runs run
+that same build path before asking Wrangler to validate the upload.
 
 The app includes minimal auth out of the box: users can continue as guests, and
 the public todo list keeps guest author attribution.
