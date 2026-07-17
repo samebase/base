@@ -340,8 +340,14 @@ older concurrent Workers Build from replacing newer backend code:
 - a stale build fails explicitly without deploying Convex
 - the same check protects `main` from an older concurrent production build
 
-The private `samebase/shared-convex-monorepo-fixture` proved sequential reuse,
-unwatched path absence, failure and retry, an actual last-completion-wins race,
-and the guarded version of that race. The guard adds one Git request per
-provider build. A small non-atomic interval remains between the check and the
-Convex push.
+The private `samebase/shared-convex-monorepo-fixture` first proved sequential
+reuse, unwatched path absence, failure and retry, an actual
+last-completion-wins race, and the guarded version of that race. It then proved
+that two Workers can concurrently cold-create and reuse one branch-named Convex
+preview when both deploy byte-identical backend source. During a forced
+overlap, both old builds were rejected. During a one-Worker failure, the other
+Worker and Convex advanced while the failed Worker alias stayed on its last
+successful commit. The next commit recovered all three. This tested baseline
+required no designated deployer, but it duplicates Convex deploy work once per
+Worker. The guard adds one Git request per provider build. A small non-atomic
+interval remains between the check and the Convex push.
