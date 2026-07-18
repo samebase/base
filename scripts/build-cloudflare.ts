@@ -5,6 +5,7 @@ import { pathToFileURL } from "node:url";
 
 const CONVEX_DEPLOY_KEY = "CONVEX_DEPLOY_KEY";
 const PREVIEW_CONVEX_DEPLOY_KEY = "PREVIEW_CONVEX_DEPLOY_KEY";
+const WORKERS_BUILD_COMMAND = "vp run build:app && node ./scripts/verify-current-branch-head.ts";
 
 type DeployKeyName = typeof CONVEX_DEPLOY_KEY | typeof PREVIEW_CONVEX_DEPLOY_KEY;
 type ConvexDeployPlan =
@@ -105,7 +106,7 @@ export function selectConvexDeployPlan(env: NodeJS.ProcessEnv): ConvexDeployPlan
         branch,
         deployKeyName: PREVIEW_CONVEX_DEPLOY_KEY,
       }),
-      args: ["exec", "convex", "deploy", "--preview-name", branch, "--cmd", "vp run build:app"],
+      args: ["exec", "convex", "deploy", "--preview-name", branch, "--cmd", WORKERS_BUILD_COMMAND],
     };
   }
 
@@ -117,7 +118,7 @@ export function selectConvexDeployPlan(env: NodeJS.ProcessEnv): ConvexDeployPlan
       branch,
       deployKeyName: CONVEX_DEPLOY_KEY,
     }),
-    args: ["exec", "convex", "deploy", "--cmd", "vp run build:app"],
+    args: ["exec", "convex", "deploy", "--cmd", WORKERS_BUILD_COMMAND],
   };
 }
 

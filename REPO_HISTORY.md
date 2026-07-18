@@ -321,3 +321,33 @@ Prerender the public routes during the static build:
   block in `public/_redirects`, and `verify:cloudflare-redirects` fails
   `vp run check` when the committed file drifts
 - vitest covers the redirects generator and the Convex deploy key selection
+
+## 20. guard Convex deploy ordering
+
+```sh
+vp run check
+vp test
+```
+
+Keep each non-production branch on one named Convex preview while preventing an
+older concurrent Workers Build from replacing newer backend code:
+
+- `scripts/build-cloudflare.ts` continues to use `WORKERS_CI_BRANCH` as the
+  stable preview name
+- the application build runs before `scripts/verify-current-branch-head.ts`
+- the verifier compares `WORKERS_CI_COMMIT_SHA` with the current remote branch
+  head at the last controllable point before Convex pushes functions
+- a stale build fails explicitly without deploying Convex
+- the same check protects `main` from an older concurrent production build
+
+The private `samebase/shared-convex-monorepo-fixture` first proved sequential
+reuse, unwatched path absence, failure and retry, an actual
+last-completion-wins race, and the guarded version of that race. It then proved
+that two Workers can concurrently cold-create and reuse one branch-named Convex
+preview when both deploy byte-identical backend source. During a forced
+overlap, both old builds were rejected. During a one-Worker failure, the other
+Worker and Convex advanced while the failed Worker alias stayed on its last
+successful commit. The next commit recovered all three. This tested baseline
+required no designated deployer, but it duplicates Convex deploy work once per
+Worker. The guard adds one Git request per provider build. A small non-atomic
+interval remains between the check and the Convex push.

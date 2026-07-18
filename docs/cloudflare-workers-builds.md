@@ -34,6 +34,25 @@ the production trigger and `PREVIEW_CONVEX_DEPLOY_KEY` on the preview trigger.
 When using the dashboard's generic build variables table, store both secrets;
 the script keeps preview builds from falling back to the production key.
 
+## Build Ordering
+
+Non-production builds pass `WORKERS_CI_BRANCH` to Convex as the stable preview
+name, so repeated commits reuse one preview deployment, URL, and data.
+
+Cloudflare may build more than one commit from the same branch concurrently.
+Stable naming does not order those builds: without another check, an older build
+that finishes last can replace newer Convex functions. After building the app
+and immediately before Convex pushes functions, this template compares
+`WORKERS_CI_COMMIT_SHA` with the remote head of `WORKERS_CI_BRANCH`. A stale
+build fails without deploying Convex. The check applies to `main` too, where the
+same overlap could otherwise roll production back.
+
+The check adds one authenticated `git ls-remote` request to each provider build.
+It is not an atomic compare-and-swap. A branch can still advance in the short
+interval between the Git check and Convex's internal push. Eliminating that
+residual race requires provider-side serialization or a Convex source-commit
+concurrency primitive.
+
 ## Local Checks
 
 Local dry-runs can validate the Worker package without build secrets:
