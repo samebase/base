@@ -5,7 +5,7 @@ through Cloudflare.
 
 ## Install Vite+
 
-On macOS:
+On macOS or Linux:
 
 ```sh
 curl -fsSL https://vite.plus | bash

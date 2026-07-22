@@ -27,6 +27,12 @@ the public todo list keeps guest author attribution.
 
 </details>
 
+## macOS, Linux, and Windows
+
+The core local workflow runs natively on all three. Node 24 runs the repository's automation
+directly from TypeScript, so Windows does not need WSL or Bash. The same `pnpm run dev` and
+`pnpm run dev:worktree` commands work in PowerShell, macOS, and Linux.
+
 ## 1. Create accounts
 
 You need:
@@ -160,8 +166,23 @@ pnpm run dev:worktree
 
 ## 6. Validate deploy config locally
 
+Set the Worker name once in your shell:
+
 ```sh
-CLOUDFLARE_WORKER_NAME=my-worker pnpm run deploy:dry-run
+# macOS and Linux
+export CLOUDFLARE_WORKER_NAME=my-worker
+```
+
+```powershell
+# Windows PowerShell
+$env:CLOUDFLARE_WORKER_NAME = "my-worker"
+```
+
+Then validate either deploy path:
+
+```sh
+pnpm run deploy:dry-run
+pnpm run deploy:preview:dry-run
 ```
 
 This runs the Cloudflare build path, then asks Wrangler to validate the upload
@@ -169,12 +190,6 @@ without publishing anything. If neither Convex deploy key is set locally,
 the Cloudflare build script skips Convex deploy and only builds the static app.
 When a Convex deploy key is selected, the build script creates Convex Auth JWT
 keys in that deployment if they are missing.
-
-Preview-version checks use the same local name:
-
-```sh
-CLOUDFLARE_WORKER_NAME=my-worker pnpm run deploy:preview:dry-run
-```
 
 ## Why Workers
 
