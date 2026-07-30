@@ -12,8 +12,8 @@
     "dev": "node ./scripts/run-dev.ts",
     "dev:frontend": "vp dev",
     "dev:worktree": "node ./scripts/run-worktree-dev.ts",
-    "check": "tsc && tsc --project convex/tsconfig.json && pnpm run verify:cloudflare-redirects",
-    "build": "vp run build:cloudflare",
+    "check": "tsc && pnpm run typecheck:node && tsc --project convex/tsconfig.json && pnpm run verify:cloudflare-redirects",
+    "build": "pnpm run typecheck:node && vp run build:cloudflare",
     "build:app": "tsc && pnpm run generate:cloudflare-redirects && vp build",
     "build:cloudflare": "node ./scripts/build-cloudflare.ts",
     "deploy": "node ./scripts/deploy-cloudflare.ts deploy",
@@ -23,7 +23,8 @@
     "generate:cloudflare-redirects": "node ./scripts/generate-cloudflare-redirects.ts",
     "verify:cloudflare-redirects": "pnpm run generate:cloudflare-redirects && git diff --exit-code -- public/_redirects",
     "preview": "vp preview",
-    "prepare": "vp config"
+    "prepare": "vp config",
+    "typecheck:node": "tsc --project tsconfig.node.json"
   },
   "dependencies": {
     "@auth/core": "0.37.0",
