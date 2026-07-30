@@ -17,6 +17,11 @@ Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.de
 
 ## Project validation
 
+- Authored application, automation, test, and supported configuration source uses normal `.ts` or
+  `.tsx`. Treat an authored `.js`, `.mjs`, or `.cjs` file as a review smell. Keep one only when a
+  named tool or runtime cannot use TypeScript, and document that exact boundary. Generated output
+  and required shipped browser artifacts can be valid exceptions. Do not add a repository-wide
+  extension scanner.
 - Run `vp run check`. It checks formatting, lint, browser TypeScript, Node TypeScript, Convex
   TypeScript, tests, and generated Cloudflare redirects.
 - Run `vp run build` before a deploy. The real Cloudflare build path runs the complete check before
