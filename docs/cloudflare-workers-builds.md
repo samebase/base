@@ -58,8 +58,8 @@ concurrency primitive.
 Local dry-runs can validate the Worker package without build secrets:
 
 ```sh
-CLOUDFLARE_WORKER_NAME=my-worker pnpm run deploy:dry-run
-CLOUDFLARE_WORKER_NAME=my-worker pnpm run deploy:preview:dry-run
+CLOUDFLARE_WORKER_NAME=my-worker vp run deploy:dry-run
+CLOUDFLARE_WORKER_NAME=my-worker vp run deploy:preview:dry-run
 ```
 
 If you set either deploy key locally, also set `WORKERS_CI_BRANCH` so the

@@ -12,20 +12,24 @@
     "dev": "node ./scripts/run-dev.ts",
     "dev:frontend": "vp dev",
     "dev:worktree": "node ./scripts/run-worktree-dev.ts",
-    "check": "tsc && pnpm run check:typescript-sources && pnpm run typecheck:node && tsc --project convex/tsconfig.json && pnpm run verify:cloudflare-redirects",
+    "check": "vp check && vp run typecheck && vp test && vp run verify:cloudflare-redirects",
     "build": "vp run build:cloudflare",
-    "build:app": "tsc && pnpm run generate:cloudflare-redirects && vp build",
-    "build:cloudflare": "pnpm run check:typescript-sources && pnpm run typecheck:node && node ./scripts/build-cloudflare.ts",
-    "check:typescript-sources": "node ./scripts/check-typescript-sources.ts",
+    "build:app": "vp run check && vp build",
+    "build:cloudflare": "node ./scripts/build-cloudflare.ts",
     "deploy": "node ./scripts/deploy-cloudflare.ts deploy",
     "deploy:preview": "node ./scripts/deploy-cloudflare.ts preview",
     "deploy:dry-run": "node ./scripts/deploy-cloudflare.ts deploy --dry-run",
     "deploy:preview:dry-run": "node ./scripts/deploy-cloudflare.ts preview --dry-run",
+    "format": "vp fmt",
+    "format:check": "vp fmt --check",
     "generate:cloudflare-redirects": "node ./scripts/generate-cloudflare-redirects.ts",
-    "verify:cloudflare-redirects": "pnpm run generate:cloudflare-redirects && git diff --exit-code -- public/_redirects",
+    "lint": "vp lint --report-unused-disable-directives",
     "preview": "vp preview",
     "prepare": "vp config",
-    "typecheck:node": "tsc --project tsconfig.node.json"
+    "test": "vp test",
+    "typecheck": "tsc && vp run typecheck:node && tsc --project convex/tsconfig.json",
+    "typecheck:node": "tsc --project tsconfig.node.json",
+    "verify:cloudflare-redirects": "vp run generate:cloudflare-redirects && git diff --exit-code -- public/_redirects"
   },
   "dependencies": {
     "@auth/core": "0.37.0",
@@ -53,16 +57,16 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
     "typescript": "~6.0.2",
-    "vite": "npm:@voidzero-dev/vite-plus-core@latest",
-    "vite-plus": "latest",
-    "vitest": "^4.1.8",
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.1.24",
+    "vite-plus": "0.1.24",
+    "vitest": "npm:@voidzero-dev/vite-plus-test@0.1.24",
     "wrangler": "^4.90.1"
   },
   "packageManager": "pnpm@11.1.1",
   "pnpm": {
     "overrides": {
-      "vite": "npm:@voidzero-dev/vite-plus-core@latest",
-      "vitest": "npm:@voidzero-dev/vite-plus-test@latest"
+      "vite": "npm:@voidzero-dev/vite-plus-core@0.1.24",
+      "vitest": "npm:@voidzero-dev/vite-plus-test@0.1.24"
     }
   }
 }
