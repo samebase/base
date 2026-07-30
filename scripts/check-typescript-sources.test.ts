@@ -15,10 +15,14 @@ function createTemporaryRepo(): string {
 }
 
 function trackFile(repoRoot: string, filePath: string): void {
+  writeFile(repoRoot, filePath);
+  execFileSync("git", ["add", filePath], { cwd: repoRoot });
+}
+
+function writeFile(repoRoot: string, filePath: string): void {
   const absolutePath = path.join(repoRoot, filePath);
   mkdirSync(path.dirname(absolutePath), { recursive: true });
   writeFileSync(absolutePath, "", "utf8");
-  execFileSync("git", ["add", filePath], { cwd: repoRoot });
 }
 
 function runGuard(repoRoot: string) {
@@ -40,7 +44,7 @@ describe("check-typescript-sources CLI", () => {
       const result = runGuard(repoRoot);
       expect(result.error).toBeUndefined();
       expect(result.status).toBe(0);
-      expect(result.stdout).toContain("All tracked handwritten source files use TypeScript.");
+      expect(result.stdout).toContain("All present handwritten source files use TypeScript.");
     } finally {
       rmSync(repoRoot, { recursive: true, force: true });
     }
@@ -68,6 +72,21 @@ describe("check-typescript-sources CLI", () => {
       for (const filePath of handwrittenPaths) {
         expect(result.stderr).toContain(filePath);
       }
+    } finally {
+      rmSync(repoRoot, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects an untracked handwritten JavaScript file through the real CLI", () => {
+    const repoRoot = createTemporaryRepo();
+
+    try {
+      writeFile(repoRoot, "scripts/manual.mjs");
+
+      const result = runGuard(repoRoot);
+      expect(result.error).toBeUndefined();
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain("scripts/manual.mjs");
     } finally {
       rmSync(repoRoot, { recursive: true, force: true });
     }
