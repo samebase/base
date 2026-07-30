@@ -11,7 +11,7 @@ export default defineConfig({
   },
   lint: {
     ignorePatterns: [".agents/**", "convex/_generated/**", "src/routeTree.gen.ts"],
-    options: { typeAware: true, typeCheck: true },
+    options: { typeAware: true },
   },
   plugins: [
     tailwindcss(),

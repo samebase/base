@@ -15,12 +15,13 @@ behavior.
 `.node-version` pins Workers Builds to Node 24 so `node` can run the small
 TypeScript helper scripts directly.
 
-Local development runs Convex and the frontend together through `vp run dev`.
+Local development runs Convex and the frontend together through Vite+.
 Cloudflare builds run Convex deploy first by selecting `CONVEX_DEPLOY_KEY` for
 `main` and `PREVIEW_CONVEX_DEPLOY_KEY` for other branches, then build the
-static frontend. Immediately before Convex pushes functions, the build rejects
-an older commit that is no longer the branch head. Local deploy dry-runs run
-that same build path before asking Wrangler to validate the upload.
+static frontend. The app uses Vite+ for formatting, linting, tests, development,
+preview, and builds. Immediately before Convex pushes functions, the build
+rejects an older commit that is no longer the branch head. Local deploy dry-runs
+run that same build path before asking Wrangler to validate the upload.
 
 The app includes minimal auth out of the box: users can continue as guests, and
 the public todo list keeps guest author attribution.
@@ -101,13 +102,19 @@ The repository's scripts and `wrangler.jsonc` provide the deployment contract:
 {
   "scripts": {
     "build": "vp run build:cloudflare",
-    "build:app": "tsc && pnpm run generate:cloudflare-redirects && vp build",
+    "build:app": "vp run check && vp build",
     "build:cloudflare": "node ./scripts/build-cloudflare.ts",
-    "check": "tsc && tsc --project convex/tsconfig.json && pnpm run verify:cloudflare-redirects",
+    "check": "vp check && vp run typecheck && vp test && vp run verify:cloudflare-redirects",
     "deploy": "node ./scripts/deploy-cloudflare.ts deploy",
     "deploy:preview": "node ./scripts/deploy-cloudflare.ts preview",
+    "format": "vp fmt",
+    "format:check": "vp fmt --check",
     "generate:cloudflare-redirects": "node ./scripts/generate-cloudflare-redirects.ts",
-    "verify:cloudflare-redirects": "pnpm run generate:cloudflare-redirects && git diff --exit-code -- public/_redirects",
+    "lint": "vp lint --report-unused-disable-directives",
+    "test": "vp test",
+    "typecheck": "tsc && vp run typecheck:node && tsc --project convex/tsconfig.json",
+    "typecheck:node": "tsc --project tsconfig.node.json",
+    "verify:cloudflare-redirects": "vp run generate:cloudflare-redirects && git diff --exit-code -- public/_redirects",
   },
 }
 
@@ -133,20 +140,23 @@ custom rules exact; Cloudflare SPA mode owns app-route fallback through
 generated exact aliases.
 
 The `.node-version` file pins Cloudflare's build image to Node 24. That keeps
-the helper scripts typed while still running them with plain `node`.
+the helper scripts typed while still running them with plain `node`. The normal
+check and the Cloudflare build path both use Vite+ to check formatting, lint
+code, and run tests. They also type-check the browser, Node, and Convex
+TypeScript projects.
 
 ## 5. Run locally
 
 Install dependencies:
 
 ```sh
-pnpm install
+vp install
 ```
 
 Start Convex and TanStack Start together:
 
 ```sh
-pnpm run dev
+vp run dev
 ```
 
 The dev script creates Convex Auth JWT keys in your development deployment if
@@ -155,13 +165,13 @@ they are missing.
 For an isolated local agent or worktree backend:
 
 ```sh
-pnpm run dev:worktree
+vp run dev:worktree
 ```
 
 ## 6. Validate deploy config locally
 
 ```sh
-CLOUDFLARE_WORKER_NAME=my-worker pnpm run deploy:dry-run
+CLOUDFLARE_WORKER_NAME=my-worker vp run deploy:dry-run
 ```
 
 This runs the Cloudflare build path, then asks Wrangler to validate the upload
@@ -173,7 +183,7 @@ keys in that deployment if they are missing.
 Preview-version checks use the same local name:
 
 ```sh
-CLOUDFLARE_WORKER_NAME=my-worker pnpm run deploy:preview:dry-run
+CLOUDFLARE_WORKER_NAME=my-worker vp run deploy:preview:dry-run
 ```
 
 ## Why Workers

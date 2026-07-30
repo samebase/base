@@ -11,8 +11,21 @@ Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.de
 - [ ] Run `vp install` after pulling remote changes and before getting started.
 - [ ] Run `vp check` and `vp test` to format, lint, type check and test changes.
 - [ ] Check if there are `vite.config.ts` tasks or `package.json` scripts necessary for validation, run via `vp run <script>`.
+- [ ] If setup, runtime, or package-manager behavior looks wrong, run `vp env doctor` and include its output when asking for help.
 
 <!--VITE PLUS END-->
+
+## Project validation
+
+- Authored application, automation, test, and supported configuration source uses normal `.ts` or
+  `.tsx`. Treat an authored `.js`, `.mjs`, or `.cjs` file as a review smell. Keep one only when a
+  named tool or runtime cannot use TypeScript, and document that exact boundary. Generated output
+  and required shipped browser artifacts can be valid exceptions. Do not add a repository-wide
+  extension scanner.
+- Run `vp run check`. It checks formatting, lint, browser TypeScript, Node TypeScript, Convex
+  TypeScript, tests, and generated Cloudflare redirects.
+- Run `vp run build` before a deploy. The real Cloudflare build path runs the complete check before
+  it builds the app.
 
 <!-- convex-ai-start -->
 

@@ -320,7 +320,7 @@ Prerender the public routes during the static build:
 - `scripts/generate-cloudflare-redirects.ts` rewrites only the tagged generated
   block in `public/_redirects`, and `verify:cloudflare-redirects` fails
   `vp run check` when the committed file drifts
-- vitest covers the redirects generator and the Convex deploy key selection
+- Vite+ tests cover the redirects generator and the Convex deploy key selection
 
 ## 20. guard Convex deploy ordering
 
@@ -351,3 +351,24 @@ successful commit. The next commit recovered all three. This tested baseline
 required no designated deployer, but it duplicates Convex deploy work once per
 Worker. The guard adds one Git request per provider build. A small non-atomic
 interval remains between the check and the Convex push.
+
+## 21. use one Vite+ toolchain contract
+
+```sh
+vp run check
+vp run build
+```
+
+Keep the operator commands and the tools that implement them aligned:
+
+- `vp run format` and `vp run format:check` use the Vite+ formatter
+- `vp run lint` uses the Vite+ linter
+- `vp run test` uses the Vite+ test runner, and tests import from
+  `vite-plus/test`
+- `vp run typecheck` covers the browser, Node, and Convex TypeScript projects
+- Oxlint stays type-aware, while those explicit project checks own full TypeScript validation
+- `vp run check` composes all validation without calling itself
+- `vp run build` reaches `build:app`, which runs the complete check before the
+  Vite+ build
+- `vite-plus`, its Vite core alias, and its test alias use the same fixed
+  version
