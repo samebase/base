@@ -100,13 +100,14 @@ The repository's scripts and `wrangler.jsonc` provide the deployment contract:
 // package.json
 {
   "scripts": {
-    "build": "vp run build:cloudflare",
+    "build": "pnpm run typecheck:node && vp run build:cloudflare",
     "build:app": "tsc && pnpm run generate:cloudflare-redirects && vp build",
     "build:cloudflare": "node ./scripts/build-cloudflare.ts",
-    "check": "tsc && tsc --project convex/tsconfig.json && pnpm run verify:cloudflare-redirects",
+    "check": "tsc && pnpm run typecheck:node && tsc --project convex/tsconfig.json && pnpm run verify:cloudflare-redirects",
     "deploy": "node ./scripts/deploy-cloudflare.ts deploy",
     "deploy:preview": "node ./scripts/deploy-cloudflare.ts preview",
     "generate:cloudflare-redirects": "node ./scripts/generate-cloudflare-redirects.ts",
+    "typecheck:node": "tsc --project tsconfig.node.json",
     "verify:cloudflare-redirects": "pnpm run generate:cloudflare-redirects && git diff --exit-code -- public/_redirects",
   },
 }
