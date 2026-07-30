@@ -100,10 +100,11 @@ The repository's scripts and `wrangler.jsonc` provide the deployment contract:
 // package.json
 {
   "scripts": {
-    "build": "pnpm run typecheck:node && vp run build:cloudflare",
+    "build": "vp run build:cloudflare",
     "build:app": "tsc && pnpm run generate:cloudflare-redirects && vp build",
-    "build:cloudflare": "node ./scripts/build-cloudflare.ts",
-    "check": "tsc && pnpm run typecheck:node && tsc --project convex/tsconfig.json && pnpm run verify:cloudflare-redirects",
+    "build:cloudflare": "pnpm run check:typescript-sources && pnpm run typecheck:node && node ./scripts/build-cloudflare.ts",
+    "check": "tsc && pnpm run check:typescript-sources && pnpm run typecheck:node && tsc --project convex/tsconfig.json && pnpm run verify:cloudflare-redirects",
+    "check:typescript-sources": "node ./scripts/check-typescript-sources.ts",
     "deploy": "node ./scripts/deploy-cloudflare.ts deploy",
     "deploy:preview": "node ./scripts/deploy-cloudflare.ts preview",
     "generate:cloudflare-redirects": "node ./scripts/generate-cloudflare-redirects.ts",
@@ -134,7 +135,9 @@ custom rules exact; Cloudflare SPA mode owns app-route fallback through
 generated exact aliases.
 
 The `.node-version` file pins Cloudflare's build image to Node 24. That keeps
-the helper scripts typed while still running them with plain `node`.
+the helper scripts typed while still running them with plain `node`. The
+Cloudflare build path rejects tracked handwritten JavaScript and type-checks
+the Node scripts before it can build or validate a deploy.
 
 ## 5. Run locally
 
