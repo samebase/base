@@ -31,6 +31,8 @@ export function verifyCurrentBranchHead(
     throw new Error("Workers Builds must provide WORKERS_CI_BRANCH before Convex deploys.");
   }
 
+  // Manual Workers Builds can set WORKERS_CI_COMMIT_SHA to the branch name instead of a commit,
+  // so use the checked-out Git commit as the build identity.
   const checkoutHead = readCheckoutHead();
   if (!checkoutHead) {
     throw new Error("Git did not return the checked-out commit for this Workers Build.");
