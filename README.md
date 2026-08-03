@@ -2,6 +2,9 @@
 
 This repository is the starter app that Samebase copies into a new GitHub repository.
 
+It is a small, complete app base. It includes working authentication, real-time data, sharing, and
+deployment paths without adding product-specific services that a new app might not need.
+
 For the complete provider setup, use the
 [Samebase do-it-yourself guide](https://samebase.com/docs/do-it-yourself). This README covers work
 inside the repository.
@@ -11,11 +14,12 @@ inside the repository.
 - React 19 and TanStack Start in SPA mode
 - Convex for the real-time backend, database, and guest authentication
 - Cloudflare Workers Static Assets for delivery
+- shadcn/ui primitives for the user interface
 - Vite+ for development, formatting, linting, tests, and builds
 - Node.js 24 for application and automation code
 
 The example app is a public todo list. Guests can sign in without an external identity provider,
-create todos, and see who created each item.
+create todos, see real-time updates, and scan a QR code to open the same list on another device.
 
 ## Local development
 
@@ -101,18 +105,6 @@ and deploy behavior. Use the
 Do not hand-edit generated files when their source tool can update them.
 When a Convex AI-file update changes the installed source snapshot, confirm its distribution license
 and update `THIRD_PARTY_NOTICES.md` when its third-party material changes.
-
-## Repository history
-
-The early numbered commits show how the starter was assembled. `REPO_HISTORY.md` keeps the same
-construction notes in the checked-out tree because GitHub template copies do not preserve commit
-history.
-
-New maintenance uses normal pull requests and append-only commits. The public `main` history is not
-rewritten to keep later updates inside the original numbered sequence.
-
-Use GitHub's template button for a clean new repository. Fork this repository only when you also
-want its history.
 
 ## License
 
