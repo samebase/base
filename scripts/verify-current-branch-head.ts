@@ -21,11 +21,11 @@ export function verifyCurrentBranchHead(
   },
   readCheckoutHead = () => execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
 ) {
-  if (env.WORKERS_CI !== "1" && env.WORKERS_CI !== "true") {
+  if (env["WORKERS_CI"] !== "1" && env["WORKERS_CI"] !== "true") {
     return;
   }
 
-  const branch = env.WORKERS_CI_BRANCH;
+  const branch = env["WORKERS_CI_BRANCH"];
 
   if (!branch) {
     throw new Error("Workers Builds must provide WORKERS_CI_BRANCH before Convex deploys.");

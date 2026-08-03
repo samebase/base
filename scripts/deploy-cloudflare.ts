@@ -23,7 +23,7 @@ function isDryRunFlag(value: string) {
 }
 
 function readWorkerName(env: NodeJS.ProcessEnv) {
-  const workerName = env.WRANGLER_CI_OVERRIDE_NAME ?? env.CLOUDFLARE_WORKER_NAME;
+  const workerName = env["WRANGLER_CI_OVERRIDE_NAME"] ?? env["CLOUDFLARE_WORKER_NAME"];
 
   if (!workerName) {
     throw new Error(
@@ -89,7 +89,7 @@ export function selectCloudflareDeployPlan(
   }
 
   const workerName = readWorkerName(env);
-  const isWorkersBuild = env.WORKERS_CI === "1" || env.WORKERS_CI === "true";
+  const isWorkersBuild = env["WORKERS_CI"] === "1" || env["WORKERS_CI"] === "true";
   const isDryRun = extraArgs.some(isDryRunFlag);
 
   return {

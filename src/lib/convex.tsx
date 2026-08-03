@@ -2,7 +2,7 @@ import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { ConvexReactClient } from "convex/react";
 import type { ReactNode } from "react";
 
-const convexUrl = import.meta.env.VITE_CONVEX_URL;
+const convexUrl = import.meta.env["VITE_CONVEX_URL"];
 const convexClient = convexUrl ? new ConvexReactClient(convexUrl) : null;
 
 export function ConvexClientProvider({ children }: Readonly<{ children: ReactNode }>) {
