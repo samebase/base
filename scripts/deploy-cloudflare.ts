@@ -82,6 +82,12 @@ export function selectCloudflareDeployPlan(
     );
   }
 
+  if (extraArgs.includes("--")) {
+    throw new Error(
+      "Do not pass a standalone -- to Wrangler. Pass Wrangler flags directly after the deploy command.",
+    );
+  }
+
   const workerName = readWorkerName(env);
   const isWorkersBuild = env.WORKERS_CI === "1" || env.WORKERS_CI === "true";
   const isDryRun = extraArgs.some(isDryRunFlag);

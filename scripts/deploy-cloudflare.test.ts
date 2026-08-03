@@ -72,4 +72,12 @@ describe("deploy-cloudflare", () => {
       "Do not pass Wrangler --name/-n manually",
     );
   });
+
+  it("rejects an option terminator that can hide a later dry-run flag", () => {
+    expect(() =>
+      selectCloudflareDeployPlan(["deploy", "--", "--dry-run=true"], {
+        CLOUDFLARE_WORKER_NAME: "example-app",
+      }),
+    ).toThrow("Do not pass a standalone -- to Wrangler");
+  });
 });
