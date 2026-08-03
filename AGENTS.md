@@ -6,6 +6,10 @@ This project is using Vite+, a unified toolchain built on top of Vite, Rolldown,
 
 Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.dev/guide/.
 
+## Built-in Commands vs Scripts
+
+`vp <name>` runs a built-in command. `vp run <name>` runs a `package.json` script or a `vite.config.ts` task. Scripts cannot overwrite built-ins, so `vp dev` and `vp run dev` may do different things. Check `package.json` and `vite.config.ts` first, and run `vp run <name>` when the project defines a script or task with that name.
+
 ## Review Checklist
 
 - [ ] Run `vp install` after pulling remote changes and before getting started.
@@ -14,6 +18,17 @@ Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.de
 - [ ] If setup, runtime, or package-manager behavior looks wrong, run `vp env doctor` and include its output when asking for help.
 
 <!--VITE PLUS END-->
+
+## Cross-platform automation
+
+- The core workflow must run natively on macOS, Linux, and Windows.
+- Put non-trivial repository automation in erasable TypeScript under `scripts/` and run it with the
+  Node 24 runtime pinned by `.node-version`.
+- Do not add Bash scripts, POSIX-only inline environment assignment, shell parameter expansion, or
+  required Unix-only utilities. Set `env` and `cwd` through Node process APIs, pass arguments as
+  arrays, and handle Windows `.cmd` entry points explicitly when needed.
+- Documentation must use platform-neutral commands or show both POSIX and PowerShell forms when
+  their syntax differs.
 
 ## Project validation
 

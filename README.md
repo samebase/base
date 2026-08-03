@@ -1,209 +1,120 @@
-# Deploy a production-ready, real-time web app with Cloudflare Workers
+# Samebase app
 
-<details>
-<summary>Technical Summary</summary>
+This repository is the starter app that Samebase copies into a new GitHub repository.
 
-This template is a client-first TanStack Start app. TanStack Start is used in
-SPA mode, so the build creates a static `dist/client/index.html` shell and
-client assets. The browser talks to Convex for real-time data and Convex Auth
-guest sessions.
+For the complete provider setup, use the
+[Samebase do-it-yourself guide](https://samebase.com/docs/do-it-yourself). This README covers work
+inside the repository.
 
-Cloudflare Workers Static Assets serves the static files. The Cloudflare
-dashboard runs `pnpm run build`, which delegates to the Cloudflare-aware build
-script. `wrangler.jsonc` owns the asset directory, SPA fallback, and preview URL
-behavior.
-`.node-version` pins Workers Builds to Node 24 so `node` can run the small
-TypeScript helper scripts directly.
+## Stack
 
-Local development runs Convex and the frontend together through Vite+.
-Cloudflare builds run Convex deploy first by selecting `CONVEX_DEPLOY_KEY` for
-`main` and `PREVIEW_CONVEX_DEPLOY_KEY` for other branches, then build the
-static frontend. The app uses Vite+ for formatting, linting, tests, development,
-preview, and builds. Immediately before Convex pushes functions, the build
-rejects an older commit that is no longer the branch head. Local deploy dry-runs
-run that same build path before asking Wrangler to validate the upload.
+- React 19 and TanStack Start in SPA mode
+- Convex for the real-time backend, database, and guest authentication
+- Cloudflare Workers Static Assets for delivery
+- Vite+ for development, formatting, linting, tests, and builds
+- Node.js 24 for application and automation code
 
-The app includes minimal auth out of the box: users can continue as guests, and
-the public todo list keeps guest author attribution.
+The example app is a public todo list. Guests can sign in without an external identity provider,
+create todos, and see who created each item.
 
-</details>
+## Local development
 
-## 1. Create accounts
-
-You need:
-
-- [GitHub](https://github.com/)  
-  <img src="./docs/logos/github.svg" alt="GitHub" height="32">
-- [Convex](https://www.convex.dev/)  
-  <img src="./docs/logos/convex.svg" alt="Convex" height="32">
-- [Cloudflare](https://www.cloudflare.com/)  
-  <img src="./docs/logos/cloudflare.jpg" alt="Cloudflare" height="32">
-
-## 2. Copy the app
-
-Create your own GitHub repository from this template.
-
-If you want the clean teaching history, fork the repository instead of using
-GitHub's template button. The template button is simpler, but it squashes the
-history into one commit.
-
-## 3. Create a Convex project
-
-Open [dashboard.convex.dev](https://dashboard.convex.dev/) and create a project.
-
-From the production deployment settings, create the production deploy key with
-exactly these permissions:
-
-- `deployment:deploy`
-- `deployment:env:view`
-- `deployment:env:write`
-- `deployment:data:view`
-
-Do not grant data write, function-run, logs, backups, or integration permissions
-to this key. Cloudflare Workers Builds must store it as the build secret named
-`CONVEX_DEPLOY_KEY`.
-
-From the project settings, create a Preview deploy key. Preview deploy keys use
-Convex's separate project-level preview flow and do not ask for the production
-permission list above. Cloudflare Workers Builds must store it as the build
-secret named `PREVIEW_CONVEX_DEPLOY_KEY`.
-
-## 4. Create a Cloudflare Worker from GitHub
-
-In Cloudflare, open Workers & Pages and create a Worker connected to your
-GitHub repository.
-
-Use these settings:
-
-- Project name: any valid Worker name
-- Production branch: `main`
-- Build command: keep `pnpm run build`
-- Deploy command: `pnpm run deploy`
-- Non-production branch deploy command: `pnpm run deploy:preview`
-- Path: keep `/`
-- Build secret: `CONVEX_DEPLOY_KEY`, using the production key with only
-  `deployment:deploy`, `deployment:env:view`, `deployment:env:write`, and
-  `deployment:data:view`
-- Build secret: `PREVIEW_CONVEX_DEPLOY_KEY`, using the project Preview deploy
-  key
-
-Cloudflare Workers Builds can store build variables per production/preview
-trigger through the API, but the dashboard setup path does not expose a
-Pages-style environment selector for build variables. This template uses the two
-secrets above and lets `scripts/build-cloudflare.ts` select the right one from
-`WORKERS_CI_BRANCH`. See
-[`docs/cloudflare-workers-builds.md`](./docs/cloudflare-workers-builds.md) for
-the deployment contract.
-
-The repository's scripts and `wrangler.jsonc` provide the deployment contract:
-
-```jsonc
-// package.json
-{
-  "scripts": {
-    "build": "vp run build:cloudflare",
-    "build:app": "vp run check && vp build",
-    "build:cloudflare": "node ./scripts/build-cloudflare.ts",
-    "check": "vp check && vp run typecheck && vp test && vp run verify:cloudflare-redirects",
-    "deploy": "node ./scripts/deploy-cloudflare.ts deploy",
-    "deploy:preview": "node ./scripts/deploy-cloudflare.ts preview",
-    "format": "vp fmt",
-    "format:check": "vp fmt --check",
-    "generate:cloudflare-redirects": "node ./scripts/generate-cloudflare-redirects.ts",
-    "lint": "vp lint --report-unused-disable-directives",
-    "test": "vp test",
-    "typecheck": "tsc && vp run typecheck:node && tsc --project convex/tsconfig.json",
-    "typecheck:node": "tsc --project tsconfig.node.json",
-    "verify:cloudflare-redirects": "vp run generate:cloudflare-redirects && git diff --exit-code -- public/_redirects",
-  },
-}
-
-// wrangler.jsonc
-{
-  "preview_urls": true,
-  "assets": {
-    "directory": "./dist/client",
-    "html_handling": "none",
-    // Cloudflare SPA mode serves /index.html for unknown app routes. Keep
-    // vite.config.ts emitting the TanStack Start shell there.
-    "not_found_handling": "single-page-application",
-  },
-}
-```
-
-`scripts/cloudflare-prerender-pages.ts` is the source of truth for public
-prerendered pages. `scripts/generate-cloudflare-redirects.ts` rewrites only the
-tagged generated block in `public/_redirects`, so custom Cloudflare redirects can
-live outside that block. `_redirects` is applied before asset serving, so keep
-custom rules exact; Cloudflare SPA mode owns app-route fallback through
-`/index.html`. The committed `_redirects` file is the review surface for the
-generated exact aliases.
-
-The `.node-version` file pins Cloudflare's build image to Node 24. That keeps
-the helper scripts typed while still running them with plain `node`. The normal
-check and the Cloudflare build path both use Vite+ to check formatting, lint
-code, and run tests. They also type-check the browser, Node, and Convex
-TypeScript projects.
-
-## 5. Run locally
-
-Install dependencies:
+Install [Vite+](https://viteplus.dev/guide/) and use the Node.js version in `.node-version`.
 
 ```sh
 vp install
-```
-
-Start Convex and TanStack Start together:
-
-```sh
 vp run dev
 ```
 
-The dev script creates Convex Auth JWT keys in your development deployment if
-they are missing.
+The development command starts Convex and TanStack Start together. It also creates missing Convex
+Auth JWT keys in the development deployment.
 
-For an isolated local agent or worktree backend:
+For an isolated local agent or worktree backend, use:
 
 ```sh
 vp run dev:worktree
 ```
 
-## 6. Validate deploy config locally
+The core workflow runs on macOS, Linux, and Windows. See
+[`docs/local-setup.md`](./docs/local-setup.md) for the local Convex setup and troubleshooting steps.
+
+## Checks and builds
+
+| Command                         | Purpose                                                        |
+| ------------------------------- | -------------------------------------------------------------- |
+| `vp run check`                  | Format, lint, type-check, test, and verify generated redirects |
+| `vp run build`                  | Run the complete Cloudflare build path                         |
+| `vp run deploy:dry-run`         | Validate a production upload without publishing it             |
+| `vp run deploy:preview:dry-run` | Validate a preview upload without publishing it                |
+
+The dry-run commands need `CLOUDFLARE_WORKER_NAME`.
+
+On macOS or Linux:
 
 ```sh
-CLOUDFLARE_WORKER_NAME=my-worker vp run deploy:dry-run
+export CLOUDFLARE_WORKER_NAME=my-worker
 ```
 
-This runs the Cloudflare build path, then asks Wrangler to validate the upload
-without publishing anything. If neither Convex deploy key is set locally,
-the Cloudflare build script skips Convex deploy and only builds the static app.
-When a Convex deploy key is selected, the build script creates Convex Auth JWT
-keys in that deployment if they are missing.
+On Windows PowerShell:
 
-Preview-version checks use the same local name:
-
-```sh
-CLOUDFLARE_WORKER_NAME=my-worker vp run deploy:preview:dry-run
+```powershell
+$env:CLOUDFLARE_WORKER_NAME = "my-worker"
 ```
 
-## Why Workers
+## Deployment contract
 
-Cloudflare Pages works well for static apps, but several important settings live
-in the dashboard: build command, output directory, and Pages-specific deploy
-behavior.
+Cloudflare Workers Builds runs `pnpm run build` for all branches. It then uses:
 
-With Workers Static Assets, the deploy shape is split cleanly: Cloudflare's Git
-build step runs `pnpm run build`, production deploys run `pnpm run deploy`, and
-branch previews run `pnpm run deploy:preview`. `wrangler.jsonc` describes the
-assets and SPA fallback without hard-coding the Worker name. That makes the
-deployment easier to audit, easier for agents to modify, and easier for users
-to reproduce.
+| Branch type             | Deploy command            | Convex key                  |
+| ----------------------- | ------------------------- | --------------------------- |
+| `main`                  | `pnpm run deploy`         | `CONVEX_DEPLOY_KEY`         |
+| Non-production branches | `pnpm run deploy:preview` | `PREVIEW_CONVEX_DEPLOY_KEY` |
 
-## Read the history
+`scripts/build-cloudflare.ts` selects the Convex key from `WORKERS_CI_BRANCH` and fails closed when
+the branch identity is missing. `scripts/verify-current-branch-head.ts` prevents an older concurrent
+build from deploying backend code after a newer commit reaches the same branch.
 
-```sh
-git log --oneline --reverse
-```
+See [`docs/cloudflare-workers-builds.md`](./docs/cloudflare-workers-builds.md) for the detailed build
+and deploy behavior. Use the
+[do-it-yourself guide](https://samebase.com/docs/do-it-yourself) for the provider dashboard setup.
 
-The history is intentionally written as a tutorial. `REPO_HISTORY.md` explains
-what each numbered commit added and why.
+## Important files
+
+- `package.json` defines the supported development, check, build, and deploy commands.
+- `vite.config.ts` defines the TanStack Start SPA and prerender behavior.
+- `wrangler.jsonc` defines Cloudflare static assets, SPA fallback, and preview URLs.
+- `scripts/build-cloudflare.ts` owns the Cloudflare build and Convex deployment selection.
+- `scripts/deploy-cloudflare.ts` owns production, preview, and dry-run uploads.
+- `convex/` contains the backend, schema, authentication, and generated Convex bindings.
+- `src/` contains the React application and routes.
+
+## Generated and managed files
+
+- `src/routeTree.gen.ts` is generated by TanStack Router.
+- `convex/_generated/api.*`, `dataModel.d.ts`, and `server.*` are generated by Convex.
+- `convex/_generated/ai/`, `.agents/skills/`, `skills-lock.json`, and the marked Convex sections in
+  `AGENTS.md` and `CLAUDE.md` are managed by `npx convex ai-files install`.
+- The marked Vite+ section in `AGENTS.md` is managed by `vp config`.
+- `scripts/generate-cloudflare-redirects.ts` owns only the marked generated block in
+  `public/_redirects`. Custom redirect rules can stay outside that block.
+
+Do not hand-edit generated files when their source tool can update them.
+When a Convex AI-file update changes the installed source snapshot, confirm its distribution license
+and update `THIRD_PARTY_NOTICES.md` when its third-party material changes.
+
+## Repository history
+
+The early numbered commits show how the starter was assembled. `REPO_HISTORY.md` keeps the same
+construction notes in the checked-out tree because GitHub template copies do not preserve commit
+history.
+
+New maintenance uses normal pull requests and append-only commits. The public `main` history is not
+rewritten to keep later updates inside the original numbered sequence.
+
+Use GitHub's template button for a clean new repository. Fork this repository only when you also
+want its history.
+
+## License
+
+Licensed under the [Apache License 2.0](./LICENSE). See
+[`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md) for included third-party material.

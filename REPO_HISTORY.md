@@ -1,3 +1,9 @@
+# Initial construction history
+
+The numbered sections describe the curated construction of the starter app. New maintenance uses
+normal pull requests and append-only commits. This file is not a changelog, and later fixes do not
+rewrite the public Git history.
+
 ## 1. initialize vite plus application
 
 ```sh
@@ -198,10 +204,9 @@ vp run deploy:dry-run
 
 Create user-facing setup docs:
 
-- `README.md` explains how to copy the app, create a Convex project, and deploy
-  through Cloudflare Workers
+- `README.md` links to the complete Samebase do-it-yourself guide and documents
+  the repository's local, check, build, and deploy contracts
 - `docs/local-setup.md` explains local Vite+, Convex, and worktree setup
-- `docs/logos/` stores the service logos used by the README
 
 The dashboard setup keeps Cloudflare's default `pnpm run build`: `build`
 delegates to the Cloudflare-aware build script while `build:app` keeps the
@@ -340,8 +345,8 @@ older concurrent Workers Build from replacing newer backend code:
 - a stale build fails explicitly without deploying Convex
 - the same check protects `main` from an older concurrent production build
 
-The private `samebase/shared-convex-monorepo-fixture` first proved sequential
-reuse, unwatched path absence, failure and retry, an actual
+An internal multi-Worker fixture first proved sequential reuse, unwatched path
+absence, failure and retry, an actual
 last-completion-wins race, and the guarded version of that race. It then proved
 that two Workers can concurrently cold-create and reuse one branch-named Convex
 preview when both deploy byte-identical backend source. During a forced
