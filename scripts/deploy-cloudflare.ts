@@ -18,6 +18,10 @@ function isReservedWranglerFlag(value: string) {
   return value === "--name" || value.startsWith("--name=") || value === "-n";
 }
 
+function isDryRunFlag(value: string) {
+  return value === "--dry-run" || value === "--dry-run=true";
+}
+
 function readWorkerName(env: NodeJS.ProcessEnv) {
   const workerName = env.WRANGLER_CI_OVERRIDE_NAME ?? env.CLOUDFLARE_WORKER_NAME;
 
@@ -80,7 +84,7 @@ export function selectCloudflareDeployPlan(
 
   const workerName = readWorkerName(env);
   const isWorkersBuild = env.WORKERS_CI === "1" || env.WORKERS_CI === "true";
-  const isDryRun = extraArgs.includes("--dry-run");
+  const isDryRun = extraArgs.some(isDryRunFlag);
 
   return {
     buildArgs: isWorkersBuild ? null : ["run", isDryRun ? "build:app" : "build:cloudflare"],

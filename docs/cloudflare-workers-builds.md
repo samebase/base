@@ -42,10 +42,12 @@ name, so repeated commits reuse one preview deployment, URL, and data.
 Cloudflare may build more than one commit from the same branch concurrently.
 Stable naming does not order those builds: without another check, an older build
 that finishes last can replace newer Convex functions. After building the app
-and immediately before Convex pushes functions, this template compares
-`WORKERS_CI_COMMIT_SHA` with the remote head of `WORKERS_CI_BRANCH`. A stale
-build fails without deploying Convex. The check applies to `main` too, where the
-same overlap could otherwise roll production back.
+and immediately before Convex pushes functions, this template compares the
+checked-out Git commit with the remote head of `WORKERS_CI_BRANCH`. A stale
+build fails without deploying Convex. The checkout is authoritative because a
+manual Workers Build can report the branch name in `WORKERS_CI_COMMIT_SHA`. The
+check applies to `main` too, where the same overlap could otherwise roll
+production back.
 
 The check adds one authenticated `git ls-remote` request to each provider build.
 It is not an atomic compare-and-swap. A branch can still advance in the short

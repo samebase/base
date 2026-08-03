@@ -14,6 +14,28 @@ describe("deploy-cloudflare", () => {
     });
   });
 
+  it("recognizes Wrangler's explicit true dry-run value", () => {
+    expect(
+      selectCloudflareDeployPlan(["deploy", "--dry-run=true"], {
+        CLOUDFLARE_WORKER_NAME: "example-app",
+      }),
+    ).toEqual({
+      buildArgs: ["run", "build:app"],
+      wranglerArgs: ["deploy", "--name", "example-app", "--dry-run=true"],
+    });
+  });
+
+  it("keeps Wrangler's explicit false dry-run value on the deploy path", () => {
+    expect(
+      selectCloudflareDeployPlan(["deploy", "--dry-run=false"], {
+        CLOUDFLARE_WORKER_NAME: "example-app",
+      }),
+    ).toEqual({
+      buildArgs: ["run", "build:cloudflare"],
+      wranglerArgs: ["deploy", "--name", "example-app", "--dry-run=false"],
+    });
+  });
+
   it("uses the complete Cloudflare build before a local deploy", () => {
     expect(
       selectCloudflareDeployPlan(["preview"], {
