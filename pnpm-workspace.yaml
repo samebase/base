@@ -4,8 +4,10 @@ allowBuilds:
   sharp: false
   workerd: true
 overrides:
+  "@hono/node-server": 2.0.10
   js-yaml: "^4.3.0"
   postcss: "^8.5.23"
+  undici: 7.29.0
   vite: "catalog:"
   vitest: "catalog:"
 catalog:
