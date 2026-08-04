@@ -19,25 +19,29 @@ export function verifyCurrentBranchHead(
 
     return remoteHead;
   },
+  readCheckoutHead = () => execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(),
 ) {
-  if (env.WORKERS_CI !== "1" && env.WORKERS_CI !== "true") {
+  if (env["WORKERS_CI"] !== "1" && env["WORKERS_CI"] !== "true") {
     return;
   }
 
-  const branch = env.WORKERS_CI_BRANCH;
-  const commitSha = env.WORKERS_CI_COMMIT_SHA;
+  const branch = env["WORKERS_CI_BRANCH"];
 
-  if (!branch || !commitSha) {
-    throw new Error(
-      "Workers Builds must provide WORKERS_CI_BRANCH and WORKERS_CI_COMMIT_SHA before Convex deploys.",
-    );
+  if (!branch) {
+    throw new Error("Workers Builds must provide WORKERS_CI_BRANCH before Convex deploys.");
+  }
+
+  // A manual Workers Build can identify the commit as a branch name, so use the checkout itself.
+  const checkoutHead = readCheckoutHead();
+  if (!checkoutHead) {
+    throw new Error("Git did not return the checked-out commit for this Workers Build.");
   }
 
   const remoteHead = readRemoteHead(branch);
 
-  if (remoteHead !== commitSha) {
+  if (remoteHead !== checkoutHead) {
     throw new Error(
-      `Workers Build ${commitSha} is stale: ${branch} now points to ${remoteHead}. Convex was not deployed.`,
+      `Workers Build ${checkoutHead} is stale: ${branch} now points to ${remoteHead}. Convex was not deployed.`,
     );
   }
 }

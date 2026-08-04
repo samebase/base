@@ -50,7 +50,7 @@ function isEnabled(value: string | undefined) {
 }
 
 function isWorkersBuild(env: NodeJS.ProcessEnv) {
-  return isEnabled(env.WORKERS_CI);
+  return isEnabled(env["WORKERS_CI"]);
 }
 
 function readDeployKey(args: {
@@ -79,7 +79,7 @@ async function ensureConvexAuth(env: NodeJS.ProcessEnv) {
 }
 
 export function selectConvexDeployPlan(env: NodeJS.ProcessEnv): ConvexDeployPlan {
-  const branch = env.WORKERS_CI_BRANCH;
+  const branch = env["WORKERS_CI_BRANCH"];
 
   if (!branch) {
     if (isWorkersBuild(env)) {

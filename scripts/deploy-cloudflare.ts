@@ -1,6 +1,7 @@
 /// <reference types="node" />
 import { spawn } from "node:child_process";
 import process from "node:process";
+import { pathToFileURL } from "node:url";
 
 const modes = {
   deploy: ["deploy"],
@@ -13,8 +14,16 @@ function isMode(value: string | undefined): value is Mode {
   return value === "deploy" || value === "preview";
 }
 
-function readWorkerName() {
-  const workerName = process.env.WRANGLER_CI_OVERRIDE_NAME ?? process.env.CLOUDFLARE_WORKER_NAME;
+function isReservedWranglerFlag(value: string) {
+  return value === "--name" || value.startsWith("--name=") || value === "-n";
+}
+
+function isDryRunFlag(value: string) {
+  return value === "--dry-run" || value === "--dry-run=true";
+}
+
+function readWorkerName(env: NodeJS.ProcessEnv) {
+  const workerName = env["WRANGLER_CI_OVERRIDE_NAME"] ?? env["CLOUDFLARE_WORKER_NAME"];
 
   if (!workerName) {
     throw new Error(
@@ -33,9 +42,9 @@ function readWorkerName() {
   return workerName;
 }
 
-function run(command: string, args: string[]) {
+function run(command: string, args: readonly string[]) {
   return new Promise<void>((resolve, reject) => {
-    const child = spawn(command, args, {
+    const child = spawn(command, [...args], {
       shell: process.platform === "win32",
       stdio: "inherit",
     });
@@ -52,17 +61,57 @@ function run(command: string, args: string[]) {
   });
 }
 
-const [modeArg, ...extraArgs] = process.argv.slice(2);
+type CloudflareDeployPlan = {
+  buildArgs: readonly string[] | null;
+  wranglerArgs: readonly string[];
+};
 
-if (!isMode(modeArg)) {
-  throw new Error("Usage: node ./scripts/deploy-cloudflare.ts <deploy|preview> [wrangler flags]");
+export function selectCloudflareDeployPlan(
+  args: readonly string[],
+  env: NodeJS.ProcessEnv,
+): CloudflareDeployPlan {
+  const [modeArg, ...extraArgs] = args;
+
+  if (!isMode(modeArg)) {
+    throw new Error("Usage: node ./scripts/deploy-cloudflare.ts <deploy|preview> [wrangler flags]");
+  }
+
+  if (extraArgs.some(isReservedWranglerFlag)) {
+    throw new Error(
+      "Do not pass Wrangler --name/-n manually. Set CLOUDFLARE_WORKER_NAME or let Workers Builds provide WRANGLER_CI_OVERRIDE_NAME.",
+    );
+  }
+
+  if (extraArgs.includes("--")) {
+    throw new Error(
+      "Do not pass a standalone -- to Wrangler. Pass Wrangler flags directly after the deploy command.",
+    );
+  }
+
+  const workerName = readWorkerName(env);
+  const isWorkersBuild = env["WORKERS_CI"] === "1" || env["WORKERS_CI"] === "true";
+  const isDryRun = extraArgs.some(isDryRunFlag);
+
+  return {
+    buildArgs: isWorkersBuild ? null : ["run", isDryRun ? "build:app" : "build:cloudflare"],
+    wranglerArgs: [...modes[modeArg], "--name", workerName, ...extraArgs],
+  };
 }
 
-const workerName = readWorkerName();
-const isWorkersBuild = process.env.WORKERS_CI === "1" || process.env.WORKERS_CI === "true";
+export async function main(
+  args: readonly string[] = process.argv.slice(2),
+  env: NodeJS.ProcessEnv = process.env,
+) {
+  const plan = selectCloudflareDeployPlan(args, env);
 
-if (!isWorkersBuild) {
-  await run("vp", ["run", "build:cloudflare"]);
+  if (plan.buildArgs) {
+    await run("vp", plan.buildArgs);
+  }
+
+  await run("wrangler", plan.wranglerArgs);
 }
 
-await run("wrangler", [...modes[modeArg], "--name", workerName, ...extraArgs]);
+const entrypoint = process.argv[1];
+if (entrypoint && import.meta.url === pathToFileURL(entrypoint).href) {
+  await main();
+}

@@ -12,6 +12,10 @@ dist
 dist-ssr
 .wrangler
 *.local
+.dev.vars*
+.env*
+.convex
+convex/.tmp
 
 # Editor directories and files
 .vscode/*
