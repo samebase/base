@@ -12,10 +12,11 @@ Set these build secrets in the Cloudflare Workers Builds settings:
 - `PREVIEW_CONVEX_DEPLOY_KEY`
 
 Cloudflare Workers Builds has separate production and preview build triggers
-under the hood. The Builds API can set build variables per trigger, so an API
-setup can store different values for production and preview. The dashboard setup
-path does not expose the same Pages-style production/preview environment
-selector in the build variables UI.
+under the hood, but the dashboard currently shows one build-variable table. To
+keep dashboard and API-created configurations equivalent, store both secrets on
+both triggers. This also keeps the production and preview keys visible in the
+dashboard. Keep this shared layout until Cloudflare exposes separate production
+and preview build-variable views.
 
 This template handles that dashboard limitation in `scripts/build-cloudflare.ts`:
 
@@ -29,10 +30,10 @@ That keeps the production key compatible with projects that do not use the
 preview-aware wrapper, while still requiring a separate preview key for
 non-production branches.
 
-When configuring triggers through the Builds API, store `CONVEX_DEPLOY_KEY` on
-the production trigger and `PREVIEW_CONVEX_DEPLOY_KEY` on the preview trigger.
-When using the dashboard's generic build variables table, store both secrets;
-the script keeps preview builds from falling back to the production key.
+When configuring through the Builds API, write the same two secrets to both
+triggers. When configuring through the dashboard, enter both secrets in its
+build-variable table. The script selects the correct key for each branch and
+keeps preview builds from falling back to the production key.
 
 ## Build Ordering
 
