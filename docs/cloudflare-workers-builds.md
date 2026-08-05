@@ -11,6 +11,9 @@ Set these build secrets in the Cloudflare Workers Builds settings:
 - `CONVEX_DEPLOY_KEY`
 - `PREVIEW_CONVEX_DEPLOY_KEY`
 
+Do not add `VITE_CONVEX_URL`. Convex supplies the selected deployment URL to the frontend command
+that runs through `convex deploy --cmd`.
+
 Cloudflare Workers Builds has separate production and preview build triggers
 under the hood, but the dashboard currently shows one build-variable table. To
 keep dashboard and API-created configurations equivalent, store both secrets on

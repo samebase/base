@@ -71,4 +71,8 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run the Cloudflare build
+        # The CI artifact is discarded. Convex supplies the real deployment URL
+        # during development and provider builds.
+        env:
+          VITE_CONVEX_URL: http://127.0.0.1:3210
         run: pnpm run build

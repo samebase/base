@@ -31,7 +31,8 @@ vp run dev
 ```
 
 The development command starts Convex and TanStack Start together. It also creates missing Convex
-Auth JWT keys in the development deployment.
+Auth JWT keys in the development deployment. Convex writes `VITE_CONVEX_URL` to `.env.local`; do
+not set it manually.
 
 For an isolated local agent or worktree backend, use:
 
@@ -76,7 +77,8 @@ Cloudflare Workers Builds runs `pnpm run build` for all branches. It then uses:
 
 `scripts/build-cloudflare.ts` selects the Convex key from `WORKERS_CI_BRANCH` and fails closed when
 the branch identity is missing. `scripts/verify-current-branch-head.ts` prevents an older concurrent
-build from deploying backend code after a newer commit reaches the same branch.
+build from deploying backend code after a newer commit reaches the same branch. `convex deploy
+--cmd` supplies `VITE_CONVEX_URL` to the frontend build, so it is not a Cloudflare build variable.
 
 See [`docs/cloudflare-workers-builds.md`](./docs/cloudflare-workers-builds.md) for the detailed build
 and deploy behavior. Use the

@@ -5,6 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { type FormEvent, useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
+import { ConvexClientProvider } from "../lib/convex";
 import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
 import { Input } from "#components/ui/input";
@@ -25,6 +26,14 @@ export const Route = createFileRoute("/")({
 });
 
 function HomePage() {
+  return (
+    <ConvexClientProvider>
+      <TodoPage />
+    </ConvexClientProvider>
+  );
+}
+
+function TodoPage() {
   const [shareUrl, setShareUrl] = useState("");
   const todoState = useQuery(api.todos.list, {});
   const todos = todoState?.todos ?? [];
