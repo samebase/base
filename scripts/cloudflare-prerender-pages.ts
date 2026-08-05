@@ -7,18 +7,10 @@ export type CloudflarePrerenderPage = {
 };
 
 /**
- * Public pages that TanStack Start prerenders and Cloudflare exposes through
- * exact _redirects aliases. Cloudflare SPA mode owns /index.html, so / must
- * use a separate output file.
+ * Static public pages that TanStack Start prerenders and Cloudflare exposes
+ * through exact _redirects aliases. Routes that need Convex use the SPA shell.
  */
 export const cloudflarePrerenderPages = [
-  {
-    path: "/",
-    prerender: {
-      enabled: true,
-      outputPath: "/_landing.html",
-    },
-  },
   {
     path: "/about",
     prerender: {

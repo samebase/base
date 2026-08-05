@@ -17,8 +17,6 @@ describe("generate-cloudflare-redirects", () => {
         "# the SPA shell owns that file. These exact aliases expose prerendered",
         "# public pages without catching hashed assets.",
         "",
-        "/ /_landing.html 200",
-        "",
         "/about /about/index.html 200",
         "/about/ /about/index.html 200",
         "/about/index.html /about/index.html 200",
@@ -47,8 +45,6 @@ describe("generate-cloudflare-redirects", () => {
         "# the SPA shell owns that file. These exact aliases expose prerendered",
         "# public pages without catching hashed assets.",
         "",
-        "/ /_landing.html 200",
-        "",
         "/about /about/index.html 200",
         "/about/ /about/index.html 200",
         "/about/index.html /about/index.html 200",
@@ -69,7 +65,7 @@ describe("generate-cloudflare-redirects", () => {
     expect(() =>
       buildGeneratedRedirects([
         {
-          path: "/",
+          path: "/about",
           prerender: {
             enabled: true,
             outputPath: "/index.html",

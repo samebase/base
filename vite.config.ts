@@ -28,10 +28,6 @@ export default defineConfig({
       spa: {
         enabled: true,
         // Cloudflare SPA mode serves /index.html for unknown app routes.
-        // TanStack Start defaults the SPA shell to /_shell.html, so emit it
-        // here instead. The hash marker keeps the shell request on the public
-        // root route while staying distinct from the explicit / prerender entry.
-        maskPath: "/#__spa-shell",
         prerender: {
           outputPath: "/index.html",
         },
