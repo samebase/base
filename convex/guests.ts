@@ -3,7 +3,7 @@ import type { Auth } from "convex/server";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-const { null: nullValue, object, string, union } = v;
+const { object, string, union } = v;
 
 const GUEST_NAME_POOL = [
   "Ash",
@@ -20,7 +20,7 @@ const GUEST_NAME_POOL = [
 const FALLBACK_GUEST_NAME_SPACE = 36 ** 6;
 
 const viewerResultValidator = object({
-  name: union(string(), nullValue()),
+  name: union(string(), v.null()),
 });
 const ensureNameResultValidator = object({
   name: string(),

@@ -4,7 +4,7 @@ import type { Id } from "./_generated/dataModel";
 import { mutation, query } from "./_generated/server";
 import { v } from "convex/values";
 
-const { array, boolean, id, null: nullValue, number, object, string, union } = v;
+const { array, boolean, id, number, object, string, union } = v;
 
 const MAX_TODOS_PER_USER = 50;
 const MAX_VISIBLE_TODOS = 50;
@@ -20,10 +20,10 @@ const vTodo = object({
 
 const listResultValidator = object({
   todos: array(vTodo),
-  viewerTodoCount: union(number(), nullValue()),
+  viewerTodoCount: union(number(), v.null()),
 });
-const createResultValidator = nullValue();
-const toggleResultValidator = nullValue();
+const createResultValidator = v.null();
+const toggleResultValidator = v.null();
 
 async function getRequiredUserId(ctx: { auth: Auth }) {
   const userId = await getAuthUserId(ctx);
