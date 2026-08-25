@@ -31,10 +31,11 @@ vp run dev
 ```
 
 The development command starts Convex and TanStack Start together. It also creates missing Convex
-Auth JWT keys in the development deployment. Convex writes `VITE_CONVEX_URL` to `.env.local`; do
+Auth JWT keys in the development deployment. In a linked Git worktree, the same command
+automatically uses an isolated local backend. Convex writes `VITE_CONVEX_URL` to `.env.local`; do
 not set it manually.
 
-For an isolated local agent or worktree backend, use:
+To force the isolated backend outside a linked worktree, use:
 
 ```sh
 vp run dev:worktree

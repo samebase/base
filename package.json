@@ -10,10 +10,11 @@
     "#hooks/*": "./src/hooks/*.ts"
   },
   "scripts": {
-    "dev": "node ./scripts/run-dev.ts",
+    "dev": "node ./scripts/run-context-dev.ts",
+    "dev:primary": "node ./scripts/run-primary-dev.ts",
     "dev:frontend": "vp dev",
     "dev:worktree": "node ./scripts/run-worktree-dev.ts",
-    "check": "vp check && vp run typecheck && vp test && vp run verify:cloudflare-redirects",
+    "check": "vp check && vp run typecheck && vp test && vp run verify:cloudflare-redirects && vp run verify:dev-launcher-version",
     "build": "vp run build:cloudflare",
     "build:app": "vp run check && vp build",
     "build:cloudflare": "node ./scripts/build-cloudflare.ts",
@@ -24,13 +25,15 @@
     "format": "vp fmt",
     "format:check": "vp fmt --check",
     "generate:cloudflare-redirects": "node ./scripts/generate-cloudflare-redirects.ts",
+    "generate:dev-launcher-version": "node ./scripts/generate-dev-launcher-version.ts --write",
     "lint": "vp lint --report-unused-disable-directives",
     "preview": "vp preview",
     "prepare": "vp config",
     "test": "vp test",
     "typecheck": "tsc && vp run typecheck:node && tsc --project convex/tsconfig.json",
     "typecheck:node": "tsc --project tsconfig.node.json",
-    "verify:cloudflare-redirects": "vp run generate:cloudflare-redirects && git diff --exit-code -- public/_redirects"
+    "verify:cloudflare-redirects": "vp run generate:cloudflare-redirects && git diff --exit-code -- public/_redirects",
+    "verify:dev-launcher-version": "node ./scripts/generate-dev-launcher-version.ts"
   },
   "dependencies": {
     "@auth/core": "0.41.3",

@@ -1,21 +1,8 @@
+// Samebase starter dev launcher sha256:2c909750c45a3206e5d72c5b2559c22fb55a969ad906f93d46ef21e7f1420dad
 /// <reference types="node" />
-import { spawn } from "node:child_process";
 import process from "node:process";
 
-const child = spawn("vp", ["run", "dev"], {
-  env: {
-    ...process.env,
-    CONVEX_AGENT_MODE: "anonymous",
-  },
-  shell: process.platform === "win32",
-  stdio: "inherit",
-});
+import { runPrimaryDev } from "./run-primary-dev.ts";
 
-child.on("error", (error) => {
-  console.error(`Failed to start worktree dev mode: ${error.message}`);
-  process.exit(1);
-});
-
-child.on("close", (code) => {
-  process.exit(code ?? 1);
-});
+process.env["CONVEX_AGENT_MODE"] = "anonymous";
+runPrimaryDev();
