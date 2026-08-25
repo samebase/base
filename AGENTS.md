@@ -19,6 +19,13 @@ Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.de
 
 <!--VITE PLUS END-->
 
+## Startup
+
+- Install Vite+ once to supply Node.js, then run `corepack enable` to make pnpm available.
+- Use `pnpm run dev` for normal development. It selects the primary or linked-worktree flow.
+- Vite+ stays in `package.json` and supplies the dev, format, lint, test, and build tools behind the
+  package scripts.
+
 ## Cross-platform automation
 
 - The core workflow must run natively on macOS, Linux, and Windows.
@@ -37,9 +44,9 @@ Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.de
   named tool or runtime cannot use TypeScript, and document that exact boundary. Generated output
   and required shipped browser artifacts can be valid exceptions. Do not add a repository-wide
   extension scanner.
-- Run `vp run check`. It checks formatting, lint, browser TypeScript, Node TypeScript, Convex
+- Run `pnpm run check`. It checks formatting, lint, browser TypeScript, Node TypeScript, Convex
   TypeScript, tests, and generated Cloudflare redirects.
-- Run `vp run build` before a deploy. The real Cloudflare build path runs the complete check before
+- Run `pnpm run build` before a deploy. The real Cloudflare build path runs the complete check before
   it builds the app.
 
 <!-- convex-ai-start -->

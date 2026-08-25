@@ -23,11 +23,13 @@ create todos, see real-time updates, and scan a QR code to open the same list on
 
 ## Local development
 
-Install [Vite+](https://viteplus.dev/guide/) and use the Node.js version in `.node-version`.
+Install [Vite+](https://viteplus.dev/guide/) and use it to supply the Node.js version in
+`.node-version`. Run `corepack enable` once to make the pinned pnpm version available.
 
 ```sh
-vp install
-vp run dev
+corepack enable
+pnpm install
+pnpm run dev
 ```
 
 The development command starts Convex and TanStack Start together. It also creates missing Convex
@@ -38,7 +40,7 @@ not set it manually.
 To force the isolated backend outside a linked worktree, use:
 
 ```sh
-vp run dev:worktree
+pnpm run dev:worktree
 ```
 
 The core workflow runs on macOS, Linux, and Windows. See
@@ -46,12 +48,12 @@ The core workflow runs on macOS, Linux, and Windows. See
 
 ## Checks and builds
 
-| Command                         | Purpose                                                        |
-| ------------------------------- | -------------------------------------------------------------- |
-| `vp run check`                  | Format, lint, type-check, test, and verify generated redirects |
-| `vp run build`                  | Run the complete Cloudflare build path                         |
-| `vp run deploy:dry-run`         | Validate a production upload without publishing it             |
-| `vp run deploy:preview:dry-run` | Validate a preview upload without publishing it                |
+| Command                           | Purpose                                                        |
+| --------------------------------- | -------------------------------------------------------------- |
+| `pnpm run check`                  | Format, lint, type-check, test, and verify generated redirects |
+| `pnpm run build`                  | Run the complete Cloudflare build path                         |
+| `pnpm run deploy:dry-run`         | Validate a production upload without publishing it             |
+| `pnpm run deploy:preview:dry-run` | Validate a preview upload without publishing it                |
 
 The dry-run commands need `CLOUDFLARE_WORKER_NAME`.
 

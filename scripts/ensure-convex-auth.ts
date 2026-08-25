@@ -2,8 +2,11 @@
 import { spawn } from "node:child_process";
 import { generateKeyPairSync } from "node:crypto";
 import process from "node:process";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
-const VP_COMMAND = process.platform === "win32" ? "vp.cmd" : "vp";
+const CONVEX_CLI_PATH = fileURLToPath(
+  new URL("../node_modules/convex/bin/main.js", import.meta.url),
+);
 
 type RunResult = {
   code: number;
@@ -18,18 +21,30 @@ type RunOptions = {
   stdio?: "inherit" | "pipe";
 };
 
-function runVp(args: string[], options: RunOptions = {}) {
+type RunConvex = (args: string[], options?: RunOptions) => Promise<RunResult>;
+
+export function buildConvexCliCommand(args: string[], options: RunOptions = {}) {
+  const stdio: "inherit" | ["ignore", "pipe", "pipe"] =
+    options.stdio === "pipe" ? ["ignore", "pipe", "pipe"] : "inherit";
+
+  return {
+    command: process.execPath,
+    args: [CONVEX_CLI_PATH, ...args],
+    spawnOptions: {
+      env: options.env ?? process.env,
+      stdio,
+    },
+  };
+}
+
+function runConvexCli(args: string[], options: RunOptions = {}) {
   return new Promise<RunResult>((resolve, reject) => {
-    const stdio = options.stdio ?? "inherit";
+    const command = buildConvexCliCommand(args, options);
     const stdoutChunks: Buffer[] = [];
     const stderrChunks: Buffer[] = [];
-    const child = spawn(VP_COMMAND, args, {
-      env: options.env ?? process.env,
-      shell: process.platform === "win32",
-      stdio: stdio === "pipe" ? ["ignore", "pipe", "pipe"] : "inherit",
-    });
+    const child = spawn(command.command, command.args, command.spawnOptions);
 
-    if (stdio === "pipe") {
+    if (options.stdio === "pipe") {
       child.stdout?.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
       child.stderr?.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
     }
@@ -46,16 +61,14 @@ function runVp(args: string[], options: RunOptions = {}) {
         return;
       }
 
-      const commandLabel = options.sensitive
-        ? "vp convex env set"
-        : `${VP_COMMAND} ${args.join(" ")}`;
+      const commandLabel = options.sensitive ? "convex env set" : `convex ${args.join(" ")}`;
       reject(new Error(`${commandLabel} failed with exit code ${result.code}`));
     });
   });
 }
 
-async function readConvexEnv(name: string, env: NodeJS.ProcessEnv) {
-  const result = await runVp(["exec", "convex", "env", "get", name], {
+async function readConvexEnv(name: string, env: NodeJS.ProcessEnv, runConvex: RunConvex) {
+  const result = await runConvex(["env", "get", name], {
     allowFailure: true,
     env,
     stdio: "pipe",
@@ -84,17 +97,24 @@ function generateAuthKeys() {
   };
 }
 
-async function setConvexEnv(name: string, value: string, env: NodeJS.ProcessEnv) {
-  await runVp(["exec", "convex", "env", "set", "--", name, value], {
+async function setConvexEnv(
+  name: string,
+  value: string,
+  env: NodeJS.ProcessEnv,
+  runConvex: RunConvex,
+) {
+  await runConvex(["env", "set", "--", name, value], {
     env,
     sensitive: true,
   });
 }
 
-async function main() {
-  const env = process.env;
-  const existingPrivateKey = await readConvexEnv("JWT_PRIVATE_KEY", env);
-  const existingJwks = await readConvexEnv("JWKS", env);
+export async function ensureConvexAuth(
+  env: NodeJS.ProcessEnv,
+  runConvex: RunConvex = runConvexCli,
+) {
+  const existingPrivateKey = await readConvexEnv("JWT_PRIVATE_KEY", env, runConvex);
+  const existingJwks = await readConvexEnv("JWKS", env, runConvex);
 
   if (existingPrivateKey && existingJwks) {
     console.log("Convex Auth keys already configured.");
@@ -105,9 +125,12 @@ async function main() {
   }
 
   const keys = generateAuthKeys();
-  await setConvexEnv("JWT_PRIVATE_KEY", keys.JWT_PRIVATE_KEY, env);
-  await setConvexEnv("JWKS", keys.JWKS, env);
+  await setConvexEnv("JWT_PRIVATE_KEY", keys.JWT_PRIVATE_KEY, env, runConvex);
+  await setConvexEnv("JWKS", keys.JWKS, env, runConvex);
   console.log("Convex Auth keys configured.");
 }
 
-await main();
+const entrypoint = process.argv[1];
+if (entrypoint && import.meta.url === pathToFileURL(entrypoint).href) {
+  await ensureConvexAuth(process.env);
+}
