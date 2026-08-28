@@ -3,7 +3,7 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite-plus";
 
-import { cloudflarePrerenderPages } from "./scripts/cloudflare-prerender-pages.ts";
+import { prerenderPages } from "./prerender.config.ts";
 
 export default defineConfig({
   fmt: {
@@ -16,7 +16,7 @@ export default defineConfig({
   plugins: [
     tailwindcss(),
     tanstackStart({
-      pages: cloudflarePrerenderPages.map((page) => ({
+      pages: prerenderPages.map((page) => ({
         path: page.path,
         prerender: page.prerender,
       })),

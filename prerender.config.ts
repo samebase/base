@@ -1,4 +1,4 @@
-export type CloudflarePrerenderPage = {
+export type PrerenderPage = {
   path: `/${string}`;
   prerender: {
     enabled: true;
@@ -7,8 +7,8 @@ export type CloudflarePrerenderPage = {
 };
 
 /**
- * Static public pages that TanStack Start prerenders and Cloudflare exposes
- * through exact _redirects aliases.
+ * Public pages that TanStack Start prerenders and Cloudflare exposes through
+ * exact _redirects aliases.
  *
  * Cloudflare SPA mode always uses /index.html when no asset matches. The real
  * / route is also prerendered, so keep /index.html as the route-neutral shell
@@ -16,7 +16,7 @@ export type CloudflarePrerenderPage = {
  * /. Revisit this split if Cloudflare supports a configurable SPA fallback
  * file or if this app moves to request-time SSR.
  */
-export const cloudflarePrerenderPages = [
+export const prerenderPages = [
   {
     path: "/",
     prerender: {
@@ -30,4 +30,4 @@ export const cloudflarePrerenderPages = [
       enabled: true,
     },
   },
-] as const satisfies readonly CloudflarePrerenderPage[];
+] as const satisfies readonly PrerenderPage[];

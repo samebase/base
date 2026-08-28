@@ -90,6 +90,7 @@ and deploy behavior. Use the
 ## Important files
 
 - `package.json` defines the supported development, check, build, and deploy commands.
+- `prerender.config.ts` defines the public pages shared by TanStack Start and Cloudflare.
 - `vite.config.ts` defines the TanStack Start SPA and prerender behavior.
 - `wrangler.jsonc` defines Cloudflare static assets, SPA fallback, and preview URLs.
 - `scripts/build-cloudflare.ts` owns the Cloudflare build and Convex deployment selection.

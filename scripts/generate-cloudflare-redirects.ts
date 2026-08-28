@@ -4,10 +4,7 @@ import path from "node:path";
 import process from "node:process";
 import { pathToFileURL } from "node:url";
 
-import {
-  cloudflarePrerenderPages,
-  type CloudflarePrerenderPage,
-} from "./cloudflare-prerender-pages.ts";
+import { prerenderPages, type PrerenderPage } from "../prerender.config.ts";
 
 export const generatedRedirectsStartTag = "# @samebase/app-prerender-redirects:start";
 export const generatedRedirectsEndTag = "# @samebase/app-prerender-redirects:end";
@@ -20,7 +17,7 @@ function assertRedirectPath(label: string, value: string) {
   }
 }
 
-function readHtmlOutputPath(page: CloudflarePrerenderPage) {
+function readHtmlOutputPath(page: PrerenderPage) {
   if (page.path === "/" && !page.prerender.outputPath) {
     throw new Error(
       "The root prerender page must set outputPath because Cloudflare SPA mode owns /index.html.",
@@ -49,7 +46,7 @@ function createRedirectAliases(routePath: string) {
   return [routePath, `${routePath}/`];
 }
 
-export function buildGeneratedRedirects(pages: readonly CloudflarePrerenderPage[]) {
+export function buildGeneratedRedirects(pages: readonly PrerenderPage[]) {
   const redirectGroups = pages.map((page) => {
     const outputPath = readHtmlOutputPath(page);
     return [
@@ -110,7 +107,7 @@ export function replaceGeneratedRedirectsBlock(contents: string, generatedRedire
 
 export function updateRedirectsFile(filePath = redirectsFilePath) {
   const contents = readFileSync(filePath, "utf8");
-  const generatedRedirects = buildGeneratedRedirects(cloudflarePrerenderPages);
+  const generatedRedirects = buildGeneratedRedirects(prerenderPages);
   const nextContents = replaceGeneratedRedirectsBlock(contents, generatedRedirects);
 
   if (nextContents === contents) {
