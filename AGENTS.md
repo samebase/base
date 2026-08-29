@@ -26,6 +26,11 @@ Docs are local at `node_modules/vite-plus/docs` or online at https://viteplus.de
 - Vite+ stays in `package.json` and supplies the dev, format, lint, test, and build tools behind the
   package scripts.
 
+## Samebase starter source
+
+A `Samebase source build: v<N>` line records the Samebase starter build used for that file. Do not
+remove the line when you edit the file.
+
 ## Cross-platform automation
 
 - The core workflow must run natively on macOS, Linux, and Windows.

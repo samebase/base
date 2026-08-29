@@ -1,3 +1,4 @@
+// Samebase source build: v1989
 /// <reference types="node" />
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";

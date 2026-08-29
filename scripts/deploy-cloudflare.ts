@@ -1,3 +1,4 @@
+// Samebase source build: v1989
 /// <reference types="node" />
 import { spawn } from "node:child_process";
 import process from "node:process";
@@ -7,12 +8,6 @@ const modes = {
   deploy: ["deploy"],
   preview: ["versions", "upload"],
 } as const;
-
-type Mode = keyof typeof modes;
-
-function isMode(value: string | undefined): value is Mode {
-  return value === "deploy" || value === "preview";
-}
 
 function isReservedWranglerFlag(value: string) {
   return value === "--name" || value.startsWith("--name=") || value === "-n";
@@ -50,7 +45,12 @@ function run(command: string, args: readonly string[]) {
     });
 
     child.on("error", reject);
-    child.on("close", (code) => {
+    child.on("close", (code, signal) => {
+      if (signal) {
+        reject(new Error(`${command} ${args.join(" ")} exited with signal ${signal}`));
+        return;
+      }
+
       if (code === 0) {
         resolve();
         return;
@@ -72,7 +72,7 @@ export function selectCloudflareDeployPlan(
 ): CloudflareDeployPlan {
   const [modeArg, ...extraArgs] = args;
 
-  if (!isMode(modeArg)) {
+  if (modeArg !== "deploy" && modeArg !== "preview") {
     throw new Error("Usage: node ./scripts/deploy-cloudflare.ts <deploy|preview> [wrangler flags]");
   }
 
