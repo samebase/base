@@ -1,4 +1,4 @@
-// Samebase source build: v1989
+// Samebase source build: v1997
 import { describe, expect, it } from "vite-plus/test";
 
 import { prerenderPages } from "../prerender.config.ts";
@@ -62,7 +62,7 @@ describe("generate-cloudflare-redirects", () => {
 
   it("requires the generated block tags", () => {
     expect(() => replaceGeneratedRedirectsBlock("/ /_landing.html 200\n", "")).toThrow(
-      "Missing # @samebase/app-prerender-redirects:start",
+      "Missing # @samebase/base-prerender-redirects:start",
     );
   });
 

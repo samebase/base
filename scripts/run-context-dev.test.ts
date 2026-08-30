@@ -1,4 +1,4 @@
-// Samebase source build: v1989
+// Samebase source build: v1997
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -17,7 +17,7 @@ describe("run-context-dev", () => {
   });
 
   it("detects main and linked Git worktrees", () => {
-    const temporaryDirectory = mkdtempSync(path.join(tmpdir(), "samebase-app-run-dev-test-"));
+    const temporaryDirectory = mkdtempSync(path.join(tmpdir(), "samebase-base-run-dev-test-"));
     const mainWorktree = path.join(temporaryDirectory, "main");
     const linkedWorktree = path.join(temporaryDirectory, "linked");
 

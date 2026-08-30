@@ -1,4 +1,4 @@
-// Samebase source build: v1989
+// Samebase source build: v1997
 /// <reference types="node" />
 import { readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -7,8 +7,8 @@ import { pathToFileURL } from "node:url";
 
 import { prerenderPages, type PrerenderPage } from "../prerender.config.ts";
 
-export const generatedRedirectsStartTag = "# @samebase/app-prerender-redirects:start";
-export const generatedRedirectsEndTag = "# @samebase/app-prerender-redirects:end";
+export const generatedRedirectsStartTag = "# @samebase/base-prerender-redirects:start";
+export const generatedRedirectsEndTag = "# @samebase/base-prerender-redirects:end";
 
 const redirectsFilePath = path.resolve("public/_redirects");
 
