@@ -28,7 +28,7 @@
     "generate:dev-launcher-version": "node ./scripts/generate-dev-launcher-version.ts --write",
     "lint": "vp lint --report-unused-disable-directives",
     "preview": "vp preview",
-    "prepare": "vp config",
+    "prepare": "vp config --no-agent",
     "test": "vp test",
     "typecheck": "tsc && vp run typecheck:node && tsc --project convex/tsconfig.json",
     "typecheck:node": "tsc --project tsconfig.node.json",
