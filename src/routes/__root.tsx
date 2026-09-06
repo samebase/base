@@ -1,6 +1,7 @@
 import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import appCss from "../style.css?url";
+import { SamebaseAttribution } from "#components/SamebaseAttribution";
 import { Button } from "#components/ui/button";
 
 export const Route = createRootRoute({
@@ -18,6 +19,11 @@ export const Route = createRootRoute({
       },
     ],
     links: [
+      {
+        rel: "icon",
+        type: "image/svg+xml",
+        href: "/favicon.svg",
+      },
       {
         rel: "stylesheet",
         href: appCss,
@@ -40,7 +46,12 @@ function RootComponent() {
           <Link to="/about">About</Link>
         </Button>
       </nav>
-      <Outlet />
+      <div className="flex-1">
+        <Outlet />
+      </div>
+      <footer className="px-4 py-3 text-center">
+        <SamebaseAttribution />
+      </footer>
     </RootDocument>
   );
 }
@@ -51,7 +62,7 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <head>
         <HeadContent />
       </head>
-      <body>
+      <body className="flex min-h-dvh flex-col">
         {children}
         <Scripts />
       </body>
