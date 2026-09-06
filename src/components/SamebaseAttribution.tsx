@@ -4,23 +4,24 @@ export function SamebaseAttribution() {
       href="https://samebase.com"
       target="_blank"
       rel="noopener noreferrer"
-      className="group inline-flex min-h-11 items-center text-xs focus-visible:outline-current"
+      className="group inline-flex min-h-11 items-center text-xs no-underline focus-visible:outline-current"
     >
-      <span className="flex items-center gap-1 border-b border-transparent group-hover:border-current">
+      <span className="border-b border-transparent whitespace-nowrap group-hover:border-current">
         Managed with{" "}
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 60 60"
-          width={15}
-          height={15}
-          shapeRendering="crispEdges"
-          className="dark:invert"
-          aria-hidden="true"
-        >
-          <rect width="60" height="60" fill="#ffffff" />
-          <path d="M6 6h48v48H6z M22 22h16v16H22z" fill="#394447" fillRule="evenodd" />
-        </svg>
-        <b>Samebase</b>
+        <b>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 60 60"
+            width="0.75em"
+            height="0.75em"
+            shapeRendering="crispEdges"
+            className="inline-block align-baseline mr-[0.15em]"
+            aria-hidden="true"
+          >
+            <path d="M0 0h60v60H0z M20 20h20v20H20z" fill="currentColor" fillRule="evenodd" />
+          </svg>
+          Samebase
+        </b>
       </span>
     </a>
   );

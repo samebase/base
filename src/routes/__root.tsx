@@ -49,7 +49,7 @@ function RootComponent() {
       <div className="flex-1">
         <Outlet />
       </div>
-      <footer className="px-4 py-3 text-center">
+      <footer className="mx-auto w-full max-w-2xl px-4 py-3 text-right text-muted-foreground">
         <SamebaseAttribution />
       </footer>
     </RootDocument>
