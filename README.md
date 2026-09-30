@@ -73,8 +73,7 @@ as the stable preview name. Local builds only build the frontend.
 build from deploying backend code after a newer commit reaches the same branch. `convex deploy
 --cmd` supplies `VITE_CONVEX_URL` to the frontend build, so it is not a Cloudflare build variable.
 
-See the [Cloudflare guide](https://samebase.com/docs/cloudflare-setup#worker-previews) for build
-settings and preview migration. Use the
+Use the
 [do-it-yourself guide](https://samebase.com/docs/do-it-yourself) for the provider dashboard setup.
 
 ## Important files
