@@ -2,6 +2,7 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "compatibility_date": "2026-05-14",
   "preview_urls": true,
+  "previews": {},
   "assets": {
     "directory": "./dist/client",
     "html_handling": "none",
