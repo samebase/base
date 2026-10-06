@@ -10,6 +10,11 @@ overrides:
   js-yaml: 4.3.2
   nanoid: 3.3.18
   postcss: "^8.5.23"
+  postcss-selector-parser: 7.1.6
+  proxy-addr: 2.0.8
+  seroval: 1.6.3
+  source-map-js: 1.2.2
+  tinypool: 2.1.2
   undici: 7.29.1
   vite: "catalog:"
   vitest: "catalog:"
