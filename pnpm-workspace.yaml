@@ -12,7 +12,7 @@ overrides:
   postcss: "^8.5.23"
   postcss-selector-parser: 7.1.6
   proxy-addr: 2.0.8
-  seroval: 1.6.3
+  seroval: 1.6.8
   source-map-js: 1.2.2
   tinypool: 2.1.2
   undici: 7.29.1
