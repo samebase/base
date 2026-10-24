@@ -9,8 +9,9 @@ overrides:
   "@hono/node-server": 2.1.5
   "@modelcontextprotocol/sdk": 1.32.1
   "brace-expansion@5": 5.0.12
+  body-parser: 2.4.0
   browserslist: 4.29.3
-  fast-uri: 4.2.2
+  fast-uri: 4.2.3
   hono: 4.13.13
   ip-address: 10.7.4
   js-yaml: 5.4.3
@@ -24,7 +25,7 @@ overrides:
   sharp: 0.35.5
   source-map-js: 1.2.2
   tinypool: 2.2.0
-  undici: 8.11.2
+  undici: 8.12.2
   valibot: 1.5.0
   vite: "catalog:"
   vitest: "catalog:"
