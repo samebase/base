@@ -10,11 +10,10 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
-.wrangler
 *.local
-.dev.vars*
 .env*
 .convex
+.alchemy/
 convex/.tmp
 
 # Editor directories and files

@@ -8,9 +8,11 @@
  * @module
  */
 
+import type * as account from "../account.js";
 import type * as auth from "../auth.js";
 import type * as guests from "../guests.js";
 import type * as http from "../http.js";
+import type * as hub from "../hub.js";
 import type * as todos from "../todos.js";
 
 import type {
@@ -20,9 +22,11 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  account: typeof account;
   auth: typeof auth;
   guests: typeof guests;
   http: typeof http;
+  hub: typeof hub;
   todos: typeof todos;
 }>;
 
@@ -52,4 +56,9 @@ export declare const internal: FilterApi<
   FunctionReference<any, "internal">
 >;
 
-export declare const components: {};
+export declare const components: {
+  auth: import("@convex-dev/auth/_generated/component.js").ComponentApi<"auth">;
+  authAnonymous: import("@convex-dev/auth/components/anonymous/_generated/component.js").ComponentApi<"authAnonymous">;
+  authHub: import("@convex-dev/auth/components/oauth/_generated/component.js").ComponentApi<"authHub">;
+  hosting: import("@samebase/convex-hosting/_generated/component.js").ComponentApi<"hosting">;
+};

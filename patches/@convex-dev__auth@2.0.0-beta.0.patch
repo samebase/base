@@ -1,0 +1,102 @@
+diff --git a/dist/component/_generated/component.d.ts b/dist/component/_generated/component.d.ts
+index b4a0bd806593efdcef910e8a4a1a301ceadb2724..eac118d63e19da3462b2d2a66bbb0ac0b031846a 100644
+--- a/dist/component/_generated/component.d.ts
++++ b/dist/component/_generated/component.d.ts
+@@ -20,6 +20,10 @@ import type { FunctionReference } from "convex/server";
+  */
+ export type ComponentApi<Name extends string | undefined = string | undefined> = {
+     public: {
++        /** Samebase patch for 2.0.0-beta.0: see `deleteUser` in public.js. */
++        deleteUser: FunctionReference<"mutation", "internal", {
++            userId: string;
++        }, null, Name>;
+         getUserIdByAccount: FunctionReference<"query", "internal", {
+             provider: string;
+             providerAccountId: string;
+diff --git a/dist/component/public.js b/dist/component/public.js
+index bb4d4d914e48f77ca0ecff9b78c50aea4cc9d7b1..2e10ffcd416fa68f3b707ab21e617941e0acc588 100644
+--- a/dist/component/public.js
++++ b/dist/component/public.js
+@@ -524,4 +524,38 @@ export const signOut = mutation({
+         return null;
+     },
+ });
++/**
++ * Samebase patch for 2.0.0-beta.0, until upstream ships an equivalent.
++ * Gap: the core has no deletion by user id, so after an app deletes a user,
++ * the user's refresh tokens still refresh and the provider accounts still map
++ * to the deleted user id. Upstream issue text: "Add deleteUser({ userId }) to
++ * the core component. It deletes every account and session of the user and
++ * every refresh token of those sessions, like deleteUser in the email and
++ * passkey components."
++ *
++ * Delete every account and session of a user, with the refresh tokens of the
++ * sessions. A session has the user id of its account, so the sessions of the
++ * user are the sessions of the accounts. Idempotent.
++ */
++export const deleteUser = mutation({
++    args: { userId: v.string() },
++    returns: v.null(),
++    handler: async (ctx, { userId }) => {
++        const sessions = await ctx.db
++            .query("sessions")
++            .withIndex("by_user", (q) => q.eq("userId", userId))
++            .collect();
++        for (const session of sessions) {
++            await deleteSession(ctx, session._id);
++        }
++        const accounts = await ctx.db
++            .query("accounts")
++            .withIndex("by_user", (q) => q.eq("userId", userId))
++            .collect();
++        for (const account of accounts) {
++            await ctx.db.delete("accounts", account._id);
++        }
++        return null;
++    },
++});
+ //# sourceMappingURL=public.js.map
+\ No newline at end of file
+diff --git a/src/component/public.ts b/src/component/public.ts
+index 48a827aee542d5f8f22b3b5f34fbc752b5396977..03c8b16bd465f57a1dc04ba447c908ab21343bc0 100644
+--- a/src/component/public.ts
++++ b/src/component/public.ts
+@@ -727,3 +727,38 @@ export const signOut = mutation({
+     return null;
+   },
+ });
++
++/**
++ * Samebase patch for 2.0.0-beta.0, until upstream ships an equivalent.
++ * Gap: the core has no deletion by user id, so after an app deletes a user,
++ * the user's refresh tokens still refresh and the provider accounts still map
++ * to the deleted user id. Upstream issue text: "Add deleteUser({ userId }) to
++ * the core component. It deletes every account and session of the user and
++ * every refresh token of those sessions, like deleteUser in the email and
++ * passkey components."
++ *
++ * Delete every account and session of a user, with the refresh tokens of the
++ * sessions. A session has the user id of its account, so the sessions of the
++ * user are the sessions of the accounts. Idempotent.
++ */
++export const deleteUser = mutation({
++  args: { userId: v.string() },
++  returns: v.null(),
++  handler: async (ctx, { userId }) => {
++    const sessions = await ctx.db
++      .query("sessions")
++      .withIndex("by_user", (q) => q.eq("userId", userId))
++      .collect();
++    for (const session of sessions) {
++      await deleteSession(ctx, session._id);
++    }
++    const accounts = await ctx.db
++      .query("accounts")
++      .withIndex("by_user", (q) => q.eq("userId", userId))
++      .collect();
++    for (const account of accounts) {
++      await ctx.db.delete("accounts", account._id);
++    }
++    return null;
++  },
++});

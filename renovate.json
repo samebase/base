@@ -1,0 +1,19 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:best-practices"],
+  "schedule": ["* * * * 1-5"],
+  "timezone": "Europe/Chisinau",
+  "minimumReleaseAge": "7 days",
+  "packageRules": [
+    {
+      "description": "config:best-practices sets 3 days for npm. Keep npm at the 7 days above.",
+      "matchDatasources": ["npm"],
+      "minimumReleaseAge": "7 days"
+    },
+    {
+      "groupName": "Routine updates",
+      "matchUpdateTypes": ["major", "minor", "patch", "pin", "pinDigest", "digest"]
+    }
+  ],
+  "separateMajorMinor": false
+}

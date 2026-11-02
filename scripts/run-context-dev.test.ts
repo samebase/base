@@ -1,4 +1,3 @@
-// Samebase source build: v1997
 import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";

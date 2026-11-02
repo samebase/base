@@ -1,7 +1,7 @@
 # Local setup
 
 Use this when you want to run the app from your own computer instead of only
-through Cloudflare.
+through the GitHub deploy workflow.
 
 ## Install Vite+
 
@@ -35,11 +35,26 @@ pnpm run dev
 
 `pnpm run dev` starts Convex and TanStack Start together. On the first run,
 Convex may ask you to sign in and choose or create a development deployment.
-The dev script also creates Convex Auth JWT keys in that development deployment
-if they are missing. In a linked Git worktree, it automatically uses an isolated
-local backend.
+In a linked Git worktree, it automatically uses an isolated local backend.
 
 Open the local URL printed by Vite.
+
+## First run
+
+On a fresh clone, the first push of `pnpm run dev` fails: `convex/convex.config.ts` requires the
+Convex Auth keys `AUTH_PRIVATE_KEY` and `AUTH_JWKS` and the three `HUB_` variables, and
+`convex/http.ts` imports `.convex-hosting/version.js` and the server build `dist/server/server.js`.
+Only a deploy creates them. Keep `pnpm run dev` running, because a local backend runs inside it, and run this in a
+second terminal:
+
+```sh
+pnpm run deploy:dev
+```
+
+It builds the app, creates the Convex Auth keys, sets the `HUB_` variables to their off values,
+uploads the files to the development deployment, writes the version file, and pushes. Then stop `pnpm run dev` and start it again; it works as usual
+from then on. Run `pnpm run deploy:dev` again whenever you want the development deployment's
+`.convex.site` URL to serve the current build.
 
 ## Force worktree mode
 
@@ -51,6 +66,4 @@ pnpm run dev:worktree
 ```
 
 The context launcher selects `run-primary-dev.ts` or `run-worktree-dev.ts`.
-Both modes use the same Windows-safe service launcher. The three launcher files
-carry one shared content hash in their first line, and `pnpm run check` verifies
-that hash.
+Both modes use the same Windows-safe service launcher.

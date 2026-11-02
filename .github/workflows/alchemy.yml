@@ -1,0 +1,86 @@
+# Deploys with Alchemy (alchemy.run.ts). A push to main deploys the stage `prod`,
+# the production deployment. A pull request from this repository deploys the stage
+# `pr-<number>`, a preview with that name; closing the pull request destroys the
+# stage and deletes the preview. The state of every stage is in the
+# `alchemy-state-store` project of the team, under the stack name GITHUB_REPOSITORY.
+# Every run needs only the team token CONVEX_ACCESS_TOKEN; it mints the deploy
+# keys itself. Only the Alchemy steps get the secret. `id-token: write` lets a deploy
+# ask Samebase for the deployment's Google sign-in client with GitHub's token of the run.
+on:
+  push: { branches: [main] }
+  pull_request: { types: [opened, synchronize, reopened, closed] }
+  # Run once on main with adopt to take over a project with the name of the repository that
+  # exists already.
+  workflow_dispatch: { inputs: { adopt: { type: boolean, default: false } } }
+permissions: { contents: read, pull-requests: write, id-token: write }
+# One run per stage at a time: the state store has no lock. A closed pull request keeps
+# its head_ref.
+concurrency: { group: "alchemy-${{ github.head_ref || github.ref_name }}", queue: max }
+jobs:
+  alchemy:
+    # Pull requests from forks get no secrets.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name ==
+      github.repository
+    runs-on: ubuntu-latest
+    env:
+      CONVEX_TEAM_ID: ${{ vars.CONVEX_TEAM_ID }}
+      BRANCH: ${{ github.head_ref || github.ref_name }}
+      # The stage, as https://alchemy.run/environments/ci names it: `pr-<number>` for a pull
+      # request, `prod` on main, and the branch name otherwise, where no step below deploys.
+      STAGE: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || (github.ref == 'refs/heads/main' && 'prod' || github.ref_name) }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        with: { version: 12.15.0 }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: 26, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      # A re-run of an old run must not put older code over newer code.
+      - name: Check that the checkout is the head of the branch
+        if: github.event.action != 'closed'
+        env: { TOKEN: "${{ github.token }}" }
+        run: |
+          auth=$(printf 'x-access-token:%s' "$TOKEN" | base64 | tr -d '\n')
+          head=$(git -c "http.extraheader=AUTHORIZATION: basic $auth" ls-remote origin "refs/heads/$BRANCH" | cut -f1)
+          if [ "$(git rev-parse HEAD)" != "$head" ]; then
+            echo "::error::The checkout is not the head of $BRANCH ($head). Nothing was deployed."
+            exit 1
+          fi
+      # A repository without the token, such as one just created from this template, deploys nothing
+      # and says so.
+      - name: Skip without the Convex token
+        id: keys
+        env:
+          TOKEN: ${{ secrets.CONVEX_ACCESS_TOKEN }}
+        run: |
+          if [ -z "$TOKEN" ]; then
+            echo "::notice::No deploy: set CONVEX_ACCESS_TOKEN as a repository secret (README, Start)."
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Deploy production
+        if: steps.keys.outputs.skip != 'true' && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        run: pnpm exec alchemy deploy --stage "$STAGE" --yes --no-input $ADOPT
+        env:
+          ADOPT: ${{ inputs.adopt && '--adopt' || '' }}
+          CONVEX_ACCESS_TOKEN: ${{ secrets.CONVEX_ACCESS_TOKEN }}
+      - name: Deploy the preview
+        if: steps.keys.outputs.skip != 'true' && github.event_name == 'pull_request' && github.event.action != 'closed'
+        run: pnpm exec alchemy deploy --stage "$STAGE" --yes --no-input
+        env:
+          CONVEX_ACCESS_TOKEN: ${{ secrets.CONVEX_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Update the stack comment
+        if: steps.keys.outputs.skip != 'true' && github.event_name == 'pull_request' && github.event.action != 'closed'
+        run: pnpm exec alchemy-convex stack-comment
+        env:
+          CONVEX_ACCESS_TOKEN: ${{ secrets.CONVEX_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+      - name: Destroy the preview
+        if: steps.keys.outputs.skip != 'true' && github.event.action == 'closed'
+        run: pnpm exec alchemy destroy --stage "$STAGE" --yes --no-input
+        env:
+          CONVEX_ACCESS_TOKEN: ${{ secrets.CONVEX_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}

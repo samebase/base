@@ -1,9 +1,8 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import type { Auth } from "convex/server";
-import { mutation, query } from "./_generated/server";
+import { internalMutation, query, type MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 
-const { object, string, union } = v;
+const { id, literal, object, string, union } = v;
 
 const GUEST_NAME_POOL = [
   "Ash",
@@ -19,12 +18,8 @@ const GUEST_NAME_POOL = [
 ] as const;
 const FALLBACK_GUEST_NAME_SPACE = 36 ** 6;
 
-const viewerResultValidator = object({
-  name: union(string(), v.null()),
-});
-const ensureNameResultValidator = object({
-  name: string(),
-});
+// Null after the account is deleted: the session's access token stays valid until it expires.
+const viewerResultValidator = union(object({ name: string() }), v.null());
 
 function shuffledGuestNames() {
   const candidates = [...GUEST_NAME_POOL];
@@ -37,91 +32,46 @@ function shuffledGuestNames() {
   return candidates;
 }
 
-function fallbackGuestName(userId: string) {
-  let hash = 0;
-  for (const character of userId) {
-    hash = (hash * 31 + character.charCodeAt(0)) % FALLBACK_GUEST_NAME_SPACE;
+export async function unusedGuestName(ctx: MutationCtx) {
+  for (const name of shuffledGuestNames()) {
+    const existingUser = await ctx.db
+      .query("users")
+      .withIndex("by_name", (q) => q.eq("name", name))
+      .first();
+    if (!existingUser) {
+      return name;
+    }
   }
-  return `Guest ${hash.toString(36).padStart(6, "0")}`;
+
+  // Anonymous sessions can outnumber the friendly pool in public previews.
+  const suffix = Math.floor(Math.random() * FALLBACK_GUEST_NAME_SPACE).toString(36);
+  return `Guest ${suffix.padStart(6, "0")}`;
 }
 
-async function getRequiredUserId(ctx: { auth: Auth }) {
-  const userId = await getAuthUserId(ctx);
-  if (!userId) {
-    throw new Error("Not authenticated");
-  }
-  return userId;
-}
+/** Convex Auth calls this once for each anonymous sign-in, which is always a new account. */
+export const createUser = internalMutation({
+  args: {
+    provider: object({
+      name: literal("anonymous"),
+      accountId: string(),
+      profile: object({}),
+    }),
+  },
+  returns: id("users"),
+  handler: async (ctx) => {
+    return await ctx.db.insert("users", { name: await unusedGuestName(ctx) });
+  },
+});
 
 export const viewer = query({
   args: {},
   returns: viewerResultValidator,
   handler: async (ctx) => {
-    const userId = await getRequiredUserId(ctx);
+    const userId = await getAuthUserId(ctx);
+    if (!userId) {
+      throw new Error("Not authenticated");
+    }
     const user = await ctx.db.get(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-
-    return {
-      name: user.name ?? null,
-    };
-  },
-});
-
-export const ensureName = mutation({
-  args: {},
-  returns: ensureNameResultValidator,
-  handler: async (ctx) => {
-    const userId = await getRequiredUserId(ctx);
-    const user = await ctx.db.get(userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
-    if (user.name) {
-      return { name: user.name };
-    }
-
-    const existingReservation = await ctx.db
-      .query("guestNames")
-      .withIndex("by_user", (q) => q.eq("userId", userId))
-      .unique();
-    if (existingReservation) {
-      await ctx.db.patch(userId, {
-        name: existingReservation.name,
-      });
-      return { name: existingReservation.name };
-    }
-
-    // guestNames is the exact-use ledger; users.name is only the display value.
-    for (const name of shuffledGuestNames()) {
-      const existingName = await ctx.db
-        .query("guestNames")
-        .withIndex("by_name", (q) => q.eq("name", name))
-        .unique();
-      if (!existingName) {
-        await ctx.db.insert("guestNames", {
-          name,
-          userId,
-          createdAt: Date.now(),
-        });
-        await ctx.db.patch(userId, {
-          name,
-        });
-        return { name };
-      }
-    }
-
-    // Anonymous sessions can outnumber the friendly pool in public previews.
-    const name = fallbackGuestName(userId);
-    await ctx.db.insert("guestNames", {
-      name,
-      userId,
-      createdAt: Date.now(),
-    });
-    await ctx.db.patch(userId, {
-      name,
-    });
-    return { name };
+    return user ? { name: user.fullName ?? user.name } : null;
   },
 });

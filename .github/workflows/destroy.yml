@@ -1,0 +1,55 @@
+# Destroys the app: the Convex project with every deployment and its data, and the state of the
+# stage `prod`. The repository stays.
+#
+# Run it from the Actions tab on the default branch with
+# `delete stack and production data of <owner>/<repository>` in the confirm field. Another text or
+# another branch fails the run before anything is installed.
+name: Destroy app
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Deletes this app''s Convex project, production data, and previews for good. Your GitHub repository stays. To confirm, type "delete stack and production data of acme/my-app" with your repository''s full name in place of acme/my-app'
+        required: true
+        type: string
+
+permissions: { contents: read, pull-requests: write }
+
+# The group of the deploy of main in alchemy.yml, so a destroy waits for a running deploy.
+concurrency: { group: "alchemy-main", queue: max }
+
+jobs:
+  destroy:
+    runs-on: ubuntu-latest
+    env:
+      CONVEX_TEAM_ID: ${{ vars.CONVEX_TEAM_ID }}
+    steps:
+      # The input reaches the script only as an environment variable.
+      - name: Check the confirmation
+        env:
+          CONFIRM: ${{ inputs.confirm }}
+          EXPECTED: delete stack and production data of ${{ github.repository }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: |
+          if [ "$GITHUB_REF" != "refs/heads/$DEFAULT_BRANCH" ]; then
+            echo "::error::Run this workflow on the default branch, $DEFAULT_BRANCH."
+            exit 1
+          fi
+          if [ "$CONFIRM" != "$EXPECTED" ]; then
+            echo "::error::Type \"$EXPECTED\" into the confirm field to destroy this app."
+            exit 1
+          fi
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6
+        with: { version: 12.15.0 }
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with: { node-version: 26, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Destroy the app
+        run: pnpm exec alchemy destroy --stage prod --yes --no-input
+        env:
+          CONVEX_ACCESS_TOKEN: ${{ secrets.CONVEX_ACCESS_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}

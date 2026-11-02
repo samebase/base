@@ -1,7 +1,6 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import type { Auth } from "convex/server";
 import type { Id } from "./_generated/dataModel";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, type MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
 
 const { array, boolean, id, number, object, string, union } = v;
@@ -25,9 +24,10 @@ const listResultValidator = object({
 const createResultValidator = v.null();
 const toggleResultValidator = v.null();
 
-async function getRequiredUserId(ctx: { auth: Auth }) {
+/** The signed-in user. A deleted user's access token stays valid until it expires, so this reads the row. */
+async function getRequiredUserId(ctx: MutationCtx) {
   const userId = await getAuthUserId(ctx);
-  if (!userId) {
+  if (!userId || !(await ctx.db.get(userId))) {
     throw new Error("Not authenticated");
   }
   return userId;

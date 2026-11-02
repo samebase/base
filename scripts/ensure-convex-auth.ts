@@ -1,13 +1,21 @@
-// Samebase source build: v2064
 /// <reference types="node" />
 import { spawn } from "node:child_process";
-import { generateKeyPairSync } from "node:crypto";
+import { generateKeyPairSync, randomUUID } from "node:crypto";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const CONVEX_CLI_PATH = fileURLToPath(
   new URL("../node_modules/convex/bin/main.js", import.meta.url),
 );
+
+// The variables of a deployment without a hub client. The OAuth component needs all three, setupOauth
+// accepts this loopback issuer, and the home page hides its Google button for this client id.
+// Convex.SharedHubClient of @samebase/alchemy-convex gives the same values when it has no client.
+const HUB_OFF_VALUES = {
+  HUB_ISSUER: "http://127.0.0.1:1",
+  HUB_CLIENT_ID: "no-hub",
+  HUB_CLIENT_SECRET: "no-hub",
+};
 
 type RunResult = {
   code: number;
@@ -84,10 +92,24 @@ async function readConvexEnv(
   return value.length > 0 ? value : null;
 }
 
-function normalizePrivateKey(privateKey: string | Buffer) {
-  return privateKey.toString().trimEnd().replace(/\n/g, " ");
+async function readDeploymentUrl(
+  env: NodeJS.ProcessEnv,
+  selectionArgs: string[],
+  runConvex: RunConvex,
+) {
+  const result = await runConvex(
+    ["run", "--inline-query", "process.env.CONVEX_CLOUD_URL", ...selectionArgs],
+    { env, stdio: "pipe" },
+  );
+  const url: unknown = result.code === 0 ? JSON.parse(result.stdout) : null;
+  if (typeof url !== "string") {
+    throw new Error("Could not read the URL of the selected Convex deployment.");
+  }
+  return url;
 }
 
+// The format of `npx @convex-dev/auth`: the auth component decodes the base64 PKCS#8 key and signs
+// with the `kid` of the first key in the set.
 function generateAuthKeys() {
   const { privateKey, publicKey } = generateKeyPairSync("rsa", {
     modulusLength: 2048,
@@ -96,8 +118,10 @@ function generateAuthKeys() {
   const privatePem = privateKey.export({ format: "pem", type: "pkcs8" });
   const publicJwk = publicKey.export({ format: "jwk" });
   return {
-    JWT_PRIVATE_KEY: normalizePrivateKey(privatePem),
-    JWKS: JSON.stringify({ keys: [{ use: "sig", ...publicJwk }] }),
+    AUTH_PRIVATE_KEY: Buffer.from(privatePem.toString()).toString("base64"),
+    AUTH_JWKS: JSON.stringify({
+      keys: [{ ...publicJwk, kid: randomUUID(), alg: "RS256", use: "sig" }],
+    }),
   };
 }
 
@@ -114,30 +138,81 @@ async function setConvexEnv(
   });
 }
 
+/**
+ * Sets the off value of each hub variable that the deployment does not have, and nothing else: a
+ * value that exists, such as the client that alchemy.run.ts wrote before this push, stays. A list
+ * of names is one command for all three and reads no secret.
+ */
+export async function ensureHubVariables(
+  env: NodeJS.ProcessEnv,
+  selectionArgs: string[] = [],
+  runConvex: RunConvex = runConvexCli,
+) {
+  const result = await runConvex(["env", "list", "--names-only", ...selectionArgs], {
+    env,
+    stdio: "pipe",
+  });
+  if (result.code !== 0) {
+    throw new Error("Could not list the Convex environment variables.");
+  }
+  const names = new Set(result.stdout.split(/\r?\n/));
+  for (const [name, value] of Object.entries(HUB_OFF_VALUES)) {
+    if (!names.has(name)) {
+      await setConvexEnv(name, value, env, selectionArgs, runConvex);
+    }
+  }
+}
+
 export async function ensureConvexAuth(
   env: NodeJS.ProcessEnv,
   runConvex: RunConvex = runConvexCli,
+  production = false,
 ) {
-  const branch = env["WORKERS_CI_BRANCH"];
-  const selectionArgs = branch && branch !== "main" ? ["--preview-name", branch] : [];
-  const existingPrivateKey = await readConvexEnv("JWT_PRIVATE_KEY", env, selectionArgs, runConvex);
-  const existingJwks = await readConvexEnv("JWKS", env, selectionArgs, runConvex);
+  // The deploy scripts run this inside their build, after Convex creates the deployment. A deploy
+  // key selects its own deployment; a preview key also needs the preview name, which
+  // actions/preview takes from the pull request branch. Without a key, `production` follows a
+  // signed-in `pnpm run deploy`, and Convex otherwise uses the development deployment.
+  const deployKey = env["CONVEX_DEPLOY_KEY"];
+  const selectionArgs: string[] = [];
+  if (deployKey?.startsWith("preview:")) {
+    const previewName = env["GITHUB_HEAD_REF"];
+    if (!previewName) {
+      throw new Error("A preview deploy key needs GITHUB_HEAD_REF, the name of its preview.");
+    }
+    selectionArgs.push("--preview-name", previewName);
+  } else if (!deployKey && production) {
+    selectionArgs.push("--prod");
+  }
+
+  // Inside `npx convex deploy --cmd`, VITE_CONVEX_URL is the deployment that the deploy targets.
+  // A selection above that names another deployment stops here, before any read or write.
+  const targetUrl = env["VITE_CONVEX_URL"];
+  if (targetUrl !== undefined) {
+    const selectedUrl = await readDeploymentUrl(env, selectionArgs, runConvex);
+    if (selectedUrl !== targetUrl) {
+      throw new Error(
+        `Convex Auth setup selected ${selectedUrl}, but the deploy targets ${targetUrl}. Deploy through the GitHub workflows, a signed-in pnpm run deploy, or pnpm run deploy:dev.`,
+      );
+    }
+  }
+  const existingPrivateKey = await readConvexEnv("AUTH_PRIVATE_KEY", env, selectionArgs, runConvex);
+  const existingJwks = await readConvexEnv("AUTH_JWKS", env, selectionArgs, runConvex);
 
   if (existingPrivateKey && existingJwks) {
     console.log("Convex Auth keys already configured.");
-    return;
-  }
-  if (existingPrivateKey || existingJwks) {
-    throw new Error("JWT_PRIVATE_KEY and JWKS must be configured together.");
+  } else if (existingPrivateKey || existingJwks) {
+    throw new Error("AUTH_PRIVATE_KEY and AUTH_JWKS must be configured together.");
+  } else {
+    const keys = generateAuthKeys();
+    await setConvexEnv("AUTH_PRIVATE_KEY", keys.AUTH_PRIVATE_KEY, env, selectionArgs, runConvex);
+    await setConvexEnv("AUTH_JWKS", keys.AUTH_JWKS, env, selectionArgs, runConvex);
+    console.log("Convex Auth keys configured.");
   }
 
-  const keys = generateAuthKeys();
-  await setConvexEnv("JWT_PRIVATE_KEY", keys.JWT_PRIVATE_KEY, env, selectionArgs, runConvex);
-  await setConvexEnv("JWKS", keys.JWKS, env, selectionArgs, runConvex);
-  console.log("Convex Auth keys configured.");
+  await ensureHubVariables(env, selectionArgs, runConvex);
 }
 
 const entrypoint = process.argv[1];
 if (entrypoint && import.meta.url === pathToFileURL(entrypoint).href) {
-  await ensureConvexAuth(process.env);
+  await ensureConvexAuth(process.env, runConvexCli, process.argv.includes("--prod"));
 }

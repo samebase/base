@@ -1,30 +1,62 @@
 # Samebase app
 
-This repository is the starter app that Samebase copies into a new GitHub repository.
+A small, complete app base: guest sign-in, real-time data, sharing, and deploys, without services
+that a new app might not need.
 
-It is a small, complete app base. It includes working authentication, real-time data, sharing, and
-deployment paths without adding product-specific services that a new app might not need.
-
-For the complete provider setup, use the
-[Samebase do-it-yourself guide](https://samebase.com/docs/do-it-yourself). This README covers work
-inside the repository.
+The Convex deployment runs the backend and also serves the app's files through
+[convex-hosting](https://github.com/samebase/convex-hosting). [Alchemy](https://alchemy.run) with
+[@samebase/alchemy-convex](https://github.com/samebase/alchemy-convex) deploys it: `main` to the
+stage `prod`, the production deployment, and each pull request to the stage `pr-<number>`, a
+preview. This is the source of [samebase/base](https://github.com/samebase/base).
+The same app without Alchemy is
+[samebase/base-hosting](https://github.com/samebase/base-hosting).
 
 ## Stack
 
-- React 19 and TanStack Start in SPA mode
-- Convex for the real-time backend, database, and guest authentication
-- Cloudflare Workers Static Assets for delivery
+- React 19 and TanStack Start, with pages rendered on the server
+- Convex for the real-time backend and database, and Convex Auth 2.0.0-beta.0 for guest sign-in
+  and [Google sign-in](#google-sign-in), with the session in an httpOnly cookie, so the server
+  renders signed-in pages
+- convex-hosting for delivery from the Convex deployment, with Cloudflare's rules for the files
 - shadcn/ui primitives for the user interface
 - Vite+ for development, formatting, linting, tests, and builds
 - Node.js 24 for application and automation code
 
+Convex Auth is pinned to 2.0.0-beta.0 exactly because the adapter reaches its cookie-session
+provider through a file that beta.0 does not export; see the
+[adapter README](https://github.com/samebase/convex-hosting/tree/main/packages/convex-auth-tanstack-start#readme).
+
 The example app is a public todo list. Guests can sign in without an external identity provider,
 create todos, see real-time updates, and scan a QR code to open the same list on another device.
 
+## Start
+
+1. Select [**Use this template**](https://github.com/samebase/base/generate) and create your repository.
+2. Clone it, then install Vite+ and the dependencies as described in
+   [Local development](#local-development).
+3. Run `pnpm run dev`. Convex asks you to sign in and creates a project with its development
+   deployment. On a fresh clone, the first push fails until the first deploy; see
+   [First run](#first-run).
+4. With the [GitHub CLI](https://cli.github.com/), set the repository variable `CONVEX_TEAM_ID` to
+   the slug of your Convex team, the first segment of the project URL in the Convex dashboard
+   (`gh variable set CONVEX_TEAM_ID --body <slug>`), and add one repository secret: `CONVEX_ACCESS_TOKEN`, a team access token. Generate it
+   in the Convex dashboard (the team, **Settings**, **Access Tokens**), copy it, and run
+   `gh secret set CONVEX_ACCESS_TOKEN`, which asks for the pasted value without showing it. The
+   token creates the Convex project of the repository, the state project `alchemy-state-store` of the
+   team, and the short-lived deploy keys of each run. No deploy key is stored anywhere.
+5. Push to `main`, or run `alchemy.yml` from the **Actions** tab. The first run creates the project,
+   named after the repository, with its production deployment, pushes to it, and keeps the state of
+   the stage `prod` in `alchemy-state-store`. Each push to `main` deploys from then on, and each pull
+   request deploys the preview `pr-<number>` and comments its URL on the pull request. The run's log
+   ends with the site URL, `https://<deployment>.convex.site`. When the team has a project with the
+   name of the repository already, such as one that `pnpm run dev` created, the first run stops: run
+   `alchemy.yml` once with **adopt** (`gh workflow run alchemy.yml -f adopt=true`) to take it over.
+
 ## Local development
 
-Install [Vite+](https://viteplus.dev/guide/) and use it to supply the Node.js version in
-`.node-version`. Run `corepack enable` once to make the pinned pnpm version available.
+Install the [Vite+](https://viteplus.dev/guide/) global CLI; it selects the Node.js version from
+`.node-version` on its own, and `vp env install` installs it. Run `corepack enable` once to make the
+pinned pnpm version available.
 
 ```sh
 corepack enable
@@ -32,10 +64,9 @@ pnpm install
 pnpm run dev
 ```
 
-The development command starts Convex and TanStack Start together. It also creates missing Convex
-Auth JWT keys in the development deployment. In a linked Git worktree, the same command
-automatically uses an isolated local backend. Convex writes `VITE_CONVEX_URL` to `.env.local`; do
-not set it manually.
+The development command starts Convex and TanStack Start together. In a linked Git worktree, the
+same command automatically uses an isolated local backend. Convex writes `VITE_CONVEX_URL` to
+`.env.local`; do not set it manually.
 
 To force the isolated backend outside a linked worktree, use:
 
@@ -43,47 +74,133 @@ To force the isolated backend outside a linked worktree, use:
 pnpm run dev:worktree
 ```
 
+### First run
+
+On a fresh clone, the first push of `pnpm run dev` fails: `convex/convex.config.ts` requires the
+Convex Auth keys `AUTH_PRIVATE_KEY` and `AUTH_JWKS` and the three `HUB_` variables, and
+`convex/http.ts` imports `.convex-hosting/version.js` and the server build `dist/server/server.js`.
+Only a deploy creates them. Keep `pnpm run dev` running and run this in a second terminal:
+
+```sh
+pnpm run deploy:dev
+```
+
+It builds the app, creates the Convex Auth keys, sets the `HUB_` variables to their off values,
+uploads the files to the development deployment, writes the version file, and pushes. Then stop `pnpm run dev` and start it again; it works as usual
+from then on.
+
 The core workflow runs on macOS, Linux, and Windows. See
 [`docs/local-setup.md`](./docs/local-setup.md) for the local Convex setup and troubleshooting steps.
 
-## Checks and builds
+## Checks, builds, and deploys
 
-| Command                                    | Purpose                                                        |
-| ------------------------------------------ | -------------------------------------------------------------- |
-| `pnpm run check`                           | Format, lint, type-check, test, and verify generated redirects |
-| `pnpm run build`                           | Run the complete Cloudflare build path                         |
-| `pnpm run deploy:dry-run --name my-worker` | Build and validate a production upload without publishing it   |
+| Command               | Purpose                                                           |
+| --------------------- | ----------------------------------------------------------------- |
+| `pnpm run check`      | Format, lint, type-check, and test                                |
+| `pnpm run build`      | Run the checks and build the app into `dist/client`               |
+| `pnpm run deploy:dev` | Build, upload, and push to the development deployment             |
+| `pnpm run deploy`     | Build, upload, and push to production, or to the key's deployment |
+
+The build prerenders `/about` with the Convex client, so it needs `VITE_CONVEX_URL` in `.env.local`,
+which the first `pnpm run dev` writes; CI passes a placeholder.
 
 ## Deployment contract
 
-Cloudflare Workers Builds runs `pnpm run build` for all branches. It then uses:
+`alchemy.run.ts` is the stack. The stage `prod` is the production deployment; any other stage is a
+preview deployment named after the stage, which `alchemy destroy` deletes. The push is the `deploy`
+package script, run by the Convex deployment resource when the functions, the build inputs,
+`package.json`, or the lockfile change; an unchanged checkout deploys nothing.
+`.github/workflows/alchemy.yml` names the stages as
+[Alchemy's CI guide](https://alchemy.run/environments/ci) does: it deploys each push to `main` to
+the stage `prod`, deploys each pull request from this repository to the stage `pr-<number>`, a
+preview deployment with that name whose URL, `https://<deployment>.convex.site`, the run comments on
+the pull request, and destroys that stage when the pull request closes, all with the team token
+`CONVEX_ACCESS_TOKEN`. The stack is named after the repository, `owner/name` (`GITHUB_REPOSITORY`,
+or the origin remote on a laptop), and so is its Convex project. Every run, in CI or local, keeps
+the state of its stage in the `alchemy-state-store` project of the team, which the first run creates,
+under the stack name; the stage `prod` owns the project, and `alchemy destroy --stage prod` deletes
+it. The state has no lock, so the workflow runs one deploy of a stage at a time. A local run uses
+`npx convex login` when `CONVEX_ACCESS_TOKEN` is not set:
 
-| Branch type    | Deploy command            | Builds settings | `CONVEX_DEPLOY_KEY` value  |
-| -------------- | ------------------------- | --------------- | -------------------------- |
-| `main`         | `pnpm run deploy`         | Production      | Production deploy key      |
-| Other branches | `pnpm run deploy:preview` | Previews Base   | Project Preview deploy key |
+```sh
+pnpm exec alchemy deploy --stage my-preview
+pnpm exec alchemy destroy --stage my-preview
+```
 
-`build`, `deploy`, and `deploy:preview` are the package-script interface used by Samebase. Keep these
-names when changing their implementation. Cloudflare supplies the appropriate build secrets for each
-environment. Convex rejects a production key on a preview branch.
+`pnpm run deploy` runs `npx convex deploy` with the checks, the build, and the upload as its
+`--cmd`, so a failed check stops the release before the push switches the site. Inside that build,
+`scripts/ensure-convex-auth.ts` creates the Convex Auth keys on a new deployment or preview, sets
+each missing `HUB_` variable to its off value, and keeps every value that exists; it stops the deploy when the deployment it selects is not the one that the
+deploy targets. Deploy with `pnpm run deploy`, never with a plain `npx convex deploy`: a plain
+push serves the files of the last deploy from this checkout, often another deployment's.
 
-`scripts/build-cloudflare.ts` deploys Convex only inside Workers Builds and uses `WORKERS_CI_BRANCH`
-as the stable preview name. Local builds only build the frontend.
-`scripts/verify-current-branch-head.ts` prevents an older concurrent
-build from deploying backend code after a newer commit reaches the same branch. `convex deploy
---cmd` supplies `VITE_CONVEX_URL` to the frontend build, so it is not a Cloudflare build variable.
+`convex/http.ts` answers each path as a Cloudflare Worker with static assets does: a file of the
+build, else the page that the server build of `src/server.ts` renders, including the 404 page. The
+build prerenders `/about` into a file, served at `/about` (`--html-handling drop-trailing-slash`).
+The files follow Cloudflare's static asset rules. See the
+[convex-hosting documentation](https://github.com/samebase/convex-hosting#documentation) for custom
+domains, headers, and the deploy options.
 
-Use the
-[do-it-yourself guide](https://samebase.com/docs/do-it-yourself) for the provider dashboard setup.
+### Renaming the production stage
+
+A repository that deployed production as the stage `main`, before this template named it `prod`,
+moves it once:
+
+1. Run `alchemy.yml` on `main` with **adopt** (`gh workflow run alchemy.yml -f adopt=true`). The
+   stage `prod` takes over the existing project and production deployment and pushes to it; nothing
+   is created or deleted.
+2. Delete the state of the stage `main`, and only its state. Never run
+   `alchemy destroy --stage main`: it deletes the project, which is also the project of `prod`.
+   `alchemy state delete <stack>/main --recursive` cannot do it either, because it splits its path
+   at each `/` and the stack name `owner/name` has one. Run the state store's `removeStack`
+   mutation, signed in with `npx convex login`:
+
+   ```sh
+   npx convex run --deployment <team>:alchemy-state-store:prod state:removeStack "{stack: 'owner/name', stage: 'main'}"
+   ```
+
+3. Check the stages that are left; the list has `prod` and the `pr-<number>` stages of open pull
+   requests:
+
+   ```sh
+   npx convex run --deployment <team>:alchemy-state-store:prod state:stages "{stack: 'owner/name'}"
+   ```
+
+## Google sign-in
+
+Guest sign-in always works. The home page also shows **Sign in with Google** when the deployment
+has a client of Samebase's identity hub, and it needs no Google project or key of yours.
+
+Each deploy from a repository connected to Samebase gets its client: `alchemy.run.ts` asks
+samebase.com with GitHub's token of the run (`id-token: write`) and writes it to the variables
+`HUB_ISSUER`, `HUB_CLIENT_ID`, and `HUB_CLIENT_SECRET`. Anywhere else, such as on a laptop or in
+`pnpm run dev`, the variables hold their off values, `HUB_CLIENT_ID=no-hub`, and the page has only
+the guest button.
+
+The stack sets `HUB_APP` once. The hub derives each user's ID from it, so a new name means new
+users. An account is that ID. Name and email are profile data, and accounts never link by email, so
+a guest who signs in with Google gets a new account.
+
+**After leaving Samebase**, the app keeps running with guest sign-in, and people who are signed in
+stay signed in. New Google sign-ins fail. To keep them, host
+[`@samebase/identity-broker`](https://github.com/samebase/samebase/tree/main/packages/identity-broker)
+yourself, or connect your own auth.
+
+The account page has **Delete account**, for guests too. `convex/account.ts` removes the user's to-dos,
+profile, and logins, so an app with more tables of user data adds them there. Convex Auth has no
+function for this yet, so `patches/` adds one.
 
 ## Important files
 
 - `package.json` defines the supported development, check, build, and deploy commands.
-- `prerender.config.ts` defines the public pages shared by TanStack Start and Cloudflare.
-- `vite.config.ts` defines the TanStack Start SPA and prerender behavior.
-- `wrangler.jsonc` defines Cloudflare static assets, SPA fallback, and preview URLs.
-- `scripts/build-cloudflare.ts` owns the Cloudflare build and Convex deployment selection.
-- The `deploy` and `deploy:preview` package scripts run Wrangler directly.
+- `vite.config.ts` builds the server for Convex with `convexSsr()` and prerenders `/about`.
+- `src/server.ts` is the server entry: it answers the `/auth` sign-in, refresh, and sign-out routes
+  and renders each page with the session of the request's cookies.
+- `convex/convex.config.ts` mounts the Convex Auth, OAuth, and convex-hosting components, and
+  `convex/http.ts` routes every path to the site.
+- `src/routes/_authed/` holds the pages that need a session; without one they redirect to the home
+  page.
+- `alchemy.run.ts` and `.github/workflows/alchemy.yml` deploy production and previews.
 - `convex/` contains the backend, schema, authentication, and generated Convex bindings.
 - `src/` contains the React application and routes.
 
@@ -91,12 +208,11 @@ Use the
 
 - `src/routeTree.gen.ts` is generated by TanStack Router.
 - `convex/_generated/api.*`, `dataModel.d.ts`, and `server.*` are generated by Convex.
+- `.convex-hosting/` is written by each deploy and ignores itself. Do not commit it.
 - `convex/_generated/ai/`, `.agents/skills/`, `skills-lock.json`, and the marked Convex sections in
   `AGENTS.md` and `CLAUDE.md` are managed by `npx convex ai-files install`.
 - The marked Vite+ section in `AGENTS.md` is generated by `vp config`. The package `prepare`
   command uses `--no-agent`, so installs do not rewrite it.
-- `scripts/generate-cloudflare-redirects.ts` owns only the marked generated block in
-  `public/_redirects`. Custom redirect rules can stay outside that block.
 
 Do not hand-edit generated files when their source tool can update them.
 When a Convex AI-file update changes the installed source snapshot, confirm its distribution license

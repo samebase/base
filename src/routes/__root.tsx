@@ -1,10 +1,22 @@
-import { HeadContent, Link, Outlet, Scripts, createRootRoute } from "@tanstack/react-router";
+import type { ConvexQueryClient } from "@convex-dev/react-query";
+import { SessionProvider, SignedIn, sessionBeforeLoad } from "@samebase/convex-auth-tanstack-start";
+import type { QueryClient } from "@tanstack/react-query";
+import {
+  HeadContent,
+  Link,
+  Outlet,
+  Scripts,
+  createRootRouteWithContext,
+} from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import appCss from "../style.css?url";
-import { SamebaseAttribution } from "#components/SamebaseAttribution";
 import { Button } from "#components/ui/button";
 
-export const Route = createRootRoute({
+export const Route = createRootRouteWithContext<{
+  queryClient: QueryClient;
+  convexQueryClient: ConvexQueryClient;
+}>()({
+  beforeLoad: sessionBeforeLoad,
   head: () => ({
     meta: [
       {
@@ -31,28 +43,34 @@ export const Route = createRootRoute({
     ],
   }),
   component: RootComponent,
+  notFoundComponent: NotFoundPage,
 });
 
 function RootComponent() {
+  const { convexQueryClient, token } = Route.useRouteContext();
   return (
-    <RootDocument>
-      <nav className="mx-auto flex w-full max-w-2xl pt-2">
-        <Button asChild variant="link">
-          <Link to="/" activeOptions={{ exact: true }}>
-            Home
-          </Link>
-        </Button>
-        <Button asChild variant="link">
-          <Link to="/about">About</Link>
-        </Button>
-      </nav>
-      <div className="flex-1">
+    <SessionProvider client={convexQueryClient.convexClient} token={token}>
+      <RootDocument>
+        <nav className="mx-auto flex w-full max-w-2xl pt-2">
+          <Button asChild variant="link">
+            <Link to="/" activeOptions={{ exact: true }}>
+              Home
+            </Link>
+          </Button>
+          <Button asChild variant="link">
+            <Link to="/about">About</Link>
+          </Button>
+          {/* The server renders as the session of the request's cookies, so the first HTML already
+              has the right link. A prerendered page fills it in once the browser knows. */}
+          <SignedIn>
+            <Button asChild variant="link">
+              <Link to="/account">Account</Link>
+            </Button>
+          </SignedIn>
+        </nav>
         <Outlet />
-      </div>
-      <footer className="mx-auto w-full max-w-2xl px-4 py-3 text-right text-muted-foreground">
-        <SamebaseAttribution />
-      </footer>
-    </RootDocument>
+      </RootDocument>
+    </SessionProvider>
   );
 }
 
@@ -62,10 +80,14 @@ function RootDocument({ children }: Readonly<{ children: ReactNode }>) {
       <head>
         <HeadContent />
       </head>
-      <body className="flex min-h-dvh flex-col">
+      <body>
         {children}
         <Scripts />
       </body>
     </html>
   );
+}
+
+function NotFoundPage() {
+  return <p>Not Found</p>;
 }
