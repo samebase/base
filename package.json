@@ -16,7 +16,7 @@
     "dev:worktree": "node ./scripts/run-worktree-dev.ts",
     "check": "vp check && vp run typecheck && vp test",
     "build": "vp run check && vp build",
-    "deploy": "convex-hosting deploy --build \"vp run build && node ./scripts/ensure-convex-auth.ts --prod\" --dist dist/client --html-handling drop-trailing-slash",
+    "deploy": "convex-hosting deploy --build \"vp run build && node ./scripts/ensure-convex-auth.ts --prod && node ./scripts/write-samebase-verification.ts dist/client\" --dist dist/client --html-handling drop-trailing-slash",
     "deploy:dev": "convex-hosting deploy --dev --build \"vp run build && node ./scripts/ensure-convex-auth.ts\" --dist dist/client --html-handling drop-trailing-slash",
     "format": "vp fmt",
     "format:check": "vp fmt --check",
@@ -54,7 +54,7 @@
   "devDependencies": {
     "@alchemy.run/github": "2.0.0-beta.84",
     "@effect/platform-node": "4.0.5",
-    "@samebase/alchemy-convex": "0.20.0",
+    "@samebase/alchemy-convex": "0.22.0",
     "@tanstack/router-plugin": "^1.168.48",
     "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",

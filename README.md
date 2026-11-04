@@ -131,7 +131,8 @@ pnpm exec alchemy destroy --stage my-preview
 `--cmd`, so a failed check stops the release before the push switches the site. Inside that build,
 `scripts/ensure-convex-auth.ts` creates the Convex Auth keys on a new deployment or preview, sets
 each missing `HUB_` variable to its off value, and keeps every value that exists; it stops the deploy when the deployment it selects is not the one that the
-deploy targets. Deploy with `pnpm run deploy`, never with a plain `npx convex deploy`: a plain
+deploy targets. Then `scripts/write-samebase-verification.ts` writes the file of
+[Google sign-in](#google-sign-in). Deploy with `pnpm run deploy`, never with a plain `npx convex deploy`: a plain
 push serves the files of the last deploy from this checkout, often another deployment's.
 
 `convex/http.ts` answers each path as a Cloudflare Worker with static assets does: a file of the
@@ -176,6 +177,13 @@ samebase.com with GitHub's token of the run (`id-token: write`) and writes it to
 `HUB_ISSUER`, `HUB_CLIENT_ID`, and `HUB_CLIENT_SECRET`. Anywhere else, such as on a laptop or in
 `pnpm run dev`, the variables hold their off values, `HUB_CLIENT_ID=no-hub`, and the page has only
 the guest button.
+
+The deploy writes `samebase-verification.json` into the site with the repository's numeric id,
+`{ "repository": "123" }`, from `GITHUB_REPOSITORY_ID`. samebase.com reads it at the site's root,
+and registers the client on `<site>/auth/hub/callback` only when the id matches the token. A fork
+writes its own id. An app on another host or callback path serves the same file at the root of its
+origin, with the id that `gh api repos/<owner>/<name> --jq .id` prints, and passes its own
+`redirectUri` to `Convex.SharedHubClient`.
 
 The stack sets `HUB_APP` once. The hub derives each user's ID from it, so a new name means new
 users. An account is that ID. Name and email are profile data, and accounts never link by email, so

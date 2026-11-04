@@ -11,18 +11,18 @@
 // (`npx convex login`) on a laptop; it mints the deploy keys itself.
 //
 // Each deployment asks Samebase for a client of the identity hub, for Google sign-in, with the
-// GitHub OIDC token of the run (`id-token: write` in the workflows). The client is on the
-// deployment's own URL, and the push needs the client in `env`, and a Convex.Deployment cannot take
-// `env` from its own outputs. So "Deployment" holds the deployment with no source, the client takes
-// its name, and "Site" takes the same deployment over with adopt(true), writes the variables, and
-// pushes. Without a client, on a laptop or outside Samebase, the variables hold the off values and
-// the app has guest sign-in. The first run of a stack that deployed before this split keeps its row
-// "Deployment", which stops pushing, and "Site" takes the deployment over, so nothing is recreated.
+// GitHub OIDC token of the run (`id-token: write` in the workflows). Samebase reads
+// /samebase-verification.json on the site, which the deploy writes with this repository's id, so the
+// site must be live before the client, and the push cannot take the client in `env`. So
+// "Deployment" pushes, the client takes the site's URL, and "Site" takes the same deployment over
+// with adopt(true) and writes the client's three variables with no push. Without a client, on a
+// laptop or outside Samebase, the variables hold the off values and the app has guest sign-in.
 import { execFileSync } from "node:child_process";
 import * as GitHub from "@alchemy.run/github";
 import * as Convex from "@samebase/alchemy-convex";
 import * as Alchemy from "alchemy";
 import { adopt } from "alchemy/AdoptPolicy";
+import * as Output from "alchemy/Output";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -85,15 +85,16 @@ export default Alchemy.Stack(
     // takes over a preview with the name of this stage that an interrupted run left behind.
     const deployment =
       stage === "prod"
-        ? yield* Convex.Deployment("Deployment", { project, type: "prod" })
+        ? yield* Convex.Deployment("Deployment", { project, type: "prod", source })
         : yield* Convex.Deployment("Deployment", {
             project,
             type: "preview",
             name: stage,
+            source,
           }).pipe(adopt(true), RemovalPolicy.destroy());
     const client = yield* Convex.SharedHubClient("HubClient", {
       app: HUB_APP,
-      deployment: deployment.name,
+      redirectUri: Output.interpolate`${deployment.siteUrl}/auth/hub/callback`,
       deploymentType: stage === "prod" ? "production" : "preview",
       ...(softwareVersion === undefined ? {} : { softwareVersion }),
     });
@@ -102,16 +103,14 @@ export default Alchemy.Stack(
       HUB_CLIENT_ID: client.clientId,
       HUB_CLIENT_SECRET: client.clientSecret,
     };
+    // A Convex.Deployment with `env` and no source writes the variables and pushes nothing.
     const site =
       stage === "prod"
-        ? yield* Convex.Deployment("Site", { project, type: "prod", source, env }).pipe(adopt(true))
-        : yield* Convex.Deployment("Site", {
-            project,
-            type: "preview",
-            name: stage,
-            source,
-            env,
-          }).pipe(adopt(true), RemovalPolicy.destroy());
+        ? yield* Convex.Deployment("Site", { project, type: "prod", env }).pipe(adopt(true))
+        : yield* Convex.Deployment("Site", { project, type: "preview", name: stage, env }).pipe(
+            adopt(true),
+            RemovalPolicy.destroy(),
+          );
 
     return { url: site.siteUrl };
   }),
