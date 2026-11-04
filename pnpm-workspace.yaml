@@ -26,9 +26,6 @@ overrides:
   "undici@8": 8.12.3
   vite: "catalog:"
   vitest: "catalog:"
-  # @effect/platform-node 4.0.x asks for ^4.0.x of this package, which resolves to a 4.1 release that
-  # needs effect 4.1. Keep it on the effect version above until alchemy moves to effect 4.1.
-  "@effect/platform-node-shared": 4.0.7
 catalog:
   vite: npm:@voidzero-dev/vite-plus-core@1.4.0
   vitest: 5.0.5
