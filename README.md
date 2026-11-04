@@ -172,15 +172,15 @@ moves it once:
 Guest sign-in always works. The home page also shows **Sign in with Google** when the deployment
 has a client of Samebase's identity hub, and it needs no Google project or key of yours.
 
-Each deploy from a repository connected to Samebase gets its client: `alchemy.run.ts` asks
-samebase.com with GitHub's token of the run (`id-token: write`) and writes it to the variables
-`HUB_ISSUER`, `HUB_CLIENT_ID`, and `HUB_CLIENT_SECRET`. Anywhere else, such as on a laptop or in
-`pnpm run dev`, the variables hold their off values, `HUB_CLIENT_ID=no-hub`, and the page has only
-the guest button.
+Each deploy from GitHub Actions gets its client, with no Samebase account: `alchemy.run.ts` asks
+Samebase's identity hub with GitHub's token of the run (`id-token: write`) and writes it to the
+variables `HUB_ISSUER`, `HUB_CLIENT_ID`, and `HUB_CLIENT_SECRET`. Anywhere else, such as on a
+laptop or in `pnpm run dev`, the variables hold their off values, `HUB_CLIENT_ID=no-hub`, and the
+page has only the guest button.
 
 The deploy writes `samebase-verification.json` into the site with the repository's numeric id,
-`{ "repository": "123" }`, from `GITHUB_REPOSITORY_ID`. samebase.com reads it at the site's root,
-and registers the client on `<site>/auth/hub/callback` only when the id matches the token. A fork
+`{ "repository": "123" }`, from `GITHUB_REPOSITORY_ID`. The hub reads it at the site's root, and
+registers the client on `<site>/auth/hub/callback` only when the id matches the token. A fork
 writes its own id. An app on another host or callback path serves the same file at the root of its
 origin, with the id that `gh api repos/<owner>/<name> --jq .id` prints, and passes its own
 `redirectUri` to `Convex.SharedHubClient`.
@@ -189,8 +189,8 @@ The stack sets `HUB_APP` once. The hub derives each user's ID from it, so a new 
 users. An account is that ID. Name and email are profile data, and accounts never link by email, so
 a guest who signs in with Google gets a new account.
 
-**After leaving Samebase**, the app keeps running with guest sign-in, and people who are signed in
-stay signed in. New Google sign-ins fail. To keep them, host
+The hub is a shared service under [Samebase's terms](https://samebase.com/terms), and Samebase can
+block a repository or an owner that misuses it. To run your own instead, host
 [`@samebase/identity-broker`](https://github.com/samebase/samebase/tree/main/packages/identity-broker)
 yourself, or connect your own auth.
 
