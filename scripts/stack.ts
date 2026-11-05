@@ -1,5 +1,6 @@
 /// <reference types="node" />
-// The names that alchemy.run.ts and scripts/dev-start.ts share: the stack and the app at the hub.
+// The names that alchemy.run.ts and scripts/dev-start.ts share: the stack, the app at the hub, and
+// the path of its callback.
 import { execFileSync } from "node:child_process";
 import process from "node:process";
 
@@ -8,6 +9,9 @@ import process from "node:process";
  * so it must never change: a new name means new users.
  */
 export const HUB_APP = "app";
+
+/** The path on the site where the hub sends the browser back, which the OAuth component serves. */
+export const HUB_CALLBACK_PATH = "/auth/hub/callback";
 
 /** The `owner/name` of a GitHub remote URL, https or SSH, or undefined. */
 export function repositoryOfRemote(url: string) {

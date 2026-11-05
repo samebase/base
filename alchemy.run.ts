@@ -28,7 +28,7 @@ import * as Output from "alchemy/Output";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-import { HUB_APP, stackName } from "./scripts/stack.ts";
+import { HUB_APP, HUB_CALLBACK_PATH, stackName } from "./scripts/stack.ts";
 
 /** The Convex team that holds the project and the state: the variable CONVEX_TEAM_ID, an id or a slug. */
 const team = process.env["CONVEX_TEAM_ID"];
@@ -101,7 +101,7 @@ export default Alchemy.Stack(
           }).pipe(adopt(true), RemovalPolicy.destroy());
     const client = yield* Convex.SharedHubClient("HubClient", {
       app: HUB_APP,
-      redirectUri: Output.interpolate`${deployment.siteUrl}/auth/hub/callback`,
+      redirectUri: Output.interpolate`${deployment.siteUrl}${HUB_CALLBACK_PATH}`,
       deploymentType: stage === "prod" ? "production" : "preview",
       ...(softwareVersion === undefined ? {} : { softwareVersion }),
     });

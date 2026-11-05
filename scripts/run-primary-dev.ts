@@ -21,8 +21,9 @@ export async function runPrimaryDev() {
       "convex",
       "dev",
       ...process.argv.slice(2),
+      // After the first push of this run: the hub client of the deployment, then the frontend.
       "--start",
-      "vp run dev:frontend",
+      "node ./scripts/dev-start.ts",
     ],
     {
       stdio: "inherit",
