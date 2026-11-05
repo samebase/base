@@ -2,11 +2,10 @@
 //
 // - `prod` is the production deployment of the Convex project of this repository. It owns the
 //   project, and `alchemy destroy --stage prod` deletes the project with every deployment.
-// - `dev-<name>` is a laptop: `pnpm run dev` deploys it before `convex dev`, with the Convex CLI
-//   login (scripts/run-primary-dev.ts). It has its own cloud development deployment with the
-//   reference `dev-<name>`, found or created in the project of the deployment that the Convex CLI
-//   selects (CONVEX_PROJECT_ID). It never creates a project. `alchemy destroy --stage dev-<name>` deletes its hub
-//   client and keeps the deployment.
+// - `dev-<name>` is a laptop: `pnpm run hub --stage dev-<name>` runs it on purpose, with the Convex
+//   CLI login, on the development deployment that `.env.local` selects (CONVEX_DEPLOYMENT, written
+//   by `convex dev`). It takes that deployment over, never creates a project, and
+//   `alchemy destroy --stage dev-<name>` deletes its hub client and keeps the deployment.
 // - Any other stage, such as `pr-42` for a pull request, is a preview deployment named after the
 //   stage, which `alchemy destroy` deletes.
 //
@@ -29,6 +28,8 @@
 // names that leave its own `env`, so the repository id stays. Without a client, such as on a laptop
 // before the first deploy to main, the variables hold the off values and the app has guest sign-in.
 import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { parseEnv } from "node:util";
 import * as Convex from "@samebase/alchemy-convex";
 import * as Alchemy from "alchemy";
 import { adopt } from "alchemy/AdoptPolicy";
@@ -36,11 +37,23 @@ import * as Output from "alchemy/Output";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import * as Effect from "effect/Effect";
 
-/** The Convex team that holds the project and the state: the variable CONVEX_TEAM_ID, an id or a slug. */
-const team = process.env["CONVEX_TEAM_ID"];
+/** The file of `npx convex dev`: the deployment it selects, and on a laptop CONVEX_TEAM_ID too. */
+const envLocal = (() => {
+  try {
+    return parseEnv(readFileSync(".env.local", "utf8"));
+  } catch {
+    return {};
+  }
+})();
+
+/**
+ * The Convex team that holds the project and the state: the variable CONVEX_TEAM_ID, an id or a
+ * slug, from the environment (the repository variable in Actions) or from .env.local on a laptop.
+ */
+const team = process.env["CONVEX_TEAM_ID"] || envLocal["CONVEX_TEAM_ID"];
 if (team === undefined || team === "") {
   throw new Error(
-    "Set the repository variable CONVEX_TEAM_ID to your Convex team (README, Start).",
+    "Set CONVEX_TEAM_ID to your Convex team: the repository variable in Actions (README, Start), or a line in .env.local on a laptop.",
   );
 }
 
@@ -90,39 +103,36 @@ export default Alchemy.Stack(
     } satisfies Convex.Source;
 
     if (stage.startsWith("dev-")) {
-      // A laptop. The project is the one of the deployment that the Convex CLI selects, which
-      // scripts/run-primary-dev.ts passes in CONVEX_PROJECT_ID, so the stage never creates a project
-      // and works before the first deploy to main. Both deployment rows keep the default removal
-      // policy `retain`: a destroy of the stage deletes only the hub client.
-      const projectId = Number(process.env["CONVEX_PROJECT_ID"]);
-      if (!Number.isInteger(projectId) || projectId <= 0) {
-        throw new Error(
-          `Stage ${stage} needs CONVEX_PROJECT_ID, the id of the Convex project of the selected deployment. Run pnpm run dev, which sets it.`,
-        );
+      // A laptop, after one deploy to main and after `npx convex dev` made and selected a dev
+      // deployment and pushed the code. This stage gives that deployment its hub client and nothing
+      // else: no new deployment, no push. It is run on purpose, `pnpm run hub --stage dev-<name>`,
+      // and a Google sign-in keeps the client alive, so a laptop in use never needs it again.
+      const selected = envLocal["CONVEX_DEPLOYMENT"]?.replace(/^(dev|prod):/, "");
+      if (!selected) {
+        throw new Error("Run `pnpm run dev` once first: .env.local selects no deployment.");
       }
-      const project = { projectId };
-      // The initial access token and the repository id from the client of `prod`, or the off
-      // values when `prod` has no client yet.
+      const project = yield* Convex.Project.ref("Project", { stage: "prod" });
+      // The initial access token and the repository id, which the production deploy saved.
       const production = Convex.SharedHubClient.read("HubClient", { stage: "prod" });
-      const deployment = yield* Convex.Deployment("Deployment", {
+      // The site must serve /samebase-verification.json before the hub registers the client.
+      const site = yield* Convex.Deployment("Verification", {
         project,
         type: "dev",
-        name: stage,
-        source,
+        name: selected,
         env: { SAMEBASE_REPOSITORY_ID: production.repository },
       }).pipe(adopt(true));
       const client = yield* Convex.SharedHubClient("HubClient", {
         app: HUB_APP,
-        redirectUri: Output.interpolate`${deployment.siteUrl}/auth/hub/callback`,
+        redirectUri: Output.interpolate`${site.siteUrl}/auth/hub/callback`,
         deploymentType: "development",
         initialAccessToken: production.initialAccessToken,
-        ...(softwareVersion === undefined ? {} : { softwareVersion }),
       });
       const variables = Convex.SharedHubClient.variables(client);
-      const site = yield* Convex.Deployment("Site", {
+      // Both rows keep the default removal policy `retain`: a destroy deletes only the hub client.
+      yield* Convex.Deployment("Site", {
         project,
         type: "dev",
-        name: stage,
+        name: selected,
         env: {
           HUB_ISSUER: variables.issuer,
           HUB_CLIENT_ID: variables.clientId,
@@ -130,7 +140,7 @@ export default Alchemy.Stack(
         },
       }).pipe(adopt(true));
 
-      return { url: site.siteUrl, deployment: site.name };
+      return { url: site.siteUrl };
     }
 
     // The stage `prod` owns the project, and `alchemy destroy --stage prod` deletes it with
