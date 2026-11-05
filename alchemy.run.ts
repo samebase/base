@@ -2,11 +2,10 @@
 //
 // - `prod` is the production deployment of the Convex project of this repository. It owns the
 //   project, and `alchemy destroy --stage prod` deletes the project with every deployment.
-// - `dev-<name>` is a laptop: `pnpm run dev` deploys it before `convex dev`, with the Convex CLI
-//   login (scripts/run-primary-dev.ts). It has its own cloud development deployment with the
-//   reference `dev-<name>`, found or created in the project of the deployment that the Convex CLI
-//   selects (CONVEX_PROJECT_ID). It never creates a project. `alchemy destroy --stage dev-<name>` deletes its hub
-//   client and keeps the deployment.
+// - `dev-<name>` is a laptop: `pnpm run hub --stage dev-<name>` runs it on purpose, with the Convex
+//   CLI login, on the development deployment that `.env.local` selects (CONVEX_DEPLOYMENT, written
+//   by `convex dev`). It takes that deployment over, never creates a project, and
+//   `alchemy destroy --stage dev-<name>` deletes its hub client and keeps the deployment.
 // - Any other stage, such as `pr-42` for a pull request, is a preview deployment named after the
 //   stage, which `alchemy destroy` deletes.
 //
