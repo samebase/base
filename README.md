@@ -37,13 +37,12 @@ create todos, see real-time updates, and scan a QR code to open the same list on
 3. Run `pnpm run dev`. Convex asks you to sign in and creates a project with its development
    deployment. On a fresh clone, the first push fails until the first deploy; see
    [First run](#first-run).
-4. With the [GitHub CLI](https://cli.github.com/), set the repository variable `CONVEX_TEAM_ID` to
-   the slug of your Convex team, the first segment of the project URL in the Convex dashboard
-   (`gh variable set CONVEX_TEAM_ID --body <slug>`), and add one repository secret: `CONVEX_ACCESS_TOKEN`, a team access token. Generate it
-   in the Convex dashboard (the team, **Settings**, **Access Tokens**), copy it, and run
-   `gh secret set CONVEX_ACCESS_TOKEN`, which asks for the pasted value without showing it. The
-   token creates the Convex project of the repository, the state project `alchemy-state-store` of the
-   team, and the short-lived deploy keys of each run. No deploy key is stored anywhere.
+4. Add one repository secret: `CONVEX_ACCESS_TOKEN`, a team access token. Generate it in the Convex
+   dashboard (the team, **Settings**, **Access Tokens**), copy it, and run
+   `gh secret set CONVEX_ACCESS_TOKEN` with the [GitHub CLI](https://cli.github.com/), which asks for
+   the pasted value without showing it. The token names its team, and creates the Convex project of
+   the repository, the state project `alchemy-state-store` of the team, and the short-lived deploy
+   keys of each run. No deploy key is stored anywhere.
 5. Push to `main`, or run `alchemy.yml` from the **Actions** tab. The first run creates the project,
    named after the repository, with its production deployment, pushes to it, and keeps the state of
    the stage `prod` in `alchemy-state-store`. Each push to `main` deploys from then on, and each pull
@@ -175,8 +174,7 @@ variables `HUB_ISSUER`, `HUB_CLIENT_ID`, and `HUB_CLIENT_SECRET`. Without a clie
 hold their off values, `HUB_CLIENT_ID=no-hub`, and the page has only the guest button.
 
 On a laptop, the production deploy is the proof. After one deploy to `main` and the first run above,
-add `CONVEX_TEAM_ID=<your team>` to `.env.local` and run `pnpm run hub --stage dev-<your name>`
-once. That stage of the stack gives the development deployment that `.env.local` selects a client
+run `pnpm run hub --stage dev-<your name>` once. That stage of the stack gives the development deployment that `.env.local` selects a client
 of the hub, with the app's initial access token that the production deploy saved, and writes the
 three variables; it creates nothing and pushes nothing. From then on `pnpm run dev` has Sign in with
 Google, and each sign-in keeps the client alive. Run the stage again if the laptop was unused for

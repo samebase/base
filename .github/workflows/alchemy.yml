@@ -23,24 +23,20 @@ jobs:
       github.repository
     runs-on: ubuntu-latest
     env:
-      CONVEX_TEAM_ID: ${{ vars.CONVEX_TEAM_ID }}
       BRANCH: ${{ github.head_ref || github.ref_name }}
       # The stage, as https://alchemy.run/environments/ci names it: `pr-<number>` for a pull
       # request, `prod` on main, and the branch name otherwise, where no step below deploys.
       STAGE: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || (github.ref == 'refs/heads/main' && 'prod' || github.ref_name) }}
     steps:
-      # A repository without the team or the token, such as one just created from this template,
-      # deploys nothing and says so before anything is installed.
-      - name: Skip without the Convex team and token
+      # A repository without the token, such as one just created from this template, deploys
+      # nothing and says so before anything is installed. The token names its Convex team.
+      - name: Skip without the Convex token
         id: keys
         env:
           TOKEN: ${{ secrets.CONVEX_ACCESS_TOKEN }}
         run: |
-          missing=""
-          [ -n "$CONVEX_TEAM_ID" ] || missing="the repository variable CONVEX_TEAM_ID"
-          [ -n "$TOKEN" ] || missing="${missing:+$missing and }the repository secret CONVEX_ACCESS_TOKEN"
-          if [ -n "$missing" ]; then
-            echo "::notice::No deploy: set $missing (README, Start)."
+          if [ -z "$TOKEN" ]; then
+            echo "::notice::No deploy: set the repository secret CONVEX_ACCESS_TOKEN (README, Start)."
             echo "skip=true" >> "$GITHUB_OUTPUT"
           fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
