@@ -184,8 +184,10 @@ sign-in.
 
 The site serves `/samebase-verification.json` with the repository's numeric id,
 `{ "repository": "123" }`, from the variable `SAMEBASE_REPOSITORY_ID`, which the deploy sets from
-`GITHUB_REPOSITORY_ID` and `pnpm run dev` sets on the development deployment. The hub reads it at the site's root, and registers the client on
-`<site>/auth/hub/callback` only when the id matches the token. A fork serves its own id. An app on
+`GITHUB_REPOSITORY_ID`. The hub reads it at the site's root, and registers the client on
+`<site>/auth/hub/callback` only when the id matches the token. `pnpm run dev` sets the variable on a
+development deployment with an https site. A local backend on `127.0.0.1` serves no file: the
+initial access token is its proof. A fork serves its own id. An app on
 another host or callback path serves the same file at the root of its origin, with the id that
 `gh api repos/<owner>/<name> --jq .id` prints, and passes its own `redirectUri` to
 `Convex.SharedHubClient`.
