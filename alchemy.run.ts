@@ -29,14 +29,12 @@
 // names that leave its own `env`, so the repository id stays. Without a client, such as on a laptop
 // before the first deploy to main, the variables hold the off values and the app has guest sign-in.
 import { execFileSync } from "node:child_process";
-import * as GitHub from "@alchemy.run/github";
 import * as Convex from "@samebase/alchemy-convex";
 import * as Alchemy from "alchemy";
 import { adopt } from "alchemy/AdoptPolicy";
 import * as Output from "alchemy/Output";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import * as Effect from "effect/Effect";
-import * as Layer from "effect/Layer";
 
 /** The Convex team that holds the project and the state: the variable CONVEX_TEAM_ID, an id or a slug. */
 const team = process.env["CONVEX_TEAM_ID"];
@@ -79,8 +77,7 @@ const verification = repositoryId ? { env: { SAMEBASE_REPOSITORY_ID: repositoryI
 export default Alchemy.Stack(
   repository,
   {
-    // The GitHub provider has no resource here: it forgets the PreviewComment rows of older previews.
-    providers: Layer.mergeAll(GitHub.providers(), Convex.providers()),
+    providers: Convex.providers(),
     state: Convex.state({ team }),
   },
   Effect.gen(function* () {

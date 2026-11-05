@@ -194,8 +194,9 @@ stack, with its own development deployment. The stage asks the hub for a client 
 initial access token, which the production deploy saved in the state of the stage `prod`. Before
 that first deploy, the laptop has guest sign-in, and `pnpm run dev` prints
 "deploy to main once for Google sign-in on this laptop". Each linked worktree gets a development
-deployment and a client of its own. `pnpm exec alchemy destroy --stage dev-<name>` deletes the
-client and keeps the deployment.
+deployment and a client of its own. To delete the client and keep the deployment, set
+`CONVEX_TEAM_ID` to your team in the environment, as the stack needs it, and run
+`pnpm exec alchemy destroy --stage dev-<name>`.
 
 The site serves `/samebase-verification.json` with the repository's numeric id,
 `{ "repository": "123" }`, from the variable `SAMEBASE_REPOSITORY_ID`. The deploy sets it from
