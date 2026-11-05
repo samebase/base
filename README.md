@@ -78,7 +78,7 @@ writes `VITE_CONVEX_URL` to `.env.local`; do not set it manually.
    name in the main checkout and the directory name in a linked worktree. The stage finds or creates
    the development deployment `dev-<name>` in the project of the selected deployment, pushes to it,
    and gets its hub client (see [Google sign-in](#google-sign-in)). It never creates a project.
-   Select a deployment of the repository's project, the one that the first deploy to `main` created.
+   After the first deploy to `main`, select a deployment of the project that it created.
    The team is `CONVEX_TEAM_ID` from the environment or `.env.local`, else the team of the selected
    deployment.
 4. It selects that deployment for the Convex CLI.
@@ -193,7 +193,9 @@ On a laptop, the production deploy is the proof. After one deploy to `main`, `np
 stack, with its own development deployment. The stage asks the hub for a client with the app's
 initial access token, which the production deploy saved in the state of the stage `prod`. Before
 that first deploy, the laptop has guest sign-in, and `pnpm run dev` prints
-"deploy to main once for Google sign-in on this laptop". Each linked worktree gets a development
+"deploy to main once for Google sign-in on this laptop". A production client from an earlier
+version of the starter has no token: the next deploy to `main` registers a new client with one, and
+nothing needs to be deleted by hand. Each linked worktree gets a development
 deployment and a client of its own. `pnpm exec alchemy destroy --stage dev-<name>` deletes the
 client and keeps the deployment.
 
