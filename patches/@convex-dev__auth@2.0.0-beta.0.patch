@@ -57,6 +57,94 @@ index bb4d4d914e48f77ca0ecff9b78c50aea4cc9d7b1..2e10ffcd416fa68f3b707ab21e617941
 +});
  //# sourceMappingURL=public.js.map
 \ No newline at end of file
+diff --git a/dist/lib/oauth/authorize.js b/dist/lib/oauth/authorize.js
+index c4bed11bb8b0f4e5001d082c80e33c44cc96f5c7..1c8bdf510069a27c90ca763018bb3287dbaa827c 100644
+--- a/dist/lib/oauth/authorize.js
++++ b/dist/lib/oauth/authorize.js
+@@ -12,7 +12,7 @@ import { mutationGeneric } from "convex/server";
+ import { v } from "convex/values";
+ import { sha256Hex } from "../crypto.js";
+ import { generateRandomToken, sha256Base64Url } from "./crypto.js";
+-import { parseUrl } from "./redemption.js";
++import { isAllowedRedirectOrigin, parseUrl } from "./redemption.js";
+ /**
+  * Build a provider's `startSignIn` mutation.
+  *
+@@ -35,7 +35,7 @@ export function buildStartSignIn(options) {
+             if (redirectTo === null) {
+                 throw new Error("redirectTo must be an absolute URL");
+             }
+-            if (!options.allowedOrigins.includes(redirectTo.origin)) {
++            if (!isAllowedRedirectOrigin(options.allowedOrigins, redirectTo)) {
+                 throw new Error(`redirectTo origin "${redirectTo.origin}" is not in allowedRedirectOrigins`);
+             }
+             const state = generateRandomToken();
+diff --git a/dist/lib/oauth/redemption.d.ts b/dist/lib/oauth/redemption.d.ts
+index 07cf907644832e88068610cc9be19407358bc0d6..2b09af76c2fe603aab630468782c4ebf1758c427 100644
+--- a/dist/lib/oauth/redemption.d.ts
++++ b/dist/lib/oauth/redemption.d.ts
+@@ -50,6 +50,10 @@ export declare function parseUrl(value: string): URL | null;
+  * time, not on the first sign-in.
+  */
+ export declare function validateAllowedRedirectOrigins(allowedRedirectOrigins: string[]): string[];
++/**
++ * Samebase patch for 2.0.0-beta.0: see `isAllowedRedirectOrigin` in redemption.js.
++ */
++export declare function isAllowedRedirectOrigin(allowedOrigins: string[], redirectTo: URL): boolean;
+ declare const completeSignInResult: import("convex/values").VUnion<{
+     status: "complete";
+     tokens: {
+diff --git a/dist/lib/oauth/redemption.js b/dist/lib/oauth/redemption.js
+index e5a52b27293fe4c834cc0a198d8200b6ae6bd50d..8e979f6548ac751cb2f67fe0ba6df6baef52c601 100644
+--- a/dist/lib/oauth/redemption.js
++++ b/dist/lib/oauth/redemption.js
+@@ -41,7 +41,31 @@ export function validateAllowedRedirectOrigins(allowedRedirectOrigins) {
+         return url.origin;
+     });
+ }
+-const completeSignInResult = v.union(vSignInComplete, 
++/**
++ * Samebase patch for 2.0.0-beta.0, until upstream ships an equivalent.
++ * Gap: the list takes exact origins, and a dev server chooses its port when it
++ * starts. Upstream issue text: "Let a loopback origin in allowedRedirectOrigins
++ * allow every port of that host, as RFC 8252 section 7.3 requires of loopback
++ * redirects."
++ *
++ * True when `redirectTo` is one of the allowed origins, or when it is on a
++ * loopback host, `localhost`, `127.0.0.1`, or `[::1]`, over http, and the
++ * list has that host with no port. A loopback destination can only be read by
++ * software on the user's own machine, which is why RFC 8252 allows any port
++ * there, and the one-time code still needs the state this browser holds.
++ */
++export function isAllowedRedirectOrigin(allowedOrigins, redirectTo) {
++    if (allowedOrigins.includes(redirectTo.origin)) {
++        return true;
++    }
++    const loopback = redirectTo.hostname === "localhost" ||
++        redirectTo.hostname === "127.0.0.1" ||
++        redirectTo.hostname === "[::1]";
++    return (redirectTo.protocol === "http:" &&
++        loopback &&
++        allowedOrigins.includes(`http://${redirectTo.hostname}`));
++}
++const completeSignInResult = v.union(vSignInComplete,
+ // The one-time code did not redeem: unknown, already spent, expired, or
+ // paired with a state this browser never held. The server cannot tell those
+ // apart and deliberately does not try, so they share one code.
+diff --git a/dist/methods/oauth/server.d.ts b/dist/methods/oauth/server.d.ts
+index 186f974e5bd1509dda9eaa3b78595a18e0957af1..88122e77a34056c2e30fb5a1ef1849af0d3c231f 100644
+--- a/dist/methods/oauth/server.d.ts
++++ b/dist/methods/oauth/server.d.ts
+@@ -92,7 +92,8 @@ export type OauthProviderOptions = {
+     component: ComponentApi;
+     /**
+      * Origins `redirectTo` may point at, e.g. `["https://app.example.com"]`
+-     * for open-redirect prevention.
++     * for open-redirect prevention. Samebase patch for 2.0.0-beta.0: a loopback
++     * origin with no port, `"http://localhost"`, allows every port of that host.
+      */
+     allowedRedirectOrigins: string[];
+ };
 diff --git a/src/component/public.ts b/src/component/public.ts
 index 48a827aee542d5f8f22b3b5f34fbc752b5396977..03c8b16bd465f57a1dc04ba447c908ab21343bc0 100644
 --- a/src/component/public.ts
@@ -100,3 +188,81 @@ index 48a827aee542d5f8f22b3b5f34fbc752b5396977..03c8b16bd465f57a1dc04ba447c908ab
 +    return null;
 +  },
 +});
+diff --git a/src/lib/oauth/authorize.ts b/src/lib/oauth/authorize.ts
+index ab0748ed186ed6cee44b1bfdc3ab41483154f2b2..9f58ad74ceb87b933eec9aff6ed0558614576ded 100644
+--- a/src/lib/oauth/authorize.ts
++++ b/src/lib/oauth/authorize.ts
+@@ -18,7 +18,7 @@ import { v } from "convex/values";
+ import { sha256Hex } from "../crypto.ts";
+ import { generateRandomToken, sha256Base64Url } from "./crypto.ts";
+ import type { CallbackMethod } from "./http.ts";
+-import { parseUrl } from "./redemption.ts";
++import { isAllowedRedirectOrigin, parseUrl } from "./redemption.ts";
+ 
+ type MutationCtx = GenericMutationCtx<GenericDataModel>;
+ 
+@@ -89,7 +89,7 @@ export function buildStartSignIn(options: {
+       if (redirectTo === null) {
+         throw new Error("redirectTo must be an absolute URL");
+       }
+-      if (!options.allowedOrigins.includes(redirectTo.origin)) {
++      if (!isAllowedRedirectOrigin(options.allowedOrigins, redirectTo)) {
+         throw new Error(
+           `redirectTo origin "${redirectTo.origin}" is not in allowedRedirectOrigins`,
+         );
+diff --git a/src/lib/oauth/redemption.ts b/src/lib/oauth/redemption.ts
+index 4e3611a521ce595010c93861ca154d177bfb5671..10c1ad4f9d493dc95f9c878fa38e250990d6a2d3 100644
+--- a/src/lib/oauth/redemption.ts
++++ b/src/lib/oauth/redemption.ts
+@@ -61,6 +61,37 @@ export function parseUrl(value: string): URL | null {
+   }
+ }
+ 
++/**
++ * Samebase patch for 2.0.0-beta.0, until upstream ships an equivalent.
++ * Gap: the list takes exact origins, and a dev server chooses its port when it
++ * starts. Upstream issue text: "Let a loopback origin in allowedRedirectOrigins
++ * allow every port of that host, as RFC 8252 section 7.3 requires of loopback
++ * redirects."
++ *
++ * True when `redirectTo` is one of the allowed origins, or when it is on a
++ * loopback host, `localhost`, `127.0.0.1`, or `[::1]`, over http, and the
++ * list has that host with no port. A loopback destination can only be read by
++ * software on the user's own machine, which is why RFC 8252 allows any port
++ * there, and the one-time code still needs the state this browser holds.
++ */
++export function isAllowedRedirectOrigin(
++  allowedOrigins: string[],
++  redirectTo: URL,
++): boolean {
++  if (allowedOrigins.includes(redirectTo.origin)) {
++    return true;
++  }
++  const loopback =
++    redirectTo.hostname === "localhost" ||
++    redirectTo.hostname === "127.0.0.1" ||
++    redirectTo.hostname === "[::1]";
++  return (
++    redirectTo.protocol === "http:" &&
++    loopback &&
++    allowedOrigins.includes(`http://${redirectTo.hostname}`)
++  );
++}
++
+ /**
+  * Check the origins a provider setup will accept as post-login destinations
+  * and return them normalized. Called at setup so a mistake fails at deploy
+diff --git a/src/methods/oauth/server.ts b/src/methods/oauth/server.ts
+index af04165975875abd0bc57cbab19d1da411be16dc..a9c5fdb7edfee99d3b7f1871651f64f2c84085a7 100644
+--- a/src/methods/oauth/server.ts
++++ b/src/methods/oauth/server.ts
+@@ -102,7 +102,8 @@ export type OauthProviderOptions = {
+   component: ComponentApi;
+   /**
+    * Origins `redirectTo` may point at, e.g. `["https://app.example.com"]`
+-   * for open-redirect prevention.
++   * for open-redirect prevention. Samebase patch for 2.0.0-beta.0: a loopback
++   * origin with no port, `"http://localhost"`, allows every port of that host.
+    */
+   allowedRedirectOrigins: string[];
+ };

@@ -73,15 +73,16 @@ writes `VITE_CONVEX_URL` to `.env.local`; do not set it manually.
 On a fresh clone, the first push of `pnpm run dev` fails: `convex/convex.config.ts` requires the
 Convex Auth keys `AUTH_PRIVATE_KEY` and `AUTH_JWKS` and the three `HUB_` variables, and
 `convex/http.ts` imports `.convex-hosting/version.js` and the server build `dist/server/server.js`.
-Only a deploy creates them. Keep `pnpm run dev` running and run this in a second terminal:
+Only a deploy creates them. That first run has done its part once Convex has signed you in and
+written `.env.local`. Stop it and run:
 
 ```sh
 pnpm run deploy:dev
 ```
 
 It builds the app, creates the Convex Auth keys, sets the `HUB_` variables to their off values,
-uploads the files to the development deployment, writes the version file, and pushes. Then stop `pnpm run dev` and start it again; it works as usual
-from then on.
+uploads the files to the development deployment, writes the version file, and pushes. From then
+on `pnpm run dev` works as usual.
 
 The core workflow runs on macOS, Linux, and Windows. See
 [`docs/local-setup.md`](./docs/local-setup.md) for the local Convex setup and troubleshooting steps.
