@@ -64,20 +64,28 @@ pnpm install
 pnpm run dev
 ```
 
-The development command starts Convex and TanStack Start together. In a linked Git worktree, the
-same command automatically uses an isolated local backend. Convex writes `VITE_CONVEX_URL` to
-`.env.local`; do not set it manually.
-
-To force the isolated backend outside a linked worktree, use:
-
-```sh
-pnpm run dev:worktree
-```
+The development command starts Convex and TanStack Start together, on a cloud development
+deployment of this checkout. A linked Git worktree gets its own development deployment. Convex
+writes `VITE_CONVEX_URL` to `.env.local`; do not set it manually.
 
 ### First run
 
-On a fresh clone, the first push of `pnpm run dev` fails: `convex/convex.config.ts` requires the
-Convex Auth keys `AUTH_PRIVATE_KEY` and `AUTH_JWKS` and the three `HUB_` variables, and
+`pnpm run dev` (`scripts/run-primary-dev.ts`) does these steps in order:
+
+1. When `.env.local` selects no deployment, it runs `npx convex init`, which asks for the project.
+2. It sets the off values of the `HUB_` variables on the selected deployment, when they are missing.
+3. It deploys the stage `dev-<name>` of the stack, with `npx convex login`. `<name>` is your user
+   name in the main checkout and the directory name in a linked worktree. The stage finds or creates
+   the development deployment `dev-<name>` in the project of the repository, pushes to it, and gets
+   its hub client (see [Google sign-in](#google-sign-in)). The team is `CONVEX_TEAM_ID` from the
+   environment or `.env.local`, else the team of the selected deployment.
+4. It selects that deployment for the Convex CLI.
+5. It starts `convex dev`, which starts the frontend after its first push.
+
+When step 3 fails, the command prints one line and starts `convex dev` on the selected deployment.
+
+When the stage cannot push, the first push of `convex dev` on a fresh clone fails:
+`convex/convex.config.ts` requires the Convex Auth keys `AUTH_PRIVATE_KEY` and `AUTH_JWKS` and the three `HUB_` variables, and
 `convex/http.ts` imports `.convex-hosting/version.js` and the server build `dist/server/server.js`.
 Only a deploy creates them. Keep `pnpm run dev` running and run this in a second terminal:
 
@@ -106,8 +114,10 @@ which the first `pnpm run dev` writes; CI passes a placeholder.
 
 ## Deployment contract
 
-`alchemy.run.ts` is the stack. The stage `prod` is the production deployment; any other stage is a
-preview deployment named after the stage, which `alchemy destroy` deletes. The push is the `deploy`
+`alchemy.run.ts` is the stack. The stage `prod` is the production deployment. A stage `dev-<name>`
+is the development deployment of a laptop, which `alchemy destroy` keeps (see
+[First run](#first-run)). Any other stage is a preview deployment named after the stage, which
+`alchemy destroy` deletes. The push is the `deploy`
 package script, run by the Convex deployment resource when the functions, the build inputs,
 `package.json`, or the lockfile change; an unchanged checkout deploys nothing.
 `.github/workflows/alchemy.yml` names the stages as
@@ -177,22 +187,24 @@ variables `HUB_ISSUER`, `HUB_CLIENT_ID`, and `HUB_CLIENT_SECRET`. Without a clie
 hold their off values, `HUB_CLIENT_ID=no-hub`, and the page has only the guest button.
 
 On a laptop, the production deploy is the proof. After one deploy to `main`, `npx convex login` and
-`pnpm run dev` give the laptop Sign in with Google: at each dev start, `scripts/dev-start.ts` runs
-`alchemy-convex hub-client --shared`, which asks the hub for a client with the app's initial access
-token that the deploy saved in the stack's state. Before that first deploy, the laptop has guest
-sign-in.
+`pnpm run dev` give the laptop Sign in with Google. The laptop is the stage `dev-<name>` of the
+stack, with its own development deployment. The stage asks the hub for a client with the app's
+initial access token, which the production deploy saved in the state of the stage `prod`. Before
+that first deploy, the laptop has guest sign-in, and `pnpm run dev` prints
+"deploy to main once for Google sign-in on this laptop". Each linked worktree gets a development
+deployment and a client of its own. `pnpm exec alchemy destroy --stage dev-<name>` deletes the
+client and keeps the deployment.
 
 The site serves `/samebase-verification.json` with the repository's numeric id,
-`{ "repository": "123" }`, from the variable `SAMEBASE_REPOSITORY_ID`, which the deploy sets from
-`GITHUB_REPOSITORY_ID`. The hub reads it at the site's root, and registers the client on
-`<site>/auth/hub/callback` only when the id matches the token. `pnpm run dev` sets the variable on a
-development deployment with an https site. A local backend on `127.0.0.1` serves no file: the
-initial access token is its proof. A fork serves its own id. An app on
+`{ "repository": "123" }`, from the variable `SAMEBASE_REPOSITORY_ID`. The deploy sets it from
+`GITHUB_REPOSITORY_ID`, and a `dev-` stage from the state of `prod`. The hub reads it at the site's
+root, and registers the client on `<site>/auth/hub/callback` only when the id matches. A fork
+serves its own id. An app on
 another host or callback path serves the same file at the root of its origin, with the id that
 `gh api repos/<owner>/<name> --jq .id` prints, and passes its own `redirectUri` to
 `Convex.SharedHubClient`.
 
-`scripts/stack.ts` sets `HUB_APP` once. The hub derives each user's ID from it, so a new name means new
+`alchemy.run.ts` sets `HUB_APP` once. The hub derives each user's ID from it, so a new name means new
 users. An account is that ID. Name and email are profile data, and accounts never link by email, so
 a guest who signs in with Google gets a new account.
 
