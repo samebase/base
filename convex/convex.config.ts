@@ -17,9 +17,6 @@ const app = defineApp({
     HUB_CLIENT_SECRET: v.string(),
     // The repository id that convex/http.ts serves at /samebase-verification.json.
     SAMEBASE_REPOSITORY_ID: v.optional(v.string()),
-    // The laptop client's own management address and token: nothing in the app reads them.
-    HUB_REGISTRATION_URI: v.optional(v.string()),
-    HUB_REGISTRATION_TOKEN: v.optional(v.string()),
   },
 });
 app.use(auth, {
