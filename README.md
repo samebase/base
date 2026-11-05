@@ -70,24 +70,8 @@ writes `VITE_CONVEX_URL` to `.env.local`; do not set it manually.
 
 ### First run
 
-`pnpm run dev` (`scripts/run-primary-dev.ts`) does these steps in order:
-
-1. When `.env.local` selects no deployment, it runs `npx convex init`, which asks for the project.
-2. It sets the off values of the `HUB_` variables on the selected deployment, when they are missing.
-3. It deploys the stage `dev-<name>` of the stack, with `npx convex login`. `<name>` is your user
-   name in the main checkout and the directory name in a linked worktree. The stage finds or creates
-   the development deployment `dev-<name>` in the project of the selected deployment, pushes to it,
-   and gets its hub client (see [Google sign-in](#google-sign-in)). It never creates a project.
-   After the first deploy to `main`, select a deployment of the project that it created.
-   The team is `CONVEX_TEAM_ID` from the environment or `.env.local`, else the team of the selected
-   deployment.
-4. It selects that deployment for the Convex CLI.
-5. It starts `convex dev`, which starts the frontend after its first push.
-
-When step 3 fails, the command prints one line and starts `convex dev` on the selected deployment.
-
-When the stage cannot push, the first push of `convex dev` on a fresh clone fails:
-`convex/convex.config.ts` requires the Convex Auth keys `AUTH_PRIVATE_KEY` and `AUTH_JWKS` and the three `HUB_` variables, and
+On a fresh clone, the first push of `pnpm run dev` fails: `convex/convex.config.ts` requires the
+Convex Auth keys `AUTH_PRIVATE_KEY` and `AUTH_JWKS` and the three `HUB_` variables, and
 `convex/http.ts` imports `.convex-hosting/version.js` and the server build `dist/server/server.js`.
 Only a deploy creates them. Keep `pnpm run dev` running and run this in a second terminal:
 
@@ -104,12 +88,13 @@ The core workflow runs on macOS, Linux, and Windows. See
 
 ## Checks, builds, and deploys
 
-| Command               | Purpose                                                           |
-| --------------------- | ----------------------------------------------------------------- |
-| `pnpm run check`      | Format, lint, type-check, and test                                |
-| `pnpm run build`      | Run the checks and build the app into `dist/client`               |
-| `pnpm run deploy:dev` | Build, upload, and push to the development deployment             |
-| `pnpm run deploy`     | Build, upload, and push to production, or to the key's deployment |
+| Command               | Purpose                                                                |
+| --------------------- | ---------------------------------------------------------------------- |
+| `pnpm run check`      | Format, lint, type-check, and test                                     |
+| `pnpm run build`      | Run the checks and build the app into `dist/client`                    |
+| `pnpm run deploy:dev` | Build, upload, and push to the development deployment                  |
+| `pnpm run hub`        | Give the selected development deployment a hub client (Google sign-in) |
+| `pnpm run deploy`     | Build, upload, and push to production, or to the key's deployment      |
 
 The build prerenders `/about` with the Convex client, so it needs `VITE_CONVEX_URL` in `.env.local`,
 which the first `pnpm run dev` writes; CI passes a placeholder.
@@ -188,15 +173,14 @@ Samebase's identity hub with GitHub's token of the run (`id-token: write`) and w
 variables `HUB_ISSUER`, `HUB_CLIENT_ID`, and `HUB_CLIENT_SECRET`. Without a client, the variables
 hold their off values, `HUB_CLIENT_ID=no-hub`, and the page has only the guest button.
 
-On a laptop, the production deploy is the proof. After one deploy to `main`, `npx convex login` and
-`pnpm run dev` give the laptop Sign in with Google. The laptop is the stage `dev-<name>` of the
-stack, with its own development deployment. The stage asks the hub for a client with the app's
-initial access token, which the production deploy saved in the state of the stage `prod`. Before
-that first deploy, the laptop has guest sign-in, and `pnpm run dev` prints
-"deploy to main once for Google sign-in on this laptop". Each linked worktree gets a development
-deployment and a client of its own. To delete the client and keep the deployment, set
-`CONVEX_TEAM_ID` to your team in the environment, as the stack needs it, and run
-`pnpm exec alchemy destroy --stage dev-<name>`.
+On a laptop, the production deploy is the proof. After one deploy to `main` and the first run above,
+add `CONVEX_TEAM_ID=<your team>` to `.env.local` and run `pnpm run hub --stage dev-<your name>`
+once. That stage of the stack gives the development deployment that `.env.local` selects a client
+of the hub, with the app's initial access token that the production deploy saved, and writes the
+three variables; it creates nothing and pushes nothing. From then on `pnpm run dev` has Sign in with
+Google, and each sign-in keeps the client alive. Run the stage again if the laptop was unused for
+two weeks and the button stopped working. `pnpm exec alchemy destroy --stage dev-<your name>`
+deletes the client and keeps the deployment.
 
 The site serves `/samebase-verification.json` with the repository's numeric id,
 `{ "repository": "123" }`, from the variable `SAMEBASE_REPOSITORY_ID`. The deploy sets it from
