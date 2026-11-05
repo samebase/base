@@ -22,8 +22,6 @@ concurrency: { group: "alchemy-main", queue: max }
 jobs:
   destroy:
     runs-on: ubuntu-latest
-    env:
-      CONVEX_TEAM_ID: ${{ vars.CONVEX_TEAM_ID }}
     steps:
       # The input reaches the script only as an environment variable.
       - name: Check the confirmation

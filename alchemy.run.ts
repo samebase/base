@@ -15,7 +15,8 @@
 // The stack is named after the repository, `owner/name`, and its Convex project after `name`. The
 // state of every stage is in the `alchemy-state-store` project of the team, which Convex.state()
 // creates on the first run. Every run needs the team token CONVEX_ACCESS_TOKEN, or a Convex CLI
-// login (`npx convex login`) on a laptop; it mints the deploy keys itself.
+// login (`npx convex login`) on a laptop; it mints the deploy keys itself. The token names its
+// team; with the Convex CLI login, the team is the team of the deployment that .env.local selects.
 //
 // Each deployment asks Samebase for a client of the identity hub, for Google sign-in. Production and
 // previews prove the repository with the GitHub OIDC token of the run (`id-token: write` in the
@@ -37,7 +38,7 @@ import * as Output from "alchemy/Output";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import * as Effect from "effect/Effect";
 
-/** The file of `npx convex dev`: the deployment it selects, and on a laptop CONVEX_TEAM_ID too. */
+/** The file of `npx convex dev`: the deployment it selects. */
 const envLocal = (() => {
   try {
     return parseEnv(readFileSync(".env.local", "utf8"));
@@ -45,17 +46,6 @@ const envLocal = (() => {
     return {};
   }
 })();
-
-/**
- * The Convex team that holds the project and the state: the variable CONVEX_TEAM_ID, an id or a
- * slug, from the environment (the repository variable in Actions) or from .env.local on a laptop.
- */
-const team = process.env["CONVEX_TEAM_ID"] || envLocal["CONVEX_TEAM_ID"];
-if (team === undefined || team === "") {
-  throw new Error(
-    "Set CONVEX_TEAM_ID to your Convex team: the repository variable in Actions (README, Start), or a line in .env.local on a laptop.",
-  );
-}
 
 /**
  * The name of this app at the identity hub, set once. The hub derives the ID of each user from it,
@@ -91,7 +81,7 @@ export default Alchemy.Stack(
   repository,
   {
     providers: Convex.providers(),
-    state: Convex.state({ team }),
+    state: Convex.state(),
   },
   Effect.gen(function* () {
     const { stage } = yield* Alchemy.Stack;
@@ -147,9 +137,7 @@ export default Alchemy.Stack(
     // every deployment. A preview stage reads the project from the state of `prod`.
     const project =
       stage === "prod"
-        ? yield* Convex.Project("Project", { team, name: projectName }).pipe(
-            RemovalPolicy.destroy(),
-          )
+        ? yield* Convex.Project("Project", { name: projectName }).pipe(RemovalPolicy.destroy())
         : yield* Convex.Project.ref("Project", { stage: "prod" });
     // Production stays with the project, which owns it: both rows keep the default removal policy
     // `retain`, and destroying the stage deletes the project. A deployment with code that is not in
