@@ -12,12 +12,14 @@
 //
 // Each deployment asks Samebase for a client of the identity hub, for Google sign-in, with the
 // GitHub OIDC token of the run (`id-token: write` in the workflows). Samebase reads
-// /samebase-verification.json on the site, which the deploy writes with this repository's id, so the
-// site must be live before the client, and the push cannot take the client in `env`. So
-// "Deployment" pushes, the client takes the site's URL, and "Site" takes the same deployment over
-// with adopt(true) and writes the client's three variables with no push. Without a client, on a
-// laptop or outside Samebase, the variables hold the off values and the app has guest sign-in.
-import { execFileSync } from "node:child_process";
+// /samebase-verification.json on the site, which convex/http.ts serves from the variable
+// SAMEBASE_REPOSITORY_ID, so the site must be live before the client, and the push cannot take the
+// client in `env`. So "Deployment" pushes and sets SAMEBASE_REPOSITORY_ID, the client takes the
+// site's URL, and "Site" takes the same deployment over with adopt(true) and writes the client's
+// three variables with no push. "Site" removes only the names that leave its own `env`, so the
+// repository id stays. Without a client, on a laptop or outside Samebase, the variables hold the off
+// values and the app has guest sign-in. `pnpm run dev` gives a laptop its own client with the
+// app's initial access token from the state of `prod` (scripts/dev-start.ts).
 import * as GitHub from "@alchemy.run/github";
 import * as Convex from "@samebase/alchemy-convex";
 import * as Alchemy from "alchemy";
@@ -26,6 +28,7 @@ import * as Output from "alchemy/Output";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
+import { HUB_APP, stackName } from "./scripts/stack.ts";
 
 /** The Convex team that holds the project and the state: the variable CONVEX_TEAM_ID, an id or a slug. */
 const team = process.env["CONVEX_TEAM_ID"];
@@ -35,24 +38,22 @@ if (team === undefined || team === "") {
   );
 }
 
-/**
- * The name of this app at the identity hub, set once. The hub derives the ID of each user from it,
- * so it must never change: a new name means new users.
- */
-const HUB_APP = "app";
-
 /** The commit of this run, which the hub records on a new client. */
 const softwareVersion = process.env["GITHUB_SHA"];
 
 /** The GitHub repository, `owner/name`: GITHUB_REPOSITORY in Actions, else the origin remote. */
-const repository =
-  process.env["GITHUB_REPOSITORY"] ??
-  /[:/]([^/:]+\/[^/]+?)(?:\.git)?$/.exec(
-    execFileSync("git", ["remote", "get-url", "origin"], { encoding: "utf8" }).trim(),
-  )?.[1];
+const repository = stackName();
 if (repository === undefined) {
   throw new Error("Set GITHUB_REPOSITORY to owner/name: the origin remote names no repository.");
 }
+
+/**
+ * The numeric id of the repository, which GitHub Actions sets in every run. The site serves it at
+ * /samebase-verification.json, so a fork serves its own id with no change to any file. A laptop
+ * run has none and sets no variable.
+ */
+const repositoryId = process.env["GITHUB_REPOSITORY_ID"];
+const verification = repositoryId ? { env: { SAMEBASE_REPOSITORY_ID: repositoryId } } : {};
 
 export default Alchemy.Stack(
   repository,
@@ -85,12 +86,18 @@ export default Alchemy.Stack(
     // takes over a preview with the name of this stage that an interrupted run left behind.
     const deployment =
       stage === "prod"
-        ? yield* Convex.Deployment("Deployment", { project, type: "prod", source })
+        ? yield* Convex.Deployment("Deployment", {
+            project,
+            type: "prod",
+            source,
+            ...verification,
+          })
         : yield* Convex.Deployment("Deployment", {
             project,
             type: "preview",
             name: stage,
             source,
+            ...verification,
           }).pipe(adopt(true), RemovalPolicy.destroy());
     const client = yield* Convex.SharedHubClient("HubClient", {
       app: HUB_APP,
