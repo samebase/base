@@ -289,15 +289,12 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
     devDependencies:
-      '@alchemy.run/github':
-        specifier: 2.0.0-beta.85
-        version: 2.0.0-beta.85(alchemy@2.0.0-beta.85(@effect/platform-node@4.1.2(effect@4.1.2)(redis@6.3.0))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(effect@4.1.2)(ws@8.22.0))(effect@4.1.2)
       '@effect/platform-node':
         specifier: 4.1.2
         version: 4.1.2(effect@4.1.2)(redis@6.3.0)
       '@samebase/alchemy-convex':
-        specifier: 0.24.0
-        version: 0.24.0(@effect/platform-node@4.1.2(effect@4.1.2)(redis@6.3.0))(alchemy@2.0.0-beta.85(@effect/platform-node@4.1.2(effect@4.1.2)(redis@6.3.0))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(effect@4.1.2)(ws@8.22.0))(convex@1.48.0(react@19.3.1))(effect@4.1.2)
+        specifier: 0.27.3
+        version: 0.27.3(@effect/platform-node@4.1.2(effect@4.1.2)(redis@6.3.0))(alchemy@2.0.0-beta.85(@effect/platform-node@4.1.2(effect@4.1.2)(redis@6.3.0))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(effect@4.1.2)(ws@8.22.0))(convex@1.48.0(react@19.3.1))(effect@4.1.2)
       '@tanstack/router-plugin':
         specifier: 1.168.48
         version: 1.168.48(@tanstack/react-router@1.170.46(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(esbuild@0.27.0)(rolldown@1.2.13)
@@ -336,12 +333,6 @@ importers:
         version: 5.0.5(@types/node@26.6.6)(@vitest/browser-preview@5.0.5)(@vitest/ui@5.0.5)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))
 
 packages:
-
-  '@alchemy.run/github@2.0.0-beta.85':
-    resolution: {integrity: sha512-lKQZTlqYo/iOK4Zbskd7riff9nqkMNgtStdlmgAUD/IvR+FweXftfcjZD9u9k/Z3h4RguJi4IduwFudSpLl6QQ==}
-    peerDependencies:
-      alchemy: 2.0.0-beta.85
-      effect: ^4.1.0
 
   '@alchemy.run/node-utils@2.0.0-beta.85':
     resolution: {integrity: sha512-2gxqMNMoJdx13w7wlDJw+gaXQ8e1VxQFsKldOvweqpd7JEgB5TGn3oO8r1sb/GB9+UzqXdh8tKp2MOVgFOrmbg==}
@@ -532,16 +523,6 @@ packages:
     peerDependencies:
       '@tanstack/react-query': ^5.0.0
       convex: ^1.29.3
-
-  '@distilled.cloud/core@1.0.0-rc.18':
-    resolution: {integrity: sha512-Iui60+sNl1CwUu7NKGLuFf3VC4H9xYzfm0Fc8ZQvd87qwf1sDMB3EAWZrq/QFgrwzSY16z2mJ0PNHaBUnGet8A==}
-    peerDependencies:
-      effect: ^4.0.5
-
-  '@distilled.cloud/github@1.0.0-rc.18':
-    resolution: {integrity: sha512-SX5EofqqjaHRnTw0RC83qvEQZr11/RcNxqjdsn7kteHvni+1DIgnlRfeHoUD2rVyQEyEPWCYnIOFWysgXUOvSg==}
-    peerDependencies:
-      effect: ^4.0.5
 
   '@dotenvx/dotenvx@1.75.1':
     resolution: {integrity: sha512-/BITOC9dmS/edY2zQwZNicQ059O6RKabtQfyEafV0nGtfYRNHYy1DIPiYVcov40+tob9hfmBnbR963dS+EQ1DQ==}
@@ -1970,8 +1951,8 @@ packages:
   '@rolldown/pluginutils@1.0.1':
     resolution: {integrity: sha512-2j9bGt5Jh8hj+vPtgzPtl72j0yRxHAyumoo6TNfAjsLB04UtpSvPbPcDcBMxz7n+9CYB0c1GxQFxYRg2jimqGw==}
 
-  '@samebase/alchemy-convex@0.24.0':
-    resolution: {integrity: sha512-aGzwJkHMMeOVvh0K7RQxNl2zRTCpQGtz0ZqzjbxOfdSfKJVAvsj/iGZ6B+rG2Gg9GV1/7z9KxjVD3W3pRGNriA==}
+  '@samebase/alchemy-convex@0.27.3':
+    resolution: {integrity: sha512-i5fc0wuR/RXFK8MqZaE9or7uh+vzItlVy/3B8BjQQsrbfungDDKyB8FsZ6UZOvURnOOH2V2w87/XN+oOCXXJtg==}
     engines: {node: '>=22'}
     hasBin: true
     peerDependencies:
@@ -3290,12 +3271,6 @@ packages:
     resolution: {integrity: sha512-o+NO+8WrRiQEE4/7nwRJhN1HWpVmJm511pBHUxPLtp0BUISzlBplORYSmTclCnJvQq2tKu/sgl3xVpkc7ZWuQQ==}
     engines: {node: '>=6'}
 
-  libsodium-wrappers@0.8.4:
-    resolution: {integrity: sha512-mu8aAWucZjTB5O/BtGXtW4e1agy7uHxNYG7zPthmmD1jU43LCDmSWZLN4JhflbdPXj3yDO4lxM1O9hLDgIOXDw==}
-
-  libsodium@0.8.4:
-    resolution: {integrity: sha512-lMcYaRi0zcs7tarATsQUYC7rstliIXZuoq0c6zXSgNtSNtdvBgkSegjWhpMJAXzKX3SUSwIp7+zEsob+j3LuRw==}
-
   lightningcss-android-arm64@1.32.0:
     resolution: {integrity: sha512-YK7/ClTt4kAK0vo6w3X+Pnm0D2cf2vPHbhOXdoNti1Ga0al1P4TBZhwjATvjNwLEBCnKvjJc2jQgHXH0NEwlAg==}
     engines: {node: '>= 12.0.0'}
@@ -4247,14 +4222,6 @@ packages:
 
 snapshots:
 
-  '@alchemy.run/github@2.0.0-beta.85(alchemy@2.0.0-beta.85(@effect/platform-node@4.1.2(effect@4.1.2)(redis@6.3.0))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(effect@4.1.2)(ws@8.22.0))(effect@4.1.2)':
-    dependencies:
-      '@distilled.cloud/core': 1.0.0-rc.18(effect@4.1.2)
-      '@distilled.cloud/github': 1.0.0-rc.18(effect@4.1.2)
-      alchemy: 2.0.0-beta.85(@effect/platform-node@4.1.2(effect@4.1.2)(redis@6.3.0))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(effect@4.1.2)(ws@8.22.0)
-      effect: 4.1.2
-      libsodium-wrappers: 0.8.4
-
   '@alchemy.run/node-utils@2.0.0-beta.85':
     dependencies:
       chokidar: 5.0.0
@@ -4501,15 +4468,6 @@ snapshots:
     dependencies:
       '@tanstack/react-query': 5.105.0(@types/react@19.3.0)(react@19.3.1)
       convex: 1.48.0(react@19.3.1)
-
-  '@distilled.cloud/core@1.0.0-rc.18(effect@4.1.2)':
-    dependencies:
-      effect: 4.1.2
-
-  '@distilled.cloud/github@1.0.0-rc.18(effect@4.1.2)':
-    dependencies:
-      '@distilled.cloud/core': 1.0.0-rc.18(effect@4.1.2)
-      effect: 4.1.2
 
   '@dotenvx/dotenvx@1.75.1':
     dependencies:
@@ -5784,7 +5742,7 @@ snapshots:
 
   '@rolldown/pluginutils@1.0.1': {}
 
-  '@samebase/alchemy-convex@0.24.0(@effect/platform-node@4.1.2(effect@4.1.2)(redis@6.3.0))(alchemy@2.0.0-beta.85(@effect/platform-node@4.1.2(effect@4.1.2)(redis@6.3.0))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(effect@4.1.2)(ws@8.22.0))(convex@1.48.0(react@19.3.1))(effect@4.1.2)':
+  '@samebase/alchemy-convex@0.27.3(@effect/platform-node@4.1.2(effect@4.1.2)(redis@6.3.0))(alchemy@2.0.0-beta.85(@effect/platform-node@4.1.2(effect@4.1.2)(redis@6.3.0))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(effect@4.1.2)(ws@8.22.0))(convex@1.48.0(react@19.3.1))(effect@4.1.2)':
     dependencies:
       '@convex-dev/platform': 0.1.11
       '@effect/platform-node': 4.1.2(effect@4.1.2)(redis@6.3.0)
@@ -6909,12 +6867,6 @@ snapshots:
   kleur@3.0.3: {}
 
   kleur@4.1.5: {}
-
-  libsodium-wrappers@0.8.4:
-    dependencies:
-      libsodium: 0.8.4
-
-  libsodium@0.8.4: {}
 
   lightningcss-android-arm64@1.32.0:
     optional: true

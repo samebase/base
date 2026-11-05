@@ -1,6 +1,8 @@
 import { httpRouter } from "convex/server";
 import { routeAll } from "@samebase/convex-hosting";
 import { components } from "./_generated/api";
+import { env, httpAction } from "./_generated/server";
+import { samebaseVerification } from "./samebaseVerification";
 import { versionId } from "../.convex-hosting/version.js";
 // Type only, nothing is bundled: the server build imported below.
 import type {} from "@samebase/convex-hosting-tanstack-start/server-build";
@@ -17,5 +19,12 @@ const handler = routeAll(http, components.hosting, versionId, server);
 for (const path of ["/auth/signin", "/auth/refresh", "/auth/signout"]) {
   http.route({ path, method: "POST", handler });
 }
+// The identity hub reads this file at registration (RFC 129 and 133). An exact route wins over the
+// catch-all and over an uploaded file, so the variable alone decides the answer.
+http.route({
+  path: "/samebase-verification.json",
+  method: "GET",
+  handler: httpAction(async () => samebaseVerification(env.SAMEBASE_REPOSITORY_ID)),
+});
 
 export default http;

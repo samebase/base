@@ -15,6 +15,8 @@ const app = defineApp({
     HUB_ISSUER: v.string(),
     HUB_CLIENT_ID: v.string(),
     HUB_CLIENT_SECRET: v.string(),
+    // The repository id that convex/http.ts serves at /samebase-verification.json.
+    SAMEBASE_REPOSITORY_ID: v.optional(v.string()),
   },
 });
 app.use(auth, {

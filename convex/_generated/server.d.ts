@@ -35,6 +35,7 @@ type Env = {
   readonly HUB_CLIENT_ID: string;
   readonly HUB_CLIENT_SECRET: string;
   readonly HUB_ISSUER: string;
+  readonly SAMEBASE_REPOSITORY_ID: string | undefined;
 };
 
 /**
