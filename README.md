@@ -193,9 +193,7 @@ On a laptop, the production deploy is the proof. After one deploy to `main`, `np
 stack, with its own development deployment. The stage asks the hub for a client with the app's
 initial access token, which the production deploy saved in the state of the stage `prod`. Before
 that first deploy, the laptop has guest sign-in, and `pnpm run dev` prints
-"deploy to main once for Google sign-in on this laptop". A production client from an earlier
-version of the starter has no token: the next deploy to `main` registers a new client with one, and
-nothing needs to be deleted by hand. Each linked worktree gets a development
+"deploy to main once for Google sign-in on this laptop". Each linked worktree gets a development
 deployment and a client of its own. `pnpm exec alchemy destroy --stage dev-<name>` deletes the
 client and keeps the deployment.
 
