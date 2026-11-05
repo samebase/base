@@ -54,7 +54,7 @@
   "devDependencies": {
     "@alchemy.run/github": "2.0.0-beta.85",
     "@effect/platform-node": "4.1.2",
-    "@samebase/alchemy-convex": "0.27.0",
+    "@samebase/alchemy-convex": "0.27.1",
     "@tanstack/router-plugin": "1.168.48",
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",
