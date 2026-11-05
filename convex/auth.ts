@@ -27,8 +27,13 @@ const hub: ReturnType<typeof setupOauth> = setupOauth(
     profile: normalizeGoogleProfile,
   },
   { createUser: internal.hub.createUser },
-  // The sign-in returns to the page that started it, on the site of this deployment.
-  { component: components.authHub, allowedRedirectOrigins: [env.CONVEX_SITE_URL] },
+  // The sign-in returns to the page that started it: on the site of this deployment, or on the dev
+  // server of a laptop, at the port it chose when it started (any port of a loopback host, the
+  // Samebase patch of Convex Auth in patches/).
+  {
+    component: components.authHub,
+    allowedRedirectOrigins: [env.CONVEX_SITE_URL, "http://localhost", "http://127.0.0.1"],
+  },
 );
 export const startSignInWithHub = hub.startSignIn;
 export const completeSignInWithHub = hub.completeSignIn;
