@@ -76,9 +76,11 @@ writes `VITE_CONVEX_URL` to `.env.local`; do not set it manually.
 2. It sets the off values of the `HUB_` variables on the selected deployment, when they are missing.
 3. It deploys the stage `dev-<name>` of the stack, with `npx convex login`. `<name>` is your user
    name in the main checkout and the directory name in a linked worktree. The stage finds or creates
-   the development deployment `dev-<name>` in the project of the repository, pushes to it, and gets
-   its hub client (see [Google sign-in](#google-sign-in)). The team is `CONVEX_TEAM_ID` from the
-   environment or `.env.local`, else the team of the selected deployment.
+   the development deployment `dev-<name>` in the project of the selected deployment, pushes to it,
+   and gets its hub client (see [Google sign-in](#google-sign-in)). It never creates a project.
+   Select a deployment of the repository's project, the one that the first deploy to `main` created.
+   The team is `CONVEX_TEAM_ID` from the environment or `.env.local`, else the team of the selected
+   deployment.
 4. It selects that deployment for the Convex CLI.
 5. It starts `convex dev`, which starts the frontend after its first push.
 

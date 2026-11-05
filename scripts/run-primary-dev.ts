@@ -5,8 +5,9 @@
 //    nothing.
 // 2. The off values of the three HUB_ variables on the selected deployment, when they are missing,
 //    because the first push needs them.
-// 3. The stage `dev-<slug>` of the stack in alchemy.run.ts, with the Convex team in CONVEX_TEAM_ID:
-//    a cloud development deployment of this checkout, its push, and its client of the identity hub.
+// 3. The stage `dev-<slug>` of the stack in alchemy.run.ts, with the team and the project of the
+//    selected deployment in CONVEX_TEAM_ID and CONVEX_PROJECT_ID: a cloud development deployment of
+//    this checkout in that project, its push, and its client of the identity hub.
 //    The slug is the user name in the main checkout and the directory name in a linked worktree.
 // 4. `convex deployment select` of the stage's deployment, when it is not the selected one.
 // 5. `convex dev`, which starts the frontend after its first push.
@@ -87,12 +88,15 @@ function readEnvLocal(cwd: string) {
   }
 }
 
+/** The Convex team and project of a deployment, as decimal ids. */
+export type DeploymentOwner = { teamId: string; projectId: string };
+
 /**
- * The id of the Convex team of a cloud deployment, through the Convex Management API with
+ * The team and the project of a cloud deployment, through the Convex Management API with
  * CONVEX_ACCESS_TOKEN or the Convex CLI login, as @samebase/alchemy-convex finds them. Undefined
  * when there is no credential or the API does not answer.
  */
-async function teamOfDeployment(name: string) {
+async function ownerOfDeployment(name: string): Promise<DeploymentOwner | undefined> {
   try {
     const [{ Credentials, fromConfig }, Effect, Redacted] = await Promise.all([
       import("@samebase/alchemy-convex"),
@@ -123,7 +127,9 @@ async function teamOfDeployment(name: string) {
       return undefined;
     }
     const teamId = (await get(`projects/${projectId}`))?.["teamId"];
-    return typeof teamId === "number" ? String(teamId) : undefined;
+    return typeof teamId === "number"
+      ? { teamId: String(teamId), projectId: String(projectId) }
+      : undefined;
   } catch {
     return undefined;
   }
@@ -137,7 +143,7 @@ export type DevOptions = {
   /** Arguments for `convex dev`. */
   convexArgs?: string[];
   readEnvLocal?: (cwd: string) => Record<string, string>;
-  teamOfDeployment?: (name: string) => Promise<string | undefined>;
+  ownerOfDeployment?: (name: string) => Promise<DeploymentOwner | undefined>;
   ensureHubVariables?: (env: NodeJS.ProcessEnv) => Promise<void>;
   run?: Run;
   log?: (line: string) => void;
@@ -170,21 +176,25 @@ export async function runDev(options: DevOptions) {
   );
 
   const stage = devStage(checkout, cwd, username);
+  // The stage's deployment goes into the project of the selected cloud deployment, so the stage
+  // never creates a project. CONVEX_TEAM_ID, when set, names the team of the state.
   const selected = readSelection();
+  const owner =
+    selected !== undefined && ["dev", "prod", "preview"].includes(selected.kind)
+      ? await (options.ownerOfDeployment ?? ownerOfDeployment)(selected.name)
+      : undefined;
   const team =
     env["CONVEX_TEAM_ID"] ||
     (options.readEnvLocal ?? readEnvLocal)(cwd)["CONVEX_TEAM_ID"] ||
-    (selected !== undefined && ["dev", "prod", "preview"].includes(selected.kind)
-      ? await (options.teamOfDeployment ?? teamOfDeployment)(selected.name)
-      : undefined);
+    owner?.teamId;
 
-  if (!team) {
+  if (owner === undefined || !team) {
     log(
-      "Google sign-in skipped: no Convex team. Set CONVEX_TEAM_ID, or select a cloud deployment with npx convex deployment select dev.",
+      "Google sign-in skipped: no Convex project. Select a cloud deployment with npx convex deployment select dev, and run npx convex login.",
     );
   } else {
     const result = await run(process.execPath, [alchemy, "deploy", "--stage", stage, "--yes"], {
-      env: { ...env, CONVEX_TEAM_ID: team },
+      env: { ...env, CONVEX_TEAM_ID: team, CONVEX_PROJECT_ID: owner.projectId },
       capture: true,
     }).catch(() => ({ code: 1, stdout: "" }));
     const deployment = result.code === 0 ? stackDeployment(result.stdout) : undefined;

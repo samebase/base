@@ -4,7 +4,8 @@
 //   project, and `alchemy destroy --stage prod` deletes the project with every deployment.
 // - `dev-<name>` is a laptop: `pnpm run dev` deploys it before `convex dev`, with the Convex CLI
 //   login (scripts/run-primary-dev.ts). It has its own cloud development deployment with the
-//   reference `dev-<name>`, found or created. `alchemy destroy --stage dev-<name>` deletes its hub
+//   reference `dev-<name>`, found or created in the project of the deployment that the Convex CLI
+//   selects (CONVEX_PROJECT_ID). It never creates a project. `alchemy destroy --stage dev-<name>` deletes its hub
 //   client and keeps the deployment.
 // - Any other stage, such as `pr-42` for a pull request, is a preview deployment named after the
 //   stage, which `alchemy destroy` deletes.
@@ -92,13 +93,17 @@ export default Alchemy.Stack(
     } satisfies Convex.Source;
 
     if (stage.startsWith("dev-")) {
-      // A laptop. Before the first deploy to main there is no `prod` state, so the stage takes the
-      // project over by its name and does not read it from `prod`. The default removal policy
-      // `retain` keeps the project, and both deployment rows keep the development deployment: a
-      // destroy of the stage deletes only the hub client.
-      const project = yield* Convex.Project("Project", { team, name: projectName }).pipe(
-        adopt(true),
-      );
+      // A laptop. The project is the one of the deployment that the Convex CLI selects, which
+      // scripts/run-primary-dev.ts passes in CONVEX_PROJECT_ID, so the stage never creates a project
+      // and works before the first deploy to main. Both deployment rows keep the default removal
+      // policy `retain`: a destroy of the stage deletes only the hub client.
+      const projectId = Number(process.env["CONVEX_PROJECT_ID"]);
+      if (!Number.isInteger(projectId) || projectId <= 0) {
+        throw new Error(
+          `Stage ${stage} needs CONVEX_PROJECT_ID, the id of the Convex project of the selected deployment. Run pnpm run dev, which sets it.`,
+        );
+      }
+      const project = { projectId };
       // The initial access token and the repository id from the client of `prod`, or the off
       // values when `prod` has no client yet.
       const production = Convex.SharedHubClient.read("HubClient", { stage: "prod" });

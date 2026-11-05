@@ -50,7 +50,7 @@ async function dev(
     env: {},
     username: "Ana.Popescu",
     readEnvLocal: () => envLocal[0] ?? {},
-    teamOfDeployment: async () => "38516",
+    ownerOfDeployment: async () => ({ teamId: "38516", projectId: "777" }),
     ensureHubVariables: async () => {
       steps.push("hub variables");
     },
@@ -90,6 +90,7 @@ describe("run-primary-dev", () => {
       "convex dev --start vp run dev:frontend",
     ]);
     expect(stackEnv?.["CONVEX_TEAM_ID"]).toBe("38516");
+    expect(stackEnv?.["CONVEX_PROJECT_ID"]).toBe("777");
     expect(lines).toEqual([]);
   });
 
@@ -108,24 +109,28 @@ describe("run-primary-dev", () => {
     expect(steps).not.toContain("convex deployment select brave-otter-456");
   });
 
-  it("takes the team from CONVEX_TEAM_ID before the selected deployment", async () => {
-    const { stackEnv } = await dev({
-      env: { CONVEX_TEAM_ID: "my-team" },
-      teamOfDeployment: async () => {
-        throw new Error("not called");
-      },
-    });
+  it("takes the team from CONVEX_TEAM_ID and the project from the selected deployment", async () => {
+    const { stackEnv } = await dev({ env: { CONVEX_TEAM_ID: "my-team" } });
 
     expect(stackEnv?.["CONVEX_TEAM_ID"]).toBe("my-team");
+    expect(stackEnv?.["CONVEX_PROJECT_ID"]).toBe("777");
   });
 
-  it("skips the stack without a team and still starts convex dev", async () => {
-    const { steps, lines } = await dev({
-      envLocal: [{ CONVEX_DEPLOYMENT: "anonymous:anonymous-agent" }],
-    });
+  it("skips the stack without a project and still starts convex dev", async () => {
+    for (const options of [
+      // An anonymous local backend has no project, even with a team.
+      {
+        env: { CONVEX_TEAM_ID: "my-team" },
+        envLocal: [{ CONVEX_DEPLOYMENT: "anonymous:anonymous-agent" }],
+      },
+      // The Management API gives no answer, such as without a login.
+      { ownerOfDeployment: async () => undefined },
+    ]) {
+      const { steps, lines } = await dev(options);
 
-    expect(steps).toEqual(["hub variables", "convex dev --start vp run dev:frontend"]);
-    expect(lines).toHaveLength(1);
+      expect(steps).toEqual(["hub variables", "convex dev --start vp run dev:frontend"]);
+      expect(lines).toHaveLength(1);
+    }
   });
 
   it("still starts convex dev when the stack fails or does not start", async () => {
