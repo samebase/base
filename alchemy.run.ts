@@ -2,10 +2,11 @@
 //
 // - `prod` is the production deployment of the Convex project of this repository. It owns the
 //   project, and `alchemy destroy --stage prod` deletes the project with every deployment.
-// - `dev-<name>` is a laptop: `pnpm run hub --stage dev-<name>` runs it on purpose, with the Convex
-//   CLI login, on the development deployment that `.env.local` selects (CONVEX_DEPLOYMENT, written
-//   by `convex dev`). It takes that deployment over, never creates a project, and
-//   `alchemy destroy --stage dev-<name>` deletes its hub client and keeps the deployment.
+// - `dev-<name>` is a development checkout: `pnpm run hub --stage dev-<name>` runs it on purpose,
+//   with the Convex CLI login, on the development deployment that `.env.local` selects
+//   (CONVEX_DEPLOYMENT, written by `convex dev`). It takes that deployment over, never creates a
+//   project, and `alchemy destroy --stage dev-<name>` deletes its hub client and keeps the
+//   deployment.
 // - Any other stage, such as `pr-42` for a pull request, is a preview deployment named after the
 //   stage, which `alchemy destroy` deletes.
 //
@@ -15,8 +16,9 @@
 // The stack is named after the repository, `owner/name`, and its Convex project after `name`. The
 // state of every stage is in the `alchemy-state-store` project of the team, which Convex.state()
 // creates on the first run. Every run needs the team token CONVEX_ACCESS_TOKEN, or a Convex CLI
-// login (`npx convex login`) on a laptop; it mints the deploy keys itself. The token names its
-// team; with the Convex CLI login, the team is the team of the deployment that .env.local selects.
+// login (`npx convex login`) on a development machine; it mints the deploy keys itself. The token
+// names its team; with the Convex CLI login, the team is the team of the deployment that .env.local
+// selects.
 //
 // Each deployment asks Samebase for a client of the identity hub, for Google sign-in. Production and
 // previews prove the repository with the GitHub OIDC token of the run (`id-token: write` in the
@@ -26,8 +28,9 @@
 // the client, and the push cannot take the client in `env`. So "Deployment" pushes and sets
 // SAMEBASE_REPOSITORY_ID, the client takes the site's URL, and "Site" takes the same deployment over
 // with adopt(true) and writes the client's three variables with no push. "Site" removes only the
-// names that leave its own `env`, so the repository id stays. Without a client, such as on a laptop
-// before the first deploy to main, the variables hold the off values and the app has guest sign-in.
+// names that leave its own `env`, so the repository id stays. Without a client, such as in
+// development before the first deploy to main, the variables hold the off values and the app has
+// guest sign-in.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
@@ -93,10 +96,11 @@ export default Alchemy.Stack(
     } satisfies Convex.Source;
 
     if (stage.startsWith("dev-")) {
-      // A laptop, after one deploy to main and after `npx convex dev` made and selected a dev
-      // deployment and pushed the code. This stage gives that deployment its hub client and nothing
-      // else: no new deployment, no push. It is run on purpose, `pnpm run hub --stage dev-<name>`,
-      // and a Google sign-in keeps the client alive, so a laptop in use never needs it again.
+      // A development checkout, after one deploy to main and after `npx convex dev` made and
+      // selected a dev deployment and pushed the code. This stage gives that deployment its hub
+      // client and nothing else: no new deployment, no push. It is run on purpose,
+      // `pnpm run hub --stage dev-<name>`, and a Google sign-in keeps the client alive, so a
+      // checkout in use never needs it again.
       const selected = envLocal["CONVEX_DEPLOYMENT"]?.replace(/^(dev|prod):/, "");
       if (!selected) {
         throw new Error("Run `pnpm run dev` once first: .env.local selects no deployment.");

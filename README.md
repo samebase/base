@@ -102,7 +102,7 @@ which the first `pnpm run dev` writes; CI passes a placeholder.
 ## Deployment contract
 
 `alchemy.run.ts` is the stack. The stage `prod` is the production deployment. A stage `dev-<name>`
-is the development deployment of a laptop, which `alchemy destroy` keeps (see
+is the deployment of a development checkout, which `alchemy destroy` keeps (see
 [First run](#first-run)). Any other stage is a preview deployment named after the stage, which
 `alchemy destroy` deletes. The push is the `deploy`
 package script, run by the Convex deployment resource when the functions, the build inputs,
@@ -113,7 +113,7 @@ the stage `prod`, deploys each pull request from this repository to the stage `p
 preview deployment with that name whose URL, `https://<deployment>.convex.site`, the run comments on
 the pull request, and destroys that stage when the pull request closes, all with the team token
 `CONVEX_ACCESS_TOKEN`. The stack is named after the repository, `owner/name` (`GITHUB_REPOSITORY`,
-or the origin remote on a laptop), and so is its Convex project. Every run, in CI or local, keeps
+or the origin remote in development), and so is its Convex project. Every run, in CI or local, keeps
 the state of its stage in the `alchemy-state-store` project of the team, which the first run creates,
 under the stack name; the stage `prod` owns the project, and `alchemy destroy --stage prod` deletes
 it. The state has no lock, so the workflow runs one deploy of a stage at a time. A local run uses
@@ -173,11 +173,11 @@ Samebase's identity hub with GitHub's token of the run (`id-token: write`) and w
 variables `HUB_ISSUER`, `HUB_CLIENT_ID`, and `HUB_CLIENT_SECRET`. Without a client, the variables
 hold their off values, `HUB_CLIENT_ID=no-hub`, and the page has only the guest button.
 
-On a laptop, the production deploy is the proof. After one deploy to `main` and the first run above,
+In development, the production deploy is the proof. After one deploy to `main` and the first run above,
 run `pnpm run hub --stage dev-<your name>` once. That stage of the stack gives the development deployment that `.env.local` selects a client
 of the hub, with the app's initial access token that the production deploy saved, and writes the
 three variables; it creates nothing and pushes nothing. From then on `pnpm run dev` has Sign in with
-Google, and each sign-in keeps the client alive. Run the stage again if the laptop was unused for
+Google, and each sign-in keeps the client alive. Run the stage again if the development deployment was unused for
 two weeks and the button stopped working. `pnpm exec alchemy destroy --stage dev-<your name>`
 deletes the client and keeps the deployment.
 

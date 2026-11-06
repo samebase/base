@@ -27,8 +27,8 @@ const hub: ReturnType<typeof setupOauth> = setupOauth(
     profile: normalizeGoogleProfile,
   },
   { createUser: internal.hub.createUser },
-  // The sign-in returns to the page that started it: on the site of this deployment, or on the dev
-  // server of a laptop, at the port it chose when it started (any port of a loopback host, the
+  // The sign-in returns to the page that started it: on the site of this deployment, or on a
+  // development server, at the port it chose when it started (any port of a loopback host, the
   // Samebase patch of Convex Auth in patches/).
   {
     component: components.authHub,
