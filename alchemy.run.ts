@@ -117,6 +117,7 @@ export default Alchemy.Stack(
       }).pipe(adopt(true));
       const client = yield* Convex.SharedHubClient("HubClient", {
         app: HUB_APP,
+        connectors: ["google", "github"],
         redirectUri: Output.interpolate`${site.siteUrl}/auth/hub/callback`,
         deploymentType: "development",
         initialAccessToken: production.initialAccessToken,
@@ -165,6 +166,7 @@ export default Alchemy.Stack(
           }).pipe(adopt(true), RemovalPolicy.destroy());
     const client = yield* Convex.SharedHubClient("HubClient", {
       app: HUB_APP,
+      connectors: ["google", "github"],
       redirectUri: Output.interpolate`${deployment.siteUrl}/auth/hub/callback`,
       deploymentType: stage === "prod" ? "production" : "preview",
       ...(softwareVersion === undefined ? {} : { softwareVersion }),
