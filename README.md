@@ -165,8 +165,9 @@ moves it once:
 
 ## Google sign-in
 
-Guest sign-in always works. The home page also shows **Sign in with Google** when the deployment
-has a client of Samebase's identity hub, and it needs no Google project or key of yours.
+Guest sign-in always works. The home page also shows **Sign in** when the deployment has a client
+of Samebase's identity hub, and it needs no Google project or key of yours. The button goes to the
+hub's page, which names the app and offers Google and GitHub.
 
 Each deploy from GitHub Actions gets its client, with no Samebase account: `alchemy.run.ts` asks
 Samebase's identity hub with GitHub's token of the run (`id-token: write`) and writes it to the
@@ -176,8 +177,8 @@ hold their off values, `HUB_CLIENT_ID=no-hub`, and the page has only the guest b
 In development, the production deploy is the proof. After one deploy to `main` and the first run above,
 run `pnpm run hub --stage dev-<your name>` once. That stage of the stack gives the development deployment that `.env.local` selects a client
 of the hub, with the app's initial access token that the production deploy saved, and writes the
-three variables; it creates nothing and pushes nothing. From then on `pnpm run dev` has Sign in with
-Google, and each sign-in keeps the client alive. Run the stage again if the development deployment was unused for
+three variables; it creates nothing and pushes nothing. From then on `pnpm run dev` has the Sign in
+button, and each sign-in keeps the client alive. Run the stage again if the development deployment was unused for
 two weeks and the button stopped working. `pnpm exec alchemy destroy --stage dev-<your name>`
 deletes the client and keeps the deployment.
 
