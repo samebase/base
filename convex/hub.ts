@@ -29,7 +29,7 @@ export const createUser = internalMutation({
 });
 
 /** True when the hub gave this deployment a client. `no-hub` is the client ID of the off values. */
-export const googleSignInEnabled = query({
+export const hubSignInEnabled = query({
   args: {},
   returns: boolean(),
   handler: async () => {
