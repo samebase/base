@@ -20,7 +20,9 @@
 // names its team; with the Convex CLI login, the team is the team of the deployment that .env.local
 // selects.
 //
-// Each deployment asks Samebase for a client of the identity hub, for Google sign-in. Production and
+// Each deployment asks Samebase for a client of the identity hub, for Google and GitHub sign-in
+// through the hub's public connectors, `google-apps` and `github-apps`, which every app may use and
+// which name the app "Samebase" at Google and GitHub. Production and
 // previews prove the repository with the GitHub OIDC token of the run (`id-token: write` in the
 // workflows). A `dev-` stage uses the app's initial access token, which the production registration
 // saved in the state of `prod`. Samebase reads /samebase-verification.json on the site, which
@@ -117,7 +119,7 @@ export default Alchemy.Stack(
       }).pipe(adopt(true));
       const client = yield* Convex.SharedHubClient("HubClient", {
         app: HUB_APP,
-        connectors: ["google", "github"],
+        connectors: ["google-apps", "github-apps"],
         redirectUri: Output.interpolate`${site.siteUrl}/auth/hub/callback`,
         deploymentType: "development",
         initialAccessToken: production.initialAccessToken,
@@ -166,7 +168,7 @@ export default Alchemy.Stack(
           }).pipe(adopt(true), RemovalPolicy.destroy());
     const client = yield* Convex.SharedHubClient("HubClient", {
       app: HUB_APP,
-      connectors: ["google", "github"],
+      connectors: ["google-apps", "github-apps"],
       redirectUri: Output.interpolate`${deployment.siteUrl}/auth/hub/callback`,
       deploymentType: stage === "prod" ? "production" : "preview",
       ...(softwareVersion === undefined ? {} : { softwareVersion }),
