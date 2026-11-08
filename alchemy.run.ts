@@ -58,6 +58,13 @@ const envLocal = (() => {
  */
 const HUB_APP = "app";
 
+/**
+ * The identity hub that gives this app its clients: Samebase's. A hub of your own, such as a copy of
+ * samebase/samebase's apps/identity-hub, goes here, with its issuer and the terms of its sign-in
+ * service; it must also offer the connectors `google-apps` and `github-apps`.
+ */
+const HUB = { issuer: "https://auth.samebase.com", terms: "https://samebase.com/terms" };
+
 /** The commit of this run, which the hub records on a new client. */
 const softwareVersion = process.env["GITHUB_SHA"];
 
@@ -119,6 +126,7 @@ export default Alchemy.Stack(
       }).pipe(adopt(true));
       const client = yield* Convex.SharedHubClient("HubClient", {
         app: HUB_APP,
+        hub: HUB,
         connectors: ["google-apps", "github-apps"],
         redirectUri: Output.interpolate`${site.siteUrl}/auth/hub/callback`,
         deploymentType: "development",
@@ -168,6 +176,7 @@ export default Alchemy.Stack(
           }).pipe(adopt(true), RemovalPolicy.destroy());
     const client = yield* Convex.SharedHubClient("HubClient", {
       app: HUB_APP,
+      hub: HUB,
       connectors: ["google-apps", "github-apps"],
       redirectUri: Output.interpolate`${deployment.siteUrl}/auth/hub/callback`,
       deploymentType: stage === "prod" ? "production" : "preview",
