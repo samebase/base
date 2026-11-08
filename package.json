@@ -11,7 +11,7 @@
   },
   "scripts": {
     "dev": "node ./scripts/run-context-dev.ts",
-    "hub": "alchemy deploy",
+    "identity-hub:dev-client": "alchemy deploy",
     "dev:primary": "node ./scripts/run-primary-dev.ts",
     "dev:frontend": "vp dev",
     "dev:worktree": "node ./scripts/run-worktree-dev.ts",
@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@effect/platform-node": "4.1.2",
-    "@samebase/alchemy-convex": "0.35.0",
+    "@samebase/alchemy-convex": "0.37.0",
     "@tanstack/router-plugin": "1.168.48",
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",

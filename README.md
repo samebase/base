@@ -70,7 +70,7 @@ writes `VITE_CONVEX_URL` to `.env.local`; do not set it manually.
 ### First run
 
 On a fresh clone, the first push of `pnpm run dev` fails: `convex/convex.config.ts` requires the
-Convex Auth keys `AUTH_PRIVATE_KEY` and `AUTH_JWKS` and the three `HUB_` variables, and
+Convex Auth keys `AUTH_PRIVATE_KEY` and `AUTH_JWKS` and the three `IDENTITY_HUB_` variables, and
 `convex/http.ts` imports `.convex-hosting/version.js` and the server build `dist/server/server.js`.
 Only a deploy creates them. That first run has done its part once Convex has signed you in and
 written `.env.local`. Stop it and run:
@@ -79,8 +79,8 @@ written `.env.local`. Stop it and run:
 pnpm run deploy:dev
 ```
 
-It builds the app, creates the Convex Auth keys, sets the `HUB_` variables to their off values,
-uploads the files to the development deployment, writes the version file, and pushes. From then
+It builds the app, creates the Convex Auth keys, sets the `IDENTITY_HUB_` variables to their off
+values, uploads the files to the development deployment, writes the version file, and pushes. From then
 on `pnpm run dev` works as usual.
 
 The core workflow runs on macOS, Linux, and Windows. See
@@ -88,13 +88,13 @@ The core workflow runs on macOS, Linux, and Windows. See
 
 ## Checks, builds, and deploys
 
-| Command               | Purpose                                                                |
-| --------------------- | ---------------------------------------------------------------------- |
-| `pnpm run check`      | Format, lint, type-check, and test                                     |
-| `pnpm run build`      | Run the checks and build the app into `dist/client`                    |
-| `pnpm run deploy:dev` | Build, upload, and push to the development deployment                  |
-| `pnpm run hub`        | Give the selected development deployment a hub client (Google sign-in) |
-| `pnpm run deploy`     | Build, upload, and push to production, or to the key's deployment      |
+| Command                            | Purpose                                                                |
+| ---------------------------------- | ---------------------------------------------------------------------- |
+| `pnpm run check`                   | Format, lint, type-check, and test                                     |
+| `pnpm run build`                   | Run the checks and build the app into `dist/client`                    |
+| `pnpm run deploy:dev`              | Build, upload, and push to the development deployment                  |
+| `pnpm run identity-hub:dev-client` | Give the selected development deployment a hub client (Google sign-in) |
+| `pnpm run deploy`                  | Build, upload, and push to production, or to the key's deployment      |
 
 The build prerenders `/about` with the Convex client, so it needs `VITE_CONVEX_URL` in `.env.local`,
 which the first `pnpm run dev` writes; CI passes a placeholder.
@@ -127,7 +127,7 @@ pnpm exec alchemy destroy --stage my-preview
 `pnpm run deploy` runs `npx convex deploy` with the checks, the build, and the upload as its
 `--cmd`, so a failed check stops the release before the push switches the site. Inside that build,
 `scripts/ensure-convex-auth.ts` creates the Convex Auth keys on a new deployment or preview, sets
-each missing `HUB_` variable to its off value, and keeps every value that exists; it stops the deploy when the deployment it selects is not the one that the
+each missing `IDENTITY_HUB_` variable to its off value, and keeps every value that exists; it stops the deploy when the deployment it selects is not the one that the
 deploy targets. Deploy with `pnpm run deploy`, never with a plain `npx convex deploy`: a plain
 push serves the files of the last deploy from this checkout, often another deployment's.
 
@@ -171,11 +171,12 @@ hub's page, which names the app and offers Google and GitHub.
 
 Each deploy from GitHub Actions gets its client, with no Samebase account: `alchemy.run.ts` asks
 Samebase's identity hub with GitHub's token of the run (`id-token: write`) and writes it to the
-variables `HUB_ISSUER`, `HUB_CLIENT_ID`, and `HUB_CLIENT_SECRET`. Without a client, the variables
-hold their off values, `HUB_CLIENT_ID=no-hub`, and the page has only the guest button.
+variables `IDENTITY_HUB_ISSUER`, `IDENTITY_HUB_CLIENT_ID`, and `IDENTITY_HUB_CLIENT_SECRET`.
+Without a client, the variables hold their off values, `IDENTITY_HUB_CLIENT_ID=no-hub`, and the
+page has only the guest button.
 
 In development, the production deploy is the proof. After one deploy to `main` and the first run above,
-run `pnpm run hub --stage dev-<your name>` once. That stage of the stack gives the development deployment that `.env.local` selects a client
+run `pnpm run identity-hub:dev-client --stage dev-<your name>` once. That stage of the stack gives the development deployment that `.env.local` selects a client
 of the hub, with the app's initial access token that the production deploy saved, and writes the
 three variables; it creates nothing and pushes nothing. From then on `pnpm run dev` has the Sign in
 button, and each sign-in keeps the client alive. Run the stage again if the development deployment was unused for
@@ -189,9 +190,9 @@ root, and registers the client on `<site>/auth/hub/callback` only when the id ma
 serves its own id. An app on
 another host or callback path serves the same file at the root of its origin, with the id that
 `gh api repos/<owner>/<name> --jq .id` prints, and passes its own `redirectUri` to
-`Convex.SharedHubClient`.
+`IdentityHub.Client`.
 
-`alchemy.run.ts` sets `HUB_APP` once. The hub derives each user's ID from it, so a new name means new
+`alchemy.run.ts` sets `IDENTITY_HUB_APP` once. The hub derives each user's ID from it, so a new name means new
 users. An account is that ID. Name and email are profile data, and accounts never link by email, so
 a guest who signs in with Google gets a new account.
 

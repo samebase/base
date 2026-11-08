@@ -10,11 +10,13 @@ const CONVEX_CLI_PATH = fileURLToPath(
 
 // The variables of a deployment without a hub client. The OAuth component needs all three, setupOauth
 // accepts this loopback issuer, and the home page hides its Google button for this client id.
-// Convex.SharedHubClient of @samebase/alchemy-convex gives the same values when it has no client.
-const HUB_OFF_VALUES = {
-  HUB_ISSUER: "http://127.0.0.1:1",
-  HUB_CLIENT_ID: "no-hub",
-  HUB_CLIENT_SECRET: "no-hub",
+// IdentityHub.Client of @samebase/alchemy-convex gives the same values when it has no client. A
+// deployment of an earlier version of this app has HUB_ names in their place: setting these before
+// the push lets the new code load, and alchemy.run.ts then removes the HUB_ names.
+const IDENTITY_HUB_OFF_VALUES = {
+  IDENTITY_HUB_ISSUER: "http://127.0.0.1:1",
+  IDENTITY_HUB_CLIENT_ID: "no-hub",
+  IDENTITY_HUB_CLIENT_SECRET: "no-hub",
 };
 
 type RunResult = {
@@ -143,7 +145,7 @@ async function setConvexEnv(
  * value that exists, such as the client that alchemy.run.ts wrote before this push, stays. A list
  * of names is one command for all three and reads no secret.
  */
-export async function ensureHubVariables(
+export async function ensureIdentityHubVariables(
   env: NodeJS.ProcessEnv,
   selectionArgs: string[] = [],
   runConvex: RunConvex = runConvexCli,
@@ -156,7 +158,7 @@ export async function ensureHubVariables(
     throw new Error("Could not list the Convex environment variables.");
   }
   const names = new Set(result.stdout.split(/\r?\n/));
-  for (const [name, value] of Object.entries(HUB_OFF_VALUES)) {
+  for (const [name, value] of Object.entries(IDENTITY_HUB_OFF_VALUES)) {
     if (!names.has(name)) {
       await setConvexEnv(name, value, env, selectionArgs, runConvex);
     }
@@ -209,7 +211,7 @@ export async function ensureConvexAuth(
     console.log("Convex Auth keys configured.");
   }
 
-  await ensureHubVariables(env, selectionArgs, runConvex);
+  await ensureIdentityHubVariables(env, selectionArgs, runConvex);
 }
 
 const entrypoint = process.argv[1];

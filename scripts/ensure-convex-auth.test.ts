@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vite-plus/test";
 import {
   buildConvexCliCommand,
   ensureConvexAuth,
-  ensureHubVariables,
+  ensureIdentityHubVariables,
 } from "./ensure-convex-auth.ts";
 
 const previewEnv = {
@@ -13,12 +13,13 @@ const previewEnv = {
   GITHUB_HEAD_REF: "nicu-preview-smoke",
 };
 
-const HUB_NAMES = "HUB_CLIENT_ID\nHUB_CLIENT_SECRET\nHUB_ISSUER\n";
+const IDENTITY_HUB_NAMES =
+  "IDENTITY_HUB_CLIENT_ID\nIDENTITY_HUB_CLIENT_SECRET\nIDENTITY_HUB_ISSUER\n";
 
 /** A deployment that has both auth keys and the three hub variables. */
 const configured = (args: string[]) => ({
   code: 0,
-  stdout: args[1] === "list" ? HUB_NAMES : "configured",
+  stdout: args[1] === "list" ? IDENTITY_HUB_NAMES : "configured",
   stderr: "",
 });
 
@@ -190,9 +191,9 @@ describe("ensure-convex-auth", () => {
 
     expect(calls.slice(2)).toEqual([
       ["env", "list", "--names-only", "--prod"],
-      ["env", "set", "--prod", "--", "HUB_ISSUER", "http://127.0.0.1:1"],
-      ["env", "set", "--prod", "--", "HUB_CLIENT_ID", "no-hub"],
-      ["env", "set", "--prod", "--", "HUB_CLIENT_SECRET", "no-hub"],
+      ["env", "set", "--prod", "--", "IDENTITY_HUB_ISSUER", "http://127.0.0.1:1"],
+      ["env", "set", "--prod", "--", "IDENTITY_HUB_CLIENT_ID", "no-hub"],
+      ["env", "set", "--prod", "--", "IDENTITY_HUB_CLIENT_SECRET", "no-hub"],
     ]);
   });
 
@@ -204,9 +205,9 @@ describe("ensure-convex-auth", () => {
     });
 
     expect(calls.slice(3).map((args) => args.slice(0, 6))).toEqual([
-      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "HUB_ISSUER"],
-      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "HUB_CLIENT_ID"],
-      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "HUB_CLIENT_SECRET"],
+      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "IDENTITY_HUB_ISSUER"],
+      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "IDENTITY_HUB_CLIENT_ID"],
+      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "IDENTITY_HUB_CLIENT_SECRET"],
     ]);
   });
 
@@ -219,22 +220,41 @@ describe("ensure-convex-auth", () => {
 
   it("sets only the hub variables that are missing", async () => {
     const calls: string[][] = [];
-    await ensureHubVariables({}, [], async (args) => {
+    await ensureIdentityHubVariables({}, [], async (args) => {
       calls.push(args);
-      return { code: 0, stdout: "AUTH_JWKS\r\nHUB_CLIENT_ID\r\n", stderr: "" };
+      return { code: 0, stdout: "AUTH_JWKS\r\nIDENTITY_HUB_CLIENT_ID\r\n", stderr: "" };
     });
 
     expect(calls).toEqual([
       ["env", "list", "--names-only"],
-      ["env", "set", "--", "HUB_ISSUER", "http://127.0.0.1:1"],
-      ["env", "set", "--", "HUB_CLIENT_SECRET", "no-hub"],
+      ["env", "set", "--", "IDENTITY_HUB_ISSUER", "http://127.0.0.1:1"],
+      ["env", "set", "--", "IDENTITY_HUB_CLIENT_SECRET", "no-hub"],
+    ]);
+  });
+
+  it("sets the new names on a deployment of an earlier version that has only HUB_ names", async () => {
+    const calls: string[][] = [];
+    await ensureIdentityHubVariables({}, [], async (args) => {
+      calls.push(args);
+      return {
+        code: 0,
+        stdout: "AUTH_JWKS\nHUB_CLIENT_ID\nHUB_CLIENT_SECRET\nHUB_ISSUER\n",
+        stderr: "",
+      };
+    });
+
+    expect(calls).toEqual([
+      ["env", "list", "--names-only"],
+      ["env", "set", "--", "IDENTITY_HUB_ISSUER", "http://127.0.0.1:1"],
+      ["env", "set", "--", "IDENTITY_HUB_CLIENT_ID", "no-hub"],
+      ["env", "set", "--", "IDENTITY_HUB_CLIENT_SECRET", "no-hub"],
     ]);
   });
 
   it("writes no hub variable when the list fails", async () => {
     const calls: string[][] = [];
     await expect(
-      ensureHubVariables({}, [], async (args) => {
+      ensureIdentityHubVariables({}, [], async (args) => {
         calls.push(args);
         return { code: 1, stdout: "", stderr: "List failed" };
       }),

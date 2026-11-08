@@ -2,7 +2,8 @@
 //
 // - `prod` is the production deployment of the Convex project of this repository. It owns the
 //   project, and `alchemy destroy --stage prod` deletes the project with every deployment.
-// - `dev-<name>` is a development checkout: `pnpm run hub --stage dev-<name>` runs it on purpose,
+// - `dev-<name>` is a development checkout: `pnpm run identity-hub:dev-client --stage dev-<name>`
+//   runs it on purpose,
 //   with the Convex CLI login, on the development deployment that `.env.local` selects
 //   (CONVEX_DEPLOYMENT, written by `convex dev`). It takes that deployment over, never creates a
 //   project, and `alchemy destroy --stage dev-<name>` deletes its hub client and keeps the
@@ -30,13 +31,18 @@
 // the client, and the push cannot take the client in `env`. So "Deployment" pushes and sets
 // SAMEBASE_REPOSITORY_ID, the client takes the site's URL, and "Site" takes the same deployment over
 // with adopt(true) and writes the client's three variables with no push. "Site" removes only the
-// names that leave its own `env`, so the repository id stays. Without a client, such as in
+// names that leave its own `env`, so the repository id stays. The push of "Deployment" sets the off
+// values of the client's variables when they are missing (scripts/ensure-convex-auth.ts), so a
+// deployment of an earlier version with the HUB_ names takes the IDENTITY_HUB_ names in one deploy:
+// the new code loads with the off values, and "Site" then writes the client and removes the HUB_
+// names. Without a client, such as in
 // development before the first deploy to main, the variables hold the off values and the app has
 // guest sign-in.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
 import * as Convex from "@samebase/alchemy-convex";
+import * as IdentityHub from "@samebase/alchemy-convex/identity-hub";
 import * as Alchemy from "alchemy";
 import { adopt } from "alchemy/AdoptPolicy";
 import * as Output from "alchemy/Output";
@@ -56,7 +62,7 @@ const envLocal = (() => {
  * The name of this app at the identity hub, set once. The hub derives the ID of each user from it,
  * so it must never change: a new name means new users.
  */
-const HUB_APP = "app";
+const IDENTITY_HUB_APP = "app";
 
 /**
  * The identity hub that gives this app its clients: Samebase's. A hub of your own, such as a copy of
@@ -108,7 +114,7 @@ export default Alchemy.Stack(
       // A development checkout, after one deploy to main and after `npx convex dev` made and
       // selected a dev deployment and pushed the code. This stage gives that deployment its hub
       // client and nothing else: no new deployment, no push. It is run on purpose,
-      // `pnpm run hub --stage dev-<name>`, and a Google sign-in keeps the client alive, so a
+      // `pnpm run identity-hub:dev-client --stage dev-<name>`, and a Google sign-in keeps the client alive, so a
       // checkout in use never needs it again.
       const selected = envLocal["CONVEX_DEPLOYMENT"]?.replace(/^(dev|prod):/, "");
       if (!selected) {
@@ -116,7 +122,7 @@ export default Alchemy.Stack(
       }
       const project = yield* Convex.Project.ref("Project", { stage: "prod" });
       // The initial access token and the repository id, which the production deploy saved.
-      const production = Convex.SharedHubClient.read("HubClient", { stage: "prod" });
+      const production = IdentityHub.Client.read("HubClient", { stage: "prod" });
       // The site must serve /samebase-verification.json before the hub registers the client.
       const site = yield* Convex.Deployment("Verification", {
         project,
@@ -124,24 +130,24 @@ export default Alchemy.Stack(
         name: selected,
         env: { SAMEBASE_REPOSITORY_ID: production.repository },
       }).pipe(adopt(true));
-      const client = yield* Convex.SharedHubClient("HubClient", {
-        app: HUB_APP,
+      const client = yield* IdentityHub.Client("HubClient", {
+        app: IDENTITY_HUB_APP,
         hub: HUB,
         connectors: ["google-apps", "github-apps"],
         redirectUri: Output.interpolate`${site.siteUrl}/auth/hub/callback`,
         deploymentType: "development",
         initialAccessToken: production.initialAccessToken,
       });
-      const variables = Convex.SharedHubClient.variables(client);
+      const variables = IdentityHub.Client.variables(client);
       // Both rows keep the default removal policy `retain`: a destroy deletes only the hub client.
       yield* Convex.Deployment("Site", {
         project,
         type: "dev",
         name: selected,
         env: {
-          HUB_ISSUER: variables.issuer,
-          HUB_CLIENT_ID: variables.clientId,
-          HUB_CLIENT_SECRET: variables.clientSecret,
+          IDENTITY_HUB_ISSUER: variables.issuer,
+          IDENTITY_HUB_CLIENT_ID: variables.clientId,
+          IDENTITY_HUB_CLIENT_SECRET: variables.clientSecret,
         },
       }).pipe(adopt(true));
 
@@ -174,8 +180,8 @@ export default Alchemy.Stack(
             source,
             ...verification,
           }).pipe(adopt(true), RemovalPolicy.destroy());
-    const client = yield* Convex.SharedHubClient("HubClient", {
-      app: HUB_APP,
+    const client = yield* IdentityHub.Client("HubClient", {
+      app: IDENTITY_HUB_APP,
       hub: HUB,
       connectors: ["google-apps", "github-apps"],
       redirectUri: Output.interpolate`${deployment.siteUrl}/auth/hub/callback`,
@@ -183,11 +189,11 @@ export default Alchemy.Stack(
       ...(softwareVersion === undefined ? {} : { softwareVersion }),
     });
     // The client's values, or the off values while the hub suspends the client.
-    const variables = Convex.SharedHubClient.variables(client);
+    const variables = IdentityHub.Client.variables(client);
     const env = {
-      HUB_ISSUER: variables.issuer,
-      HUB_CLIENT_ID: variables.clientId,
-      HUB_CLIENT_SECRET: variables.clientSecret,
+      IDENTITY_HUB_ISSUER: variables.issuer,
+      IDENTITY_HUB_CLIENT_ID: variables.clientId,
+      IDENTITY_HUB_CLIENT_SECRET: variables.clientSecret,
     };
     // A Convex.Deployment with `env` and no source writes the variables and pushes nothing.
     const site =

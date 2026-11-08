@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
       // @ts-expect-error convexQuery always sets queryFn, but its type allows undefined there, which `query` rejects under exactOptionalPropertyTypes.
       context.queryClient.query(convexQuery(api.todos.list, {})),
       // @ts-expect-error The same as above.
-      context.queryClient.query(convexQuery(api.hub.hubSignInEnabled, {})),
+      context.queryClient.query(convexQuery(api.identityHub.hubSignInEnabled, {})),
     ]);
   },
   component: TodoPage,
@@ -43,7 +43,9 @@ function TodoPage() {
   const {
     data: { todos, viewerTodoCount },
   } = useSuspenseQuery(convexQuery(api.todos.list, {}));
-  const { data: hubSignInEnabled } = useSuspenseQuery(convexQuery(api.hub.hubSignInEnabled, {}));
+  const { data: hubSignInEnabled } = useSuspenseQuery(
+    convexQuery(api.identityHub.hubSignInEnabled, {}),
+  );
   const todoLimitReached = viewerTodoCount !== null && viewerTodoCount >= TODO_LIMIT;
 
   useEffect(() => {
