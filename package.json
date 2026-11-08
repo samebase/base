@@ -54,7 +54,7 @@
   },
   "devDependencies": {
     "@effect/platform-node": "4.1.2",
-    "@samebase/alchemy-convex": "0.34.0",
+    "@samebase/alchemy-convex": "0.35.0",
     "@tanstack/router-plugin": "1.168.48",
     "@types/node": "26.6.6",
     "@types/react": "19.3.0",
