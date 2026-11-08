@@ -20,13 +20,13 @@ const hub: ReturnType<typeof setupOauth> = setupOauth(
   auth,
   "hub",
   {
-    authorizationEndpoint: `${env.HUB_ISSUER}/authorize`,
-    tokenEndpoint: `${env.HUB_ISSUER}/token`,
-    issuer: env.HUB_ISSUER,
+    authorizationEndpoint: `${env.IDENTITY_HUB_ISSUER}/authorize`,
+    tokenEndpoint: `${env.IDENTITY_HUB_ISSUER}/token`,
+    issuer: env.IDENTITY_HUB_ISSUER,
     scopes: ["openid", "email", "profile"],
     profile: normalizeGoogleProfile,
   },
-  { createUser: internal.hub.createUser },
+  { createUser: internal.identityHub.createUser },
   // The sign-in returns to the page that started it: on the site of this deployment, or on a
   // development server, at the port it chose when it started (any port of a loopback host, the
   // Samebase patch of Convex Auth in patches/).
@@ -35,5 +35,5 @@ const hub: ReturnType<typeof setupOauth> = setupOauth(
     allowedRedirectOrigins: [env.CONVEX_SITE_URL, "http://localhost", "http://127.0.0.1"],
   },
 );
-export const startSignInWithHub = hub.startSignIn;
-export const completeSignInWithHub = hub.completeSignIn;
+export const startSignInWithIdentityHub = hub.startSignIn;
+export const completeSignInWithIdentityHub = hub.completeSignIn;

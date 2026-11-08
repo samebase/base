@@ -12,8 +12,8 @@ import { Button } from "#components/ui/button";
 export function HubSignIn() {
   const { signIn } = useOauthSignIn({
     providerName: "hub",
-    startSignIn: api.auth.startSignInWithHub,
-    completeSignIn: api.auth.completeSignInWithHub,
+    startSignIn: api.auth.startSignInWithIdentityHub,
+    completeSignIn: api.auth.completeSignInWithIdentityHub,
   });
   const { flowError } = useOauth();
   const [isPending, setIsPending] = useState(false);

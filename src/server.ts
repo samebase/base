@@ -21,7 +21,7 @@ export default {
         convexUrl,
         refreshSession: api.auth.refreshSession,
         signOut: api.auth.signOut,
-        signIn: [api.auth.signInAnonymously, api.auth.completeSignInWithHub],
+        signIn: [api.auth.signInAnonymously, api.auth.completeSignInWithIdentityHub],
         cookieOptions,
       });
       switch (url.pathname) {

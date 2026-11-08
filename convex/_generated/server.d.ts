@@ -32,9 +32,9 @@ type Env = {
   readonly CONVEX_SITE_URL: string;
   readonly AUTH_JWKS: string;
   readonly AUTH_PRIVATE_KEY: string;
-  readonly HUB_CLIENT_ID: string;
-  readonly HUB_CLIENT_SECRET: string;
-  readonly HUB_ISSUER: string;
+  readonly IDENTITY_HUB_CLIENT_ID: string;
+  readonly IDENTITY_HUB_CLIENT_SECRET: string;
+  readonly IDENTITY_HUB_ISSUER: string;
   readonly SAMEBASE_REPOSITORY_ID: string | undefined;
 };
 

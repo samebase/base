@@ -33,6 +33,6 @@ export const hubSignInEnabled = query({
   args: {},
   returns: boolean(),
   handler: async () => {
-    return Boolean(env.HUB_CLIENT_ID) && env.HUB_CLIENT_ID !== "no-hub";
+    return Boolean(env.IDENTITY_HUB_CLIENT_ID) && env.IDENTITY_HUB_CLIENT_ID !== "no-hub";
   },
 });

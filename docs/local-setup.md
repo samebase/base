@@ -42,7 +42,7 @@ Open the local URL printed by Vite.
 ## First run
 
 On a fresh clone, the first push of `pnpm run dev` fails: `convex/convex.config.ts` requires the
-Convex Auth keys `AUTH_PRIVATE_KEY` and `AUTH_JWKS` and the three `HUB_` variables, and
+Convex Auth keys `AUTH_PRIVATE_KEY` and `AUTH_JWKS` and the three `IDENTITY_HUB_` variables, and
 `convex/http.ts` imports `.convex-hosting/version.js` and the server build `dist/server/server.js`.
 Only a deploy creates them. Keep `pnpm run dev` running, because a local backend runs inside it, and run this in a
 second terminal:
@@ -51,7 +51,7 @@ second terminal:
 pnpm run deploy:dev
 ```
 
-It builds the app, creates the Convex Auth keys, sets the `HUB_` variables to their off values,
+It builds the app, creates the Convex Auth keys, sets the `IDENTITY_HUB_` variables to their off values,
 uploads the files to the development deployment, writes the version file, and pushes. Then stop `pnpm run dev` and start it again; it works as usual
 from then on. Run `pnpm run deploy:dev` again whenever you want the development deployment's
 `.convex.site` URL to serve the current build.

@@ -12,7 +12,7 @@ import type * as account from "../account.js";
 import type * as auth from "../auth.js";
 import type * as guests from "../guests.js";
 import type * as http from "../http.js";
-import type * as hub from "../hub.js";
+import type * as identityHub from "../identityHub.js";
 import type * as samebaseVerification from "../samebaseVerification.js";
 import type * as todos from "../todos.js";
 
@@ -27,7 +27,7 @@ declare const fullApi: ApiFromModules<{
   auth: typeof auth;
   guests: typeof guests;
   http: typeof http;
-  hub: typeof hub;
+  identityHub: typeof identityHub;
   samebaseVerification: typeof samebaseVerification;
   todos: typeof todos;
 }>;
