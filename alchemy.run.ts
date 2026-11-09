@@ -21,9 +21,9 @@
 // names its team; with the Convex CLI login, the team is the team of the deployment that .env.local
 // selects.
 //
-// Each deployment asks Samebase for a client of the identity hub, for Google and GitHub sign-in
-// through the hub's public connectors, `google-apps` and `github-apps`, which every app may use and
-// which name the app "Samebase" at Google and GitHub. Production and
+// Each deployment asks Samebase's public identity hub for a client, for Google and GitHub sign-in
+// through its connectors `google` and `github`, which name the app "Samebase" at Google and
+// GitHub. Production and
 // previews prove the repository with the GitHub OIDC token of the run (`id-token: write` in the
 // workflows). A `dev-` stage uses the app's initial access token, which the production registration
 // saved in the state of `prod`. Samebase reads /samebase-verification.json on the site, which
@@ -59,17 +59,17 @@ const envLocal = (() => {
 })();
 
 /**
- * The name of this app at the identity hub, set once. The hub derives the ID of each user from it,
- * so it must never change: a new name means new users.
+ * The name of this app at the identity hub. The hub keeps the clients of each repository and name
+ * together. A user's ID is the provider's own, such as `google:<id>`, so a new name keeps the users.
  */
 const IDENTITY_HUB_APP = "app";
 
 /**
- * The identity hub that gives this app its clients: Samebase's. A hub of your own, such as a copy of
- * samebase/samebase's apps/identity-hub, goes here, with its issuer and the terms of its sign-in
- * service; it must also offer the connectors `google-apps` and `github-apps`.
+ * The identity hub that gives this app its clients: Samebase's public hub, deployed from
+ * samebase/identity-hub. A hub of your own made from that template goes here, with its issuer and
+ * the terms of its sign-in service.
  */
-const HUB = { issuer: "https://auth.samebase.com", terms: "https://samebase.com/terms" };
+const HUB = { issuer: "https://id.samebase.com", terms: "https://samebase.com/terms" };
 
 /** The commit of this run, which the hub records on a new client. */
 const softwareVersion = process.env["GITHUB_SHA"];
@@ -133,7 +133,7 @@ export default Alchemy.Stack(
       const client = yield* IdentityHub.Client("HubClient", {
         app: IDENTITY_HUB_APP,
         hub: HUB,
-        connectors: ["google-apps", "github-apps"],
+        connectors: ["google", "github"],
         redirectUri: Output.interpolate`${site.siteUrl}/auth/hub/callback`,
         deploymentType: "development",
         initialAccessToken: production.initialAccessToken,
@@ -183,7 +183,7 @@ export default Alchemy.Stack(
     const client = yield* IdentityHub.Client("HubClient", {
       app: IDENTITY_HUB_APP,
       hub: HUB,
-      connectors: ["google-apps", "github-apps"],
+      connectors: ["google", "github"],
       redirectUri: Output.interpolate`${deployment.siteUrl}/auth/hub/callback`,
       deploymentType: stage === "prod" ? "production" : "preview",
       ...(softwareVersion === undefined ? {} : { softwareVersion }),
