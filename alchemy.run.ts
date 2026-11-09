@@ -59,12 +59,6 @@ const envLocal = (() => {
 })();
 
 /**
- * The name of this app at the identity hub. The hub keeps the clients of each repository and name
- * together. A user's ID is the provider's own, such as `google:<id>`, so a new name keeps the users.
- */
-const IDENTITY_HUB_APP = "app";
-
-/**
  * The identity hub that gives this app its clients: Samebase's public hub, deployed from
  * samebase/identity-hub. A hub of your own made from that template goes here, by its issuer.
  */
@@ -121,7 +115,7 @@ export default Alchemy.Stack(
       }
       const project = yield* Convex.Project.ref("Project", { stage: "prod" });
       // The initial access token and the repository id, which the production deploy saved.
-      const production = IdentityHub.Client.read("HubClient", { stage: "prod" });
+      const production = IdentityHub.Client.read("IdentityHubClient", { stage: "prod" });
       // The site must serve /samebase-verification.json before the hub registers the client.
       const site = yield* Convex.Deployment("Verification", {
         project,
@@ -129,11 +123,10 @@ export default Alchemy.Stack(
         name: selected,
         env: { SAMEBASE_REPOSITORY_ID: production.repository },
       }).pipe(adopt(true));
-      const client = yield* IdentityHub.Client("HubClient", {
-        app: IDENTITY_HUB_APP,
+      const client = yield* IdentityHub.Client("IdentityHubClient", {
         hub: HUB,
         connectors: ["google", "github"],
-        redirectUri: Output.interpolate`${site.siteUrl}/auth/hub/callback`,
+        redirectUris: [Output.interpolate`${site.siteUrl}/auth/hub/callback`],
         deploymentType: "development",
         initialAccessToken: production.initialAccessToken,
       });
@@ -179,11 +172,10 @@ export default Alchemy.Stack(
             source,
             ...verification,
           }).pipe(adopt(true), RemovalPolicy.destroy());
-    const client = yield* IdentityHub.Client("HubClient", {
-      app: IDENTITY_HUB_APP,
+    const client = yield* IdentityHub.Client("IdentityHubClient", {
       hub: HUB,
       connectors: ["google", "github"],
-      redirectUri: Output.interpolate`${deployment.siteUrl}/auth/hub/callback`,
+      redirectUris: [Output.interpolate`${deployment.siteUrl}/auth/hub/callback`],
       deploymentType: stage === "prod" ? "production" : "preview",
       ...(softwareVersion === undefined ? {} : { softwareVersion }),
     });
