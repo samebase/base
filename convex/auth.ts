@@ -12,9 +12,10 @@ export const { signInAnonymously } = setupAnonymous(auth, {
   component: components.authAnonymous,
 }).attachUserCallbacks({ createUser: internal.guests.createUser });
 
-// Google sign-in through the identity hub. The hub's id_token has the claims of Google's, and its
-// `sub` is the account key of this method: the hub's id of the user in this app, not Google's. The
-// annotation gives the exports below their types without the call, which reads the type of
+// Google and GitHub sign-in through the identity hub. The hub's id_token has the claims of the
+// provider's, and its `sub`, the account key of this method, is the provider's own id with the
+// provider in front, such as `google:<id>`: the same at every hub, so the app keeps its users when
+// it moves to another hub. The annotation gives the exports below their types without the call, which reads the type of
 // `internal`, which contains this module.
 const hub: ReturnType<typeof setupOauth> = setupOauth(
   auth,
