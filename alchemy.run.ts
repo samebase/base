@@ -66,10 +66,9 @@ const IDENTITY_HUB_APP = "app";
 
 /**
  * The identity hub that gives this app its clients: Samebase's public hub, deployed from
- * samebase/identity-hub. A hub of your own made from that template goes here, with its issuer and
- * the terms of its sign-in service.
+ * samebase/identity-hub. A hub of your own made from that template goes here, by its issuer.
  */
-const HUB = { issuer: "https://id.samebase.com", terms: "https://samebase.com/terms" };
+const HUB = { issuer: "https://id.samebase.com" };
 
 /** The commit of this run, which the hub records on a new client. */
 const softwareVersion = process.env["GITHUB_SHA"];
