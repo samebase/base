@@ -189,12 +189,12 @@ The site serves `/samebase-verification.json` with the repository's numeric id,
 root, and registers the client on `<site>/auth/hub/callback` only when the id matches. A fork
 serves its own id. An app on
 another host or callback path serves the same file at the root of its origin, with the id that
-`gh api repos/<owner>/<name> --jq .id` prints, and passes its own `redirectUri` to
+`gh api repos/<owner>/<name> --jq .id` prints, and lists its own address in `redirectUris` of
 `IdentityHub.Client`.
 
-`alchemy.run.ts` sets `IDENTITY_HUB_APP` once. The hub derives each user's ID from it, so a new name means new
-users. An account is that ID. Name and email are profile data, and accounts never link by email, so
-a guest who signs in with Google gets a new account.
+The app's name at the hub is the stack's, `app` for a stack named after its repository. A user's ID
+is the provider's own, such as `google:<id>`. An account is that ID. Name and email are profile
+data, and accounts never link by email, so a guest who signs in with Google gets a new account.
 
 The hub is a shared service under [Samebase's terms](https://samebase.com/terms), and Samebase can
 block a repository or an owner that misuses it. To run your own instead, host
