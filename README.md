@@ -36,14 +36,12 @@ in. Here each deploy registers its own URL at
 as proof of the repository. One resource in `alchemy.run.ts` does it:
 
 ```ts
-const client =
-  yield *
-  IdentityHub.Client("IdentityHubClient", {
-    hub: { issuer: "https://id.samebase.com" },
-    connectors: ["google", "github"],
-    redirectUris: [Output.interpolate`${deployment.siteUrl}/auth/hub/callback`],
-    deploymentType: stage === "prod" ? "production" : "preview",
-  });
+IdentityHub.Client("IdentityHubClient", {
+  hub: { issuer: "https://id.samebase.com" },
+  connectors: ["google", "github"],
+  redirectUris: [Output.interpolate`${deployment.siteUrl}/auth/hub/callback`],
+  deploymentType: stage === "prod" ? "production" : "preview",
+});
 ```
 
 Accounts live in your app: a user is `google:<id>`, and **Delete account** removes them. Guest
