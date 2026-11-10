@@ -91,5 +91,6 @@ troubleshooting on macOS, Linux, and Windows.
 
 ## License
 
-[Apache License 2.0](./LICENSE). See [`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md) for
+[MIT](./LICENSE). Copy it, change it, ship it; keep the copyright line. See
+[`THIRD_PARTY_NOTICES.md`](./THIRD_PARTY_NOTICES.md) for
 included third-party material.
