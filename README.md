@@ -1,14 +1,14 @@
-# Samebase base
+# base
 
-One secret, one push: a React app on Convex with Google sign-in, pull request previews, and a
-real-time backend, in your own Convex team. No Samebase account.
+**Google sign-in that works on every pull request preview.** A starter for apps on
+[Convex](https://convex.dev), deployed by [Alchemy](https://alchemy.run) with one secret. No Google
+Cloud project, no OAuth client, no Samebase account.
 
-![Use the template, add the secret CONVEX_ACCESS_TOKEN, run the deploy workflow, sign in with Google at the hub's page, which names the repository.](./docs/readme/deploy.gif)
+![The comment that a deploy leaves on a pull request, with the preview's URL and "Sign-in with github, google: on", beside the sign-in page of that preview, which names the repository.](./docs/readme/preview-sign-in.png)
 
 [**Use this template**](https://github.com/samebase/base/generate) ·
 [Live demo](https://ideal-bandicoot-981.convex.site) ·
-[How sign-in works](https://github.com/samebase/identity-hub#readme) ·
-[samebase.com](https://samebase.com)
+[The other parts](https://github.com/samebase)
 
 ## Start
 
@@ -23,31 +23,52 @@ That is the whole setup. The first run creates the Convex project, named after t
 its production deployment. From then on every push to `main` deploys, and every pull request gets a
 preview deployment with its URL in a comment, deleted when the pull request closes.
 
-**Sign in with Google** works on the first deploy. The run registers its own sign-in client at
-[Samebase's identity hub](https://github.com/samebase/identity-hub) with GitHub's token of the run,
-so you create no Google project and no account anywhere. Accounts live in your app: a user is
-`google:<id>`, and **Delete account** removes them.
+![Use the template, add the secret CONVEX_ACCESS_TOKEN, run the deploy workflow, sign in with Google at the hub's page, which names the repository.](./docs/readme/deploy.gif)
 
 If the team already has a project with the repository's name, such as one that `pnpm run dev`
 created, the first run stops. Run it once with **adopt**: `gh workflow run alchemy.yml -f adopt=true`.
 
-## What you get
+## The whole sign-in setup
 
-- **React 19 and TanStack Start**, with pages rendered on the server, and shadcn/ui.
-- **Convex** for the real-time backend and database, and Convex Auth for guest sign-in and Google
-  sign-in, with the session in an httpOnly cookie, so signed-in pages render on the server.
-- **One host.** The Convex deployment serves the app's files too, through
-  [convex-hosting](https://github.com/samebase/convex-hosting). There is no second service to set
-  up or pay for.
-- **Deploys with [Alchemy](https://alchemy.run)** and
+Google and GitHub want each callback URL registered by hand, so a preview with a new URL cannot sign
+in. Here each deploy registers its own URL at
+[Samebase's identity hub](https://github.com/samebase/identity-hub), with GitHub's token of the run
+as proof of the repository. One resource in `alchemy.run.ts` does it:
+
+```ts
+IdentityHub.Client("IdentityHubClient", {
+  hub: { issuer: "https://id.samebase.com" },
+  connectors: ["google", "github"],
+  redirectUris: [Output.interpolate`${deployment.siteUrl}/auth/hub/callback`],
+  deploymentType: stage === "prod" ? "production" : "preview",
+});
+```
+
+Accounts live in your app: a user is `google:<id>`, and **Delete account** removes them. Guest
+sign-in works without the hub.
+
+## What is fixed, and what is yours
+
+Two things are fixed:
+
+- **Convex** runs the real-time backend and the database, and serves the app's files and its
+  server-rendered pages through [convex-hosting](https://github.com/samebase/convex-hosting). There
+  is no second host to set up or pay for.
+- **[Alchemy](https://alchemy.run)** deploys it from one file, `alchemy.run.ts`, with
   [@samebase/alchemy-convex](https://github.com/samebase/samebase/tree/main/packages/alchemy-convex):
   `main` to the stage `prod`, each pull request to `pr-<number>`. No deploy key is stored anywhere;
   each run mints a short-lived one from the team token.
-- **An example app**: a public todo list. Guests sign in with one click, see updates in real time,
-  and scan a QR code to open the list on another device.
-- **Vite+** for dev, format, lint, test, and build. Node.js 24. Renovate keeps the versions fresh.
 
-The same app without Alchemy is [samebase/base-hosting](https://github.com/samebase/base-hosting).
+The rest is a starting point:
+
+- **The interface** is React 19 with TanStack Start and shadcn/ui, with pages rendered on the
+  server. It is the replaceable part: an agent can rewrite it for another framework.
+- **Sign-in** is Convex Auth, with the session in an httpOnly cookie, so signed-in pages render on
+  the server.
+- **The example app** is a public todo list. Guests sign in with one click, see updates in real
+  time, and scan a QR code to open the list on another device.
+- **The tools** are Vite+ for dev, format, lint, test, and build, Node.js 24, and Renovate for the
+  versions.
 
 ## Local development
 
