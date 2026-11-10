@@ -2,7 +2,7 @@
   "name": "samebase-base",
   "version": "0.0.0",
   "private": true,
-  "license": "Apache-2.0",
+  "license": "MIT",
   "type": "module",
   "imports": {
     "#components/*": "./src/components/*.tsx",
