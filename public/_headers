@@ -1,0 +1,4 @@
+# Vite names every file in assets/ after its content, so a browser and Convex's front may keep one
+# for a year. Without this rule, every request for one runs the site's HTTP action.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
