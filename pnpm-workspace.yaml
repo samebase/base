@@ -42,3 +42,10 @@ peerDependencyRules:
 minimumReleaseAgeExclude:
   # Our own releases, which this repository may install as soon as they are published.
   - "@samebase/*"
+audit:
+  ignore:
+    # TODO(2026-11-18): Remove once picomatch publishes a fix. No patched release exists yet (latest
+    # is 4.0.7). The flaw needs a crafted glob pattern. picomatch only reaches build tooling (the
+    # TanStack Start plugin, tinyglobby, fdir, unplugin), which matches patterns from this
+    # repository's own code and config, not deployed code.
+    - GHSA-fc5q-39xc-vjpf
