@@ -4,7 +4,7 @@ import { v } from "convex/values";
 export default defineSchema({
   // One document for each guest and each Google account. The auth components keep the accounts and
   // sessions. `name` is public. `fullName` and `email` are private profile data, never an identity:
-  // accounts are keyed by the hub's `sub`.
+  // accounts are keyed by the broker's `sub`.
   users: defineTable({
     name: v.string(),
     fullName: v.optional(v.string()),

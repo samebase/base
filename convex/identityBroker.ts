@@ -1,4 +1,5 @@
 import { vGoogleProfile } from "@convex-dev/auth/methods/google/server";
+import { BROKER_DISABLED } from "@samebase/identity-broker/client";
 import { v } from "convex/values";
 import { env, internalMutation, query } from "./_generated/server";
 import { unusedGuestName } from "./guests";
@@ -6,7 +7,7 @@ import { unusedGuestName } from "./guests";
 const { boolean, id, literal, object, string } = v;
 
 /**
- * Convex Auth calls this once for each new hub `sub`. It never looks at the email, so a person with
+ * Convex Auth calls this once for each new broker `sub`. It never looks at the email, so a person with
  * two accounts, such as a guest who then signs in with Google, has two users. `name` is public, as
  * the to-do list shows it to every visitor, so it is a guest name. `fullName` and `email` stay private.
  */
@@ -28,11 +29,13 @@ export const createUser = internalMutation({
   },
 });
 
-/** True when the hub gave this deployment a client. `no-hub` is the client ID of the off values. */
-export const hubSignInEnabled = query({
+/** True when the broker gave this deployment a client. */
+export const brokerSignInEnabled = query({
   args: {},
   returns: boolean(),
   handler: async () => {
-    return Boolean(env.IDENTITY_HUB_CLIENT_ID) && env.IDENTITY_HUB_CLIENT_ID !== "no-hub";
+    return (
+      Boolean(env.IDENTITY_BROKER_CLIENT_ID) && env.IDENTITY_BROKER_CLIENT_ID !== BROKER_DISABLED
+    );
   },
 });

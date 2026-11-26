@@ -23,7 +23,7 @@ That is the whole setup. The first run creates the Convex project, named after t
 its production deployment. From then on every push to `main` deploys, and every pull request gets a
 preview deployment with its URL in a comment, deleted when the pull request closes.
 
-![Use the template, add the secret CONVEX_ACCESS_TOKEN, run the deploy workflow, sign in with Google at the hub's page, which names the repository.](./docs/readme/deploy.gif)
+![Use the template, add the secret CONVEX_ACCESS_TOKEN, run the deploy workflow, sign in with Google at the broker's page, which names the repository.](./docs/readme/deploy.gif)
 
 If the team already has a project with the repository's name, such as one that `pnpm run dev`
 created, the first run stops. Run it once with **adopt**: `gh workflow run alchemy.yml -f adopt=true`.
@@ -32,12 +32,12 @@ created, the first run stops. Run it once with **adopt**: `gh workflow run alche
 
 Google and GitHub want each callback URL registered by hand, so a preview with a new URL cannot sign
 in. Here each deploy registers its own URL at
-[Samebase's identity hub](https://github.com/samebase/identity-hub), with GitHub's token of the run
-as proof of the repository. One resource in `alchemy.run.ts` does it:
+[Samebase's identity broker](https://github.com/samebase/identity-hub), with GitHub's token of the
+run as proof of the repository. One resource in `alchemy.run.ts` does it:
 
 ```ts
-IdentityHub.Client("IdentityHubClient", {
-  hub: { issuer: "https://id.samebase.com" },
+IdentityBroker.Client("IdentityHubClient", {
+  broker: { issuer: "https://id.samebase.com" },
   connectors: ["google", "github"],
   redirectUris: [Output.interpolate`${deployment.siteUrl}/auth/hub/callback`],
   deploymentType: stage === "prod" ? "production" : "preview",
@@ -45,7 +45,7 @@ IdentityHub.Client("IdentityHubClient", {
 ```
 
 Accounts live in your app: a user is `google:<id>`, and **Delete account** removes them. Guest
-sign-in works without the hub.
+sign-in works without the broker.
 
 ## What is fixed, and what is yours
 
@@ -90,24 +90,24 @@ stop it and run `pnpm run deploy:dev` once. It creates the keys, uploads the bui
 then on `pnpm run dev` works as usual.
 
 For the **Sign in** button in development, after the first deploy to `main`, run
-`pnpm run identity-hub:dev-client --stage dev-<your name>` once. It gives the development deployment
-its own hub client. See [`docs/local-setup.md`](./docs/local-setup.md) for the details and
+`pnpm run identity-broker:dev-client --stage dev-<your name>` once. It gives the development
+deployment its own broker client. See [`docs/local-setup.md`](./docs/local-setup.md) for the details and
 troubleshooting on macOS, Linux, and Windows.
 
-| Command                            | Purpose                                               |
-| ---------------------------------- | ----------------------------------------------------- |
-| `pnpm run check`                   | Format, lint, type-check, and test                    |
-| `pnpm run build`                   | Run the checks and build the app into `dist/client`   |
-| `pnpm run deploy:dev`              | Build, upload, and push to the development deployment |
-| `pnpm run identity-hub:dev-client` | Give the development deployment a hub client (Google) |
-| `pnpm run deploy`                  | Build, upload, and push to production                 |
+| Command                               | Purpose                                                  |
+| ------------------------------------- | -------------------------------------------------------- |
+| `pnpm run check`                      | Format, lint, type-check, and test                       |
+| `pnpm run build`                      | Run the checks and build the app into `dist/client`      |
+| `pnpm run deploy:dev`                 | Build, upload, and push to the development deployment    |
+| `pnpm run identity-broker:dev-client` | Give the development deployment a broker client (Google) |
+| `pnpm run deploy`                     | Build, upload, and push to production                    |
 
 ## Learn more
 
 - [How deploys work](./docs/deploys.md): the stages, the state store, local `alchemy deploy`, and
   renaming an old `main` stage to `prod`.
-- [Google sign-in](./docs/google-sign-in.md): the hub, `/samebase-verification.json`, apps on other
-  hosts, the hub's terms, and how to run your own hub.
+- [Google sign-in](./docs/google-sign-in.md): the broker, `/samebase-verification.json`, apps on
+  other hosts, the broker's terms, and how to run your own broker.
 - [Files](./docs/files.md): where things are, and which files are generated.
 
 ## License

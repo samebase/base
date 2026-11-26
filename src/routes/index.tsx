@@ -8,7 +8,7 @@ import { type FormEvent, useEffect, useState } from "react";
 import { api } from "../../convex/_generated/api";
 import type { Id } from "../../convex/_generated/dataModel";
 import { GuestSignIn } from "#components/GuestSignIn";
-import { HubSignIn } from "#components/HubSignIn";
+import { BrokerSignIn } from "#components/BrokerSignIn";
 import { Button } from "#components/ui/button";
 import { Checkbox } from "#components/ui/checkbox";
 import { Input } from "#components/ui/input";
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/")({
       // @ts-expect-error convexQuery always sets queryFn, but its type allows undefined there, which `query` rejects under exactOptionalPropertyTypes.
       context.queryClient.query(convexQuery(api.todos.list, {})),
       // @ts-expect-error The same as above.
-      context.queryClient.query(convexQuery(api.identityHub.hubSignInEnabled, {})),
+      context.queryClient.query(convexQuery(api.identityBroker.brokerSignInEnabled, {})),
     ]);
   },
   component: TodoPage,
@@ -43,8 +43,8 @@ function TodoPage() {
   const {
     data: { todos, viewerTodoCount },
   } = useSuspenseQuery(convexQuery(api.todos.list, {}));
-  const { data: hubSignInEnabled } = useSuspenseQuery(
-    convexQuery(api.identityHub.hubSignInEnabled, {}),
+  const { data: brokerSignInEnabled } = useSuspenseQuery(
+    convexQuery(api.identityBroker.brokerSignInEnabled, {}),
   );
   const todoLimitReached = viewerTodoCount !== null && viewerTodoCount >= TODO_LIMIT;
 
@@ -72,7 +72,7 @@ function TodoPage() {
       <section className="flex flex-col gap-3">
         <h1 className="text-lg">Todo list</h1>
         <SignedOut>
-          {hubSignInEnabled ? <HubSignIn /> : null}
+          {brokerSignInEnabled ? <BrokerSignIn /> : null}
           <GuestSignIn />
         </SignedOut>
         <SignedIn>
