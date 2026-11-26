@@ -3,15 +3,15 @@ import { spawn } from "node:child_process";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 
-import { ensureIdentityHubVariables } from "./ensure-convex-auth.ts";
+import { ensureIdentityBrokerVariables } from "./ensure-convex-auth.ts";
 
 const vitePlusEntrypoint = fileURLToPath(import.meta.resolve("vite-plus/bin"));
 
 export async function runPrimaryDev() {
-  // `convex dev` pushes as soon as it starts, and the push fails while a hub variable is missing.
+  // `convex dev` pushes as soon as it starts, and the push fails while a broker variable is missing.
   // A fresh clone has no deployment to set them on yet, so this fails and the run goes on: the first
   // `pnpm run deploy:dev` sets them (README, First run).
-  await ensureIdentityHubVariables(process.env).catch(() => undefined);
+  await ensureIdentityBrokerVariables(process.env).catch(() => undefined);
 
   const child = spawn(
     process.execPath,

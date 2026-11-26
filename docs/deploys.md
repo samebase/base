@@ -31,7 +31,7 @@ pnpm exec alchemy destroy --stage my-preview
 `pnpm run deploy` runs `npx convex deploy` with the checks, the build, and the upload as its
 `--cmd`, so a failed check stops the release before the push switches the site. Inside that build,
 `scripts/ensure-convex-auth.ts` creates the Convex Auth keys on a new deployment or preview, sets
-each missing `IDENTITY_HUB_` variable to its off value, and keeps every value that exists; it stops
+each missing `IDENTITY_BROKER_` variable to its off value, and keeps every value that exists; it stops
 the deploy when the deployment it selects is not the one that the deploy targets. Deploy with
 `pnpm run deploy`, never with a plain `npx convex deploy`: a plain push serves the files of the last
 deploy from this checkout, often another deployment's.

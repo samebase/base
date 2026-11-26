@@ -2,11 +2,11 @@
 //
 // - `prod` is the production deployment of the Convex project of this repository. It owns the
 //   project, and `alchemy destroy --stage prod` deletes the project with every deployment.
-// - `dev-<name>` is a development checkout: `pnpm run identity-hub:dev-client --stage dev-<name>`
+// - `dev-<name>` is a development checkout: `pnpm run identity-broker:dev-client --stage dev-<name>`
 //   runs it on purpose,
 //   with the Convex CLI login, on the development deployment that `.env.local` selects
 //   (CONVEX_DEPLOYMENT, written by `convex dev`). It takes that deployment over, never creates a
-//   project, and `alchemy destroy --stage dev-<name>` deletes its hub client and keeps the
+//   project, and `alchemy destroy --stage dev-<name>` deletes its broker client and keeps the
 //   deployment.
 // - Any other stage, such as `pr-42` for a pull request, is a preview deployment named after the
 //   stage, which `alchemy destroy` deletes.
@@ -21,7 +21,7 @@
 // names its team; with the Convex CLI login, the team is the team of the deployment that .env.local
 // selects.
 //
-// Each deployment asks Samebase's public identity hub for a client, for Google and GitHub sign-in
+// Each deployment asks Samebase's public identity broker for a client, for Google and GitHub sign-in
 // through its connectors `google` and `github`, which name the app "Samebase" at Google and
 // GitHub. Production and
 // previews prove the repository with the GitHub OIDC token of the run (`id-token: write` in the
@@ -33,21 +33,22 @@
 // with adopt(true) and writes the client's three variables with no push. "Site" removes only the
 // names that leave its own `env`, so the repository id stays. The push of "Deployment" sets the off
 // values of the client's variables when they are missing (scripts/ensure-convex-auth.ts), so a
-// deployment of an earlier version with the HUB_ names takes the IDENTITY_HUB_ names in one deploy:
-// the new code loads with the off values, and "Site" then writes the client and removes the HUB_
-// names. Without a client, such as in
+// deployment of an earlier version with the IDENTITY_HUB_ names takes the IDENTITY_BROKER_ names in
+// one deploy: the new code loads with the off values, and "Site" then writes the client and removes
+// the IDENTITY_HUB_ names. Without a client, such as in
 // development before the first deploy to main, the variables hold the off values and the app has
 // guest sign-in.
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { parseEnv } from "node:util";
 import * as Convex from "@samebase/alchemy-convex";
-import * as IdentityHub from "@samebase/alchemy-convex/identity-hub";
+import * as IdentityBroker from "@samebase/identity-broker/alchemy";
 import * as Alchemy from "alchemy";
 import { adopt } from "alchemy/AdoptPolicy";
 import * as Output from "alchemy/Output";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import * as Effect from "effect/Effect";
+import * as Layer from "effect/Layer";
 
 /** The file of `npx convex dev`: the deployment it selects. */
 const envLocal = (() => {
@@ -59,12 +60,12 @@ const envLocal = (() => {
 })();
 
 /**
- * The identity hub that gives this app its clients: Samebase's public hub, deployed from
- * samebase/identity-hub. A hub of your own made from that template goes here, by its issuer.
+ * The identity broker that gives this app its clients: Samebase's public broker, deployed from
+ * samebase/identity-hub. A broker of your own made from that template goes here, by its issuer.
  */
-const HUB = { issuer: "https://id.samebase.com" };
+const BROKER = { issuer: "https://id.samebase.com" };
 
-/** The commit of this run, which the hub records on a new client. */
+/** The commit of this run, which the broker records on a new client. */
 const softwareVersion = process.env["GITHUB_SHA"];
 
 /** The GitHub repository, `owner/name`: GITHUB_REPOSITORY in Actions, else the origin remote. */
@@ -91,7 +92,7 @@ const verification = repositoryId ? { env: { SAMEBASE_REPOSITORY_ID: repositoryI
 export default Alchemy.Stack(
   repository,
   {
-    providers: Convex.providers(),
+    providers: Layer.mergeAll(Convex.providers(), IdentityBroker.providers()),
     state: Convex.withRunRecord(Convex.state()),
   },
   Effect.gen(function* () {
@@ -105,9 +106,9 @@ export default Alchemy.Stack(
 
     if (stage.startsWith("dev-")) {
       // A development checkout, after one deploy to main and after `npx convex dev` made and
-      // selected a dev deployment and pushed the code. This stage gives that deployment its hub
+      // selected a dev deployment and pushed the code. This stage gives that deployment its broker
       // client and nothing else: no new deployment, no push. It is run on purpose,
-      // `pnpm run identity-hub:dev-client --stage dev-<name>`, and a Google sign-in keeps the client alive, so a
+      // `pnpm run identity-broker:dev-client --stage dev-<name>`, and a Google sign-in keeps the client alive, so a
       // checkout in use never needs it again.
       const selected = envLocal["CONVEX_DEPLOYMENT"]?.replace(/^(dev|prod):/, "");
       if (!selected) {
@@ -115,31 +116,31 @@ export default Alchemy.Stack(
       }
       const project = yield* Convex.Project.ref("Project", { stage: "prod" });
       // The initial access token and the repository id, which the production deploy saved.
-      const production = IdentityHub.Client.read("IdentityHubClient", { stage: "prod" });
-      // The site must serve /samebase-verification.json before the hub registers the client.
+      const production = IdentityBroker.Client.read("IdentityHubClient", { stage: "prod" });
+      // The site must serve /samebase-verification.json before the broker registers the client.
       const site = yield* Convex.Deployment("Verification", {
         project,
         type: "dev",
         name: selected,
         env: { SAMEBASE_REPOSITORY_ID: production.repository },
       }).pipe(adopt(true));
-      const client = yield* IdentityHub.Client("IdentityHubClient", {
-        hub: HUB,
+      const client = yield* IdentityBroker.Client("IdentityHubClient", {
+        broker: BROKER,
         connectors: ["google", "github"],
         redirectUris: [Output.interpolate`${site.siteUrl}/auth/hub/callback`],
         deploymentType: "development",
         initialAccessToken: production.initialAccessToken,
       });
-      const variables = IdentityHub.Client.variables(client);
-      // Both rows keep the default removal policy `retain`: a destroy deletes only the hub client.
+      const variables = IdentityBroker.Client.variables(client);
+      // Both rows keep the default removal policy `retain`: a destroy deletes only the broker client.
       yield* Convex.Deployment("Site", {
         project,
         type: "dev",
         name: selected,
         env: {
-          IDENTITY_HUB_ISSUER: variables.issuer,
-          IDENTITY_HUB_CLIENT_ID: variables.clientId,
-          IDENTITY_HUB_CLIENT_SECRET: variables.clientSecret,
+          IDENTITY_BROKER_ISSUER: variables.issuer,
+          IDENTITY_BROKER_CLIENT_ID: variables.clientId,
+          IDENTITY_BROKER_CLIENT_SECRET: variables.clientSecret,
         },
       }).pipe(adopt(true));
 
@@ -172,19 +173,20 @@ export default Alchemy.Stack(
             source,
             ...verification,
           }).pipe(adopt(true), RemovalPolicy.destroy());
-    const client = yield* IdentityHub.Client("IdentityHubClient", {
-      hub: HUB,
+    // The id "IdentityHubClient" and the path /auth/hub/callback stay: state and clients hold them.
+    const client = yield* IdentityBroker.Client("IdentityHubClient", {
+      broker: BROKER,
       connectors: ["google", "github"],
       redirectUris: [Output.interpolate`${deployment.siteUrl}/auth/hub/callback`],
       deploymentType: stage === "prod" ? "production" : "preview",
       ...(softwareVersion === undefined ? {} : { softwareVersion }),
     });
-    // The client's values, or the off values while the hub suspends the client.
-    const variables = IdentityHub.Client.variables(client);
+    // The client's values, or the off values while the broker suspends the client.
+    const variables = IdentityBroker.Client.variables(client);
     const env = {
-      IDENTITY_HUB_ISSUER: variables.issuer,
-      IDENTITY_HUB_CLIENT_ID: variables.clientId,
-      IDENTITY_HUB_CLIENT_SECRET: variables.clientSecret,
+      IDENTITY_BROKER_ISSUER: variables.issuer,
+      IDENTITY_BROKER_CLIENT_ID: variables.clientId,
+      IDENTITY_BROKER_CLIENT_SECRET: variables.clientSecret,
     };
     // A Convex.Deployment with `env` and no source writes the variables and pushes nothing.
     const site =

@@ -1,11 +1,12 @@
 import process from "node:process";
 
+import { BROKER_DISABLED } from "@samebase/identity-broker/client";
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import {
   buildConvexCliCommand,
   ensureConvexAuth,
-  ensureIdentityHubVariables,
+  ensureIdentityBrokerVariables,
 } from "./ensure-convex-auth.ts";
 
 const previewEnv = {
@@ -13,13 +14,13 @@ const previewEnv = {
   GITHUB_HEAD_REF: "nicu-preview-smoke",
 };
 
-const IDENTITY_HUB_NAMES =
-  "IDENTITY_HUB_CLIENT_ID\nIDENTITY_HUB_CLIENT_SECRET\nIDENTITY_HUB_ISSUER\n";
+const IDENTITY_BROKER_NAMES =
+  "IDENTITY_BROKER_CLIENT_ID\nIDENTITY_BROKER_CLIENT_SECRET\nIDENTITY_BROKER_ISSUER\n";
 
-/** A deployment that has both auth keys and the three hub variables. */
+/** A deployment that has both auth keys and the three broker variables. */
 const configured = (args: string[]) => ({
   code: 0,
-  stdout: args[1] === "list" ? IDENTITY_HUB_NAMES : "configured",
+  stdout: args[1] === "list" ? IDENTITY_BROKER_NAMES : "configured",
   stderr: "",
 });
 
@@ -178,7 +179,7 @@ describe("ensure-convex-auth", () => {
     ]);
   });
 
-  it("sets the off values of the hub on a deployment without them", async () => {
+  it("sets the off values of the broker on a deployment without them", async () => {
     const calls: string[][] = [];
     await ensureConvexAuth(
       {},
@@ -191,9 +192,9 @@ describe("ensure-convex-auth", () => {
 
     expect(calls.slice(2)).toEqual([
       ["env", "list", "--names-only", "--prod"],
-      ["env", "set", "--prod", "--", "IDENTITY_HUB_ISSUER", "http://127.0.0.1:1"],
-      ["env", "set", "--prod", "--", "IDENTITY_HUB_CLIENT_ID", "no-hub"],
-      ["env", "set", "--prod", "--", "IDENTITY_HUB_CLIENT_SECRET", "no-hub"],
+      ["env", "set", "--prod", "--", "IDENTITY_BROKER_ISSUER", "http://127.0.0.1:1"],
+      ["env", "set", "--prod", "--", "IDENTITY_BROKER_CLIENT_ID", BROKER_DISABLED],
+      ["env", "set", "--prod", "--", "IDENTITY_BROKER_CLIENT_SECRET", BROKER_DISABLED],
     ]);
   });
 
@@ -205,9 +206,9 @@ describe("ensure-convex-auth", () => {
     });
 
     expect(calls.slice(3).map((args) => args.slice(0, 6))).toEqual([
-      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "IDENTITY_HUB_ISSUER"],
-      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "IDENTITY_HUB_CLIENT_ID"],
-      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "IDENTITY_HUB_CLIENT_SECRET"],
+      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "IDENTITY_BROKER_ISSUER"],
+      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "IDENTITY_BROKER_CLIENT_ID"],
+      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "IDENTITY_BROKER_CLIENT_SECRET"],
     ]);
   });
 
@@ -218,43 +219,44 @@ describe("ensure-convex-auth", () => {
     expect(runConvex.mock.calls.filter(([args]) => args[1] === "set")).toEqual([]);
   });
 
-  it("sets only the hub variables that are missing", async () => {
+  it("sets only the broker variables that are missing", async () => {
     const calls: string[][] = [];
-    await ensureIdentityHubVariables({}, [], async (args) => {
+    await ensureIdentityBrokerVariables({}, [], async (args) => {
       calls.push(args);
-      return { code: 0, stdout: "AUTH_JWKS\r\nIDENTITY_HUB_CLIENT_ID\r\n", stderr: "" };
+      return { code: 0, stdout: "AUTH_JWKS\r\nIDENTITY_BROKER_CLIENT_ID\r\n", stderr: "" };
     });
 
     expect(calls).toEqual([
       ["env", "list", "--names-only"],
-      ["env", "set", "--", "IDENTITY_HUB_ISSUER", "http://127.0.0.1:1"],
-      ["env", "set", "--", "IDENTITY_HUB_CLIENT_SECRET", "no-hub"],
+      ["env", "set", "--", "IDENTITY_BROKER_ISSUER", "http://127.0.0.1:1"],
+      ["env", "set", "--", "IDENTITY_BROKER_CLIENT_SECRET", BROKER_DISABLED],
     ]);
   });
 
-  it("sets the new names on a deployment of an earlier version that has only HUB_ names", async () => {
+  it("sets the new names on a deployment of an earlier version that has only IDENTITY_HUB_ names", async () => {
     const calls: string[][] = [];
-    await ensureIdentityHubVariables({}, [], async (args) => {
+    await ensureIdentityBrokerVariables({}, [], async (args) => {
       calls.push(args);
       return {
         code: 0,
-        stdout: "AUTH_JWKS\nHUB_CLIENT_ID\nHUB_CLIENT_SECRET\nHUB_ISSUER\n",
+        stdout:
+          "AUTH_JWKS\nIDENTITY_HUB_CLIENT_ID\nIDENTITY_HUB_CLIENT_SECRET\nIDENTITY_HUB_ISSUER\n",
         stderr: "",
       };
     });
 
     expect(calls).toEqual([
       ["env", "list", "--names-only"],
-      ["env", "set", "--", "IDENTITY_HUB_ISSUER", "http://127.0.0.1:1"],
-      ["env", "set", "--", "IDENTITY_HUB_CLIENT_ID", "no-hub"],
-      ["env", "set", "--", "IDENTITY_HUB_CLIENT_SECRET", "no-hub"],
+      ["env", "set", "--", "IDENTITY_BROKER_ISSUER", "http://127.0.0.1:1"],
+      ["env", "set", "--", "IDENTITY_BROKER_CLIENT_ID", BROKER_DISABLED],
+      ["env", "set", "--", "IDENTITY_BROKER_CLIENT_SECRET", BROKER_DISABLED],
     ]);
   });
 
-  it("writes no hub variable when the list fails", async () => {
+  it("writes no broker variable when the list fails", async () => {
     const calls: string[][] = [];
     await expect(
-      ensureIdentityHubVariables({}, [], async (args) => {
+      ensureIdentityBrokerVariables({}, [], async (args) => {
         calls.push(args);
         return { code: 1, stdout: "", stderr: "List failed" };
       }),

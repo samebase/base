@@ -19,7 +19,7 @@ const handler = routeAll({ http, component: components.hosting, assets, worker: 
 for (const path of ["/auth/signin", "/auth/refresh", "/auth/signout"]) {
   http.route({ path, method: "POST", handler });
 }
-// The identity hub reads this file at registration (RFC 129 and 133). An exact route wins over the
+// The identity broker reads this file at registration (RFC 129 and 133). An exact route wins over the
 // catch-all and over an uploaded file, so the variable alone decides the answer.
 http.route({
   path: "/samebase-verification.json",
