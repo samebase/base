@@ -5,7 +5,7 @@ import { Button } from "#components/ui/button";
 
 /**
  * Starts sign-in through the identity broker. The button names no provider: its first stop is the
- * broker's page, which names this app's host and offers Google. The broker sends the browser back
+ * broker's page, which names this app's host and offers Google and GitHub. The broker sends the browser back
  * to this page, which the server renders without a session, and the provider finishes the sign-in
  * there. A gated page cannot be the way back: its server redirect drops the code.
  */

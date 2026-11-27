@@ -30,14 +30,14 @@ created, the first run stops. Run it once with **adopt**: `gh workflow run alche
 
 ## The whole sign-in setup
 
-Google wants each callback URL registered by hand, so a preview with a new URL cannot sign in. Here
-each deployment is its own client at
+Google and GitHub want each callback URL registered by hand, so a preview with a new URL cannot sign
+in. Here each deployment is its own client at
 [Samebase's identity broker](https://github.com/samebase/public-identity-broker),
 `https://login.samebase.com`, with nothing registered and no secret: its client id is the address
 of a file on its own site, `<site>/oauth-client.json`, that lists its callback URL.
 
-Accounts live in your app: a user is `google:<id>`, and **Delete account** removes them. Guest
-sign-in works without the broker. The broker offers Google only, for now.
+Accounts live in your app: a user is `google:<id>` or `github:<id>`, and **Delete account**
+removes them. Guest sign-in works without the broker.
 
 ## What is fixed, and what is yours
 

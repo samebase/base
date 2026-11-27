@@ -2,8 +2,7 @@
 
 Guest sign-in always works. The home page also shows **Sign in**, which needs no Google project, no
 key, and no registration. The button goes to the page of Samebase's identity broker,
-`https://login.samebase.com`, which names the app's host and offers Google. The broker has no
-GitHub sign-in yet.
+`https://login.samebase.com`, which names the app's host and offers Google and GitHub.
 
 ## How the broker knows the app
 
