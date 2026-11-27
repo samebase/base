@@ -26,6 +26,7 @@ import * as Convex from "@samebase/alchemy-convex";
 import * as IdentityBroker from "@samebase/identity-broker/alchemy";
 import * as Alchemy from "alchemy";
 import { adopt } from "alchemy/AdoptPolicy";
+import * as Output from "alchemy/Output";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
@@ -77,8 +78,9 @@ export default Alchemy.Stack(
             name: stage,
             source,
           }).pipe(adopt(true), RemovalPolicy.destroy());
-    // The project from `deployment` orders this after the push: the old code needs the variables.
-    const site = { project: { projectId: deployment.projectId } };
+    // The hash of the push orders this after it: Convex refuses to remove what the old code requires.
+    const afterPush = Output.all(deployment.projectId, deployment.hash);
+    const site = { project: { projectId: Output.map(afterPush, ([projectId]) => projectId) } };
     yield* (
       stage === "prod"
         ? Convex.Deployment("Site", { ...site, type: "prod" })
