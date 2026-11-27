@@ -96,7 +96,7 @@ and Windows.
 
 - [How deploys work](./docs/deploys.md): the stages, the state store, local `alchemy deploy`, and
   renaming an old `main` stage to `prod`.
-- [Google sign-in](./docs/google-sign-in.md): the broker, `/oauth-client.json`, development, the
+- [Google and GitHub sign-in](./docs/google-sign-in.md): the broker, `/oauth-client.json`, development, the
   broker's terms, and how to run your own broker.
 - [Files](./docs/files.md): where things are, and which files are generated.
 

@@ -1,4 +1,4 @@
-# Google sign-in
+# Google and GitHub sign-in
 
 Guest sign-in always works. The home page also shows **Sign in**, which needs no Google project, no
 key, and no registration. The button goes to the page of Samebase's identity broker,
