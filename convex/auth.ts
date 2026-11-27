@@ -12,7 +12,10 @@ export const { signInAnonymously } = setupAnonymous(auth, {
   component: components.authAnonymous,
 }).attachUserCallbacks({ createUser: internal.guests.createUser });
 
-// Google and GitHub sign-in through the identity broker. The broker's id_token has the claims of the
+/** Samebase's public identity broker, which takes a Client ID Metadata Document as the client. */
+const BROKER = "https://login.samebase.com";
+
+// Google sign-in through the identity broker. The broker's id_token has the claims of the
 // provider's, and its `sub`, the account key of this method, is the provider's own id with the
 // provider in front, such as `google:<id>`: the same at every broker, so the app keeps its users when
 // it moves to another broker. The annotation gives the exports below their types without the call, which reads the type of
@@ -21,9 +24,9 @@ const broker: ReturnType<typeof setupOauth> = setupOauth(
   auth,
   "hub",
   {
-    authorizationEndpoint: `${env.IDENTITY_BROKER_ISSUER}/authorize`,
-    tokenEndpoint: `${env.IDENTITY_BROKER_ISSUER}/token`,
-    issuer: env.IDENTITY_BROKER_ISSUER,
+    authorizationEndpoint: `${BROKER}/authorize`,
+    tokenEndpoint: `${BROKER}/token`,
+    issuer: BROKER,
     scopes: ["openid", "email", "profile"],
     profile: normalizeGoogleProfile,
   },

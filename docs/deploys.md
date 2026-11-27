@@ -1,9 +1,7 @@
 # How deploys work
 
-`alchemy.run.ts` is the stack. The stage `prod` is the production deployment. A stage `dev-<name>`
-is the deployment of a development checkout, which `alchemy destroy` keeps (see
-[Local development](../README.md#local-development)). Any other stage is a preview deployment named
-after the stage, which `alchemy destroy` deletes. The push is the `deploy` package script, run by the
+`alchemy.run.ts` is the stack. The stage `prod` is the production deployment. Any other stage is a
+preview deployment named after the stage, which `alchemy destroy` deletes. The push is the `deploy` package script, run by the
 Convex deployment resource when the functions, the build inputs, `package.json`, or the lockfile
 change; an unchanged checkout deploys nothing.
 
@@ -30,8 +28,8 @@ pnpm exec alchemy destroy --stage my-preview
 
 `pnpm run deploy` runs `npx convex deploy` with the checks, the build, and the upload as its
 `--cmd`, so a failed check stops the release before the push switches the site. Inside that build,
-`scripts/ensure-convex-auth.ts` creates the Convex Auth keys on a new deployment or preview, sets
-each missing `IDENTITY_BROKER_` variable to its off value, and keeps every value that exists; it stops
+`scripts/ensure-convex-auth.ts` creates the Convex Auth keys on a new deployment or preview, keeps
+keys that exist, and sets `OAUTH_CLIENT_ID` to `<site>/oauth-client.json` when it differs; it stops
 the deploy when the deployment it selects is not the one that the deploy targets. Deploy with
 `pnpm run deploy`, never with a plain `npx convex deploy`: a plain push serves the files of the last
 deploy from this checkout, often another deployment's.

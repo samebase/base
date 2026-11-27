@@ -7,7 +7,7 @@
 - `src/server.ts` is the server entry: it answers the `/auth` sign-in, refresh, and sign-out routes
   and renders each page with the session of the request's cookies.
 - `convex/convex.config.ts` mounts the Convex Auth, OAuth, and convex-hosting components, and
-  `convex/http.ts` routes every path to the site.
+  `convex/http.ts` routes every path to the site and serves the sign-in client's document.
 - `src/routes/_authed/` holds the pages that need a session; without one they redirect to the home
   page.
 - `alchemy.run.ts` and `.github/workflows/alchemy.yml` deploy production and previews.

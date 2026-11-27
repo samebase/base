@@ -32,10 +32,7 @@ type Env = {
   readonly CONVEX_SITE_URL: string;
   readonly AUTH_JWKS: string;
   readonly AUTH_PRIVATE_KEY: string;
-  readonly IDENTITY_BROKER_CLIENT_ID: string;
-  readonly IDENTITY_BROKER_CLIENT_SECRET: string;
-  readonly IDENTITY_BROKER_ISSUER: string;
-  readonly SAMEBASE_REPOSITORY_ID: string | undefined;
+  readonly OAUTH_CLIENT_ID: string;
 };
 
 /**
