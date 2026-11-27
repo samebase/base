@@ -4,15 +4,14 @@
 # stage and deletes the preview. The state of every stage is in the
 # `alchemy-state-store` project of the team, under the stack name GITHUB_REPOSITORY.
 # Every run needs only the team token CONVEX_ACCESS_TOKEN; it mints the deploy
-# keys itself. Only the Alchemy steps get the secret. `id-token: write` lets a deploy
-# ask Samebase for the deployment's Google sign-in client with GitHub's token of the run.
+# keys itself. Only the Alchemy steps get the secret.
 on:
   push: { branches: [main] }
   pull_request: { types: [opened, synchronize, reopened, closed] }
   # Run once on main with adopt to take over a project with the name of the repository that
   # exists already.
   workflow_dispatch: { inputs: { adopt: { type: boolean, default: false } } }
-permissions: { contents: read, pull-requests: write, id-token: write }
+permissions: { contents: read, pull-requests: write }
 # One run per stage at a time: the state store has no lock. A closed pull request keeps
 # its head_ref.
 concurrency: { group: "alchemy-${{ github.head_ref || github.ref_name }}", queue: max }

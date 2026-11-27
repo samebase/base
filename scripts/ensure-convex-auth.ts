@@ -3,23 +3,10 @@ import { spawn } from "node:child_process";
 import { generateKeyPairSync, randomUUID } from "node:crypto";
 import process from "node:process";
 import { fileURLToPath, pathToFileURL } from "node:url";
-import { BROKER_DISABLED } from "@samebase/identity-broker/client";
 
 const CONVEX_CLI_PATH = fileURLToPath(
   new URL("../node_modules/convex/bin/main.js", import.meta.url),
 );
-
-// The variables of a deployment without a broker client. The OAuth component needs all three,
-// setupOauth accepts this loopback issuer, and the home page hides its Google button for this client
-// id. IdentityBroker.Client of @samebase/identity-broker gives the same values when it has no client.
-// A deployment of an earlier version of this app has IDENTITY_HUB_ names in their place: setting
-// these before the push lets the new code load, and alchemy.run.ts then removes the IDENTITY_HUB_
-// names.
-const IDENTITY_BROKER_OFF_VALUES = {
-  IDENTITY_BROKER_ISSUER: "http://127.0.0.1:1",
-  IDENTITY_BROKER_CLIENT_ID: BROKER_DISABLED,
-  IDENTITY_BROKER_CLIENT_SECRET: BROKER_DISABLED,
-};
 
 type RunResult = {
   code: number;
@@ -97,17 +84,18 @@ async function readConvexEnv(
 }
 
 async function readDeploymentUrl(
+  name: "CONVEX_CLOUD_URL" | "CONVEX_SITE_URL",
   env: NodeJS.ProcessEnv,
   selectionArgs: string[],
   runConvex: RunConvex,
 ) {
   const result = await runConvex(
-    ["run", "--inline-query", "process.env.CONVEX_CLOUD_URL", ...selectionArgs],
+    ["run", "--inline-query", `process.env.${name}`, ...selectionArgs],
     { env, stdio: "pipe" },
   );
   const url: unknown = result.code === 0 ? JSON.parse(result.stdout) : null;
   if (typeof url !== "string") {
-    throw new Error("Could not read the URL of the selected Convex deployment.");
+    throw new Error(`Could not read ${name} of the selected Convex deployment.`);
   }
   return url;
 }
@@ -142,28 +130,16 @@ async function setConvexEnv(
   });
 }
 
-/**
- * Sets the off value of each broker variable that the deployment does not have, and nothing else: a
- * value that exists, such as the client that alchemy.run.ts wrote before this push, stays. A list
- * of names is one command for all three and reads no secret.
- */
-export async function ensureIdentityBrokerVariables(
+/** Sets OAUTH_CLIENT_ID to the address of the deployment's metadata document when it differs. */
+export async function ensureOauthClientId(
   env: NodeJS.ProcessEnv,
   selectionArgs: string[] = [],
   runConvex: RunConvex = runConvexCli,
 ) {
-  const result = await runConvex(["env", "list", "--names-only", ...selectionArgs], {
-    env,
-    stdio: "pipe",
-  });
-  if (result.code !== 0) {
-    throw new Error("Could not list the Convex environment variables.");
-  }
-  const names = new Set(result.stdout.split(/\r?\n/));
-  for (const [name, value] of Object.entries(IDENTITY_BROKER_OFF_VALUES)) {
-    if (!names.has(name)) {
-      await setConvexEnv(name, value, env, selectionArgs, runConvex);
-    }
+  const siteUrl = await readDeploymentUrl("CONVEX_SITE_URL", env, selectionArgs, runConvex);
+  const clientId = `${siteUrl}/oauth-client.json`;
+  if ((await readConvexEnv("OAUTH_CLIENT_ID", env, selectionArgs, runConvex)) !== clientId) {
+    await setConvexEnv("OAUTH_CLIENT_ID", clientId, env, selectionArgs, runConvex);
   }
 }
 
@@ -192,7 +168,7 @@ export async function ensureConvexAuth(
   // A selection above that names another deployment stops here, before any read or write.
   const targetUrl = env["VITE_CONVEX_URL"];
   if (targetUrl !== undefined) {
-    const selectedUrl = await readDeploymentUrl(env, selectionArgs, runConvex);
+    const selectedUrl = await readDeploymentUrl("CONVEX_CLOUD_URL", env, selectionArgs, runConvex);
     if (selectedUrl !== targetUrl) {
       throw new Error(
         `Convex Auth setup selected ${selectedUrl}, but the deploy targets ${targetUrl}. Deploy through the GitHub workflows, a signed-in pnpm run deploy, or pnpm run deploy:dev.`,
@@ -213,7 +189,7 @@ export async function ensureConvexAuth(
     console.log("Convex Auth keys configured.");
   }
 
-  await ensureIdentityBrokerVariables(env, selectionArgs, runConvex);
+  await ensureOauthClientId(env, selectionArgs, runConvex);
 }
 
 const entrypoint = process.argv[1];

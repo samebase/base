@@ -13,7 +13,6 @@ import type * as auth from "../auth.js";
 import type * as guests from "../guests.js";
 import type * as http from "../http.js";
 import type * as identityBroker from "../identityBroker.js";
-import type * as samebaseVerification from "../samebaseVerification.js";
 import type * as todos from "../todos.js";
 
 import type {
@@ -28,7 +27,6 @@ declare const fullApi: ApiFromModules<{
   guests: typeof guests;
   http: typeof http;
   identityBroker: typeof identityBroker;
-  samebaseVerification: typeof samebaseVerification;
   todos: typeof todos;
 }>;
 

@@ -1,26 +1,25 @@
 import process from "node:process";
 
-import { BROKER_DISABLED } from "@samebase/identity-broker/client";
 import { describe, expect, it, vi } from "vite-plus/test";
 
-import {
-  buildConvexCliCommand,
-  ensureConvexAuth,
-  ensureIdentityBrokerVariables,
-} from "./ensure-convex-auth.ts";
+import { buildConvexCliCommand, ensureConvexAuth } from "./ensure-convex-auth.ts";
 
 const previewEnv = {
   CONVEX_DEPLOY_KEY: "preview:team:project|secret",
   GITHUB_HEAD_REF: "nicu-preview-smoke",
 };
 
-const IDENTITY_BROKER_NAMES =
-  "IDENTITY_BROKER_CLIENT_ID\nIDENTITY_BROKER_CLIENT_SECRET\nIDENTITY_BROKER_ISSUER\n";
+const CLIENT_ID = "https://preview-1.convex.site/oauth-client.json";
 
-/** A deployment that has both auth keys and the three broker variables. */
+/** A deployment that has both auth keys and the client id of its site. */
 const configured = (args: string[]) => ({
   code: 0,
-  stdout: args[1] === "list" ? IDENTITY_BROKER_NAMES : "configured",
+  stdout:
+    args[2] === "process.env.CONVEX_SITE_URL"
+      ? '"https://preview-1.convex.site"\n'
+      : args[2] === "OAUTH_CLIENT_ID"
+        ? CLIENT_ID
+        : "configured",
   stderr: "",
 });
 
@@ -42,7 +41,7 @@ describe("ensure-convex-auth", () => {
 
     await ensureConvexAuth({}, async (args) => {
       calls.push(args);
-      return { code: 0, stdout: "", stderr: "" };
+      return args[0] === "run" ? configured(args) : { code: 0, stdout: "", stderr: "" };
     });
 
     expect(calls.slice(0, 2)).toEqual([
@@ -61,7 +60,7 @@ describe("ensure-convex-auth", () => {
     const calls: string[][] = [];
     await ensureConvexAuth(previewEnv, async (args) => {
       calls.push(args);
-      return { code: 0, stdout: "", stderr: "" };
+      return args[0] === "run" ? configured(args) : { code: 0, stdout: "", stderr: "" };
     });
 
     expect(calls.slice(0, 2)).toEqual([
@@ -78,7 +77,7 @@ describe("ensure-convex-auth", () => {
     const runConvex = vi.fn(async (args: string[]) => configured(args));
     await ensureConvexAuth(previewEnv, runConvex);
 
-    expect(runConvex.mock.calls).toHaveLength(3);
+    expect(runConvex.mock.calls).toHaveLength(4);
   });
 
   it("follows a signed-in production deploy without a key", async () => {
@@ -95,7 +94,8 @@ describe("ensure-convex-auth", () => {
     expect(calls).toEqual([
       ["env", "get", "AUTH_PRIVATE_KEY", "--prod"],
       ["env", "get", "AUTH_JWKS", "--prod"],
-      ["env", "list", "--names-only", "--prod"],
+      ["run", "--inline-query", "process.env.CONVEX_SITE_URL", "--prod"],
+      ["env", "get", "OAUTH_CLIENT_ID", "--prod"],
     ]);
   });
 
@@ -113,7 +113,8 @@ describe("ensure-convex-auth", () => {
     expect(calls).toEqual([
       ["env", "get", "AUTH_PRIVATE_KEY"],
       ["env", "get", "AUTH_JWKS"],
-      ["env", "list", "--names-only"],
+      ["run", "--inline-query", "process.env.CONVEX_SITE_URL"],
+      ["env", "get", "OAUTH_CLIENT_ID"],
     ]);
   });
 
@@ -123,7 +124,7 @@ describe("ensure-convex-auth", () => {
       { ...previewEnv, VITE_CONVEX_URL: "https://preview-1.convex.cloud" },
       async (args) => {
         calls.push(args);
-        return args[0] === "run"
+        return args[2] === "process.env.CONVEX_CLOUD_URL"
           ? { code: 0, stdout: '"https://preview-1.convex.cloud"\n', stderr: "" }
           : configured(args);
       },
@@ -139,7 +140,14 @@ describe("ensure-convex-auth", () => {
       ],
       ["env", "get", "AUTH_PRIVATE_KEY", "--preview-name", "nicu-preview-smoke"],
       ["env", "get", "AUTH_JWKS", "--preview-name", "nicu-preview-smoke"],
-      ["env", "list", "--names-only", "--preview-name", "nicu-preview-smoke"],
+      [
+        "run",
+        "--inline-query",
+        "process.env.CONVEX_SITE_URL",
+        "--preview-name",
+        "nicu-preview-smoke",
+      ],
+      ["env", "get", "OAUTH_CLIENT_ID", "--preview-name", "nicu-preview-smoke"],
     ]);
   });
 
@@ -179,88 +187,19 @@ describe("ensure-convex-auth", () => {
     ]);
   });
 
-  it("sets the off values of the broker on a deployment without them", async () => {
+  it("sets the client id of the site when the deployment holds another one", async () => {
     const calls: string[][] = [];
     await ensureConvexAuth(
       {},
       async (args) => {
         calls.push(args);
-        return args[1] === "list" ? { code: 0, stdout: "", stderr: "" } : configured(args);
+        return args[2] === "OAUTH_CLIENT_ID"
+          ? { code: 0, stdout: "https://old.convex.site/oauth-client.json", stderr: "" }
+          : configured(args);
       },
       true,
     );
 
-    expect(calls.slice(2)).toEqual([
-      ["env", "list", "--names-only", "--prod"],
-      ["env", "set", "--prod", "--", "IDENTITY_BROKER_ISSUER", "http://127.0.0.1:1"],
-      ["env", "set", "--prod", "--", "IDENTITY_BROKER_CLIENT_ID", BROKER_DISABLED],
-      ["env", "set", "--prod", "--", "IDENTITY_BROKER_CLIENT_SECRET", BROKER_DISABLED],
-    ]);
-  });
-
-  it("sets the off values in the same named preview as the build", async () => {
-    const calls: string[][] = [];
-    await ensureConvexAuth(previewEnv, async (args) => {
-      calls.push(args);
-      return args[1] === "list" ? { code: 0, stdout: "", stderr: "" } : configured(args);
-    });
-
-    expect(calls.slice(3).map((args) => args.slice(0, 6))).toEqual([
-      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "IDENTITY_BROKER_ISSUER"],
-      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "IDENTITY_BROKER_CLIENT_ID"],
-      ["env", "set", "--preview-name", "nicu-preview-smoke", "--", "IDENTITY_BROKER_CLIENT_SECRET"],
-    ]);
-  });
-
-  it("keeps the client that Alchemy wrote before the push", async () => {
-    const runConvex = vi.fn(async (args: string[]) => configured(args));
-    await ensureConvexAuth({ CONVEX_DEPLOY_KEY: "prod:deployment|secret" }, runConvex);
-
-    expect(runConvex.mock.calls.filter(([args]) => args[1] === "set")).toEqual([]);
-  });
-
-  it("sets only the broker variables that are missing", async () => {
-    const calls: string[][] = [];
-    await ensureIdentityBrokerVariables({}, [], async (args) => {
-      calls.push(args);
-      return { code: 0, stdout: "AUTH_JWKS\r\nIDENTITY_BROKER_CLIENT_ID\r\n", stderr: "" };
-    });
-
-    expect(calls).toEqual([
-      ["env", "list", "--names-only"],
-      ["env", "set", "--", "IDENTITY_BROKER_ISSUER", "http://127.0.0.1:1"],
-      ["env", "set", "--", "IDENTITY_BROKER_CLIENT_SECRET", BROKER_DISABLED],
-    ]);
-  });
-
-  it("sets the new names on a deployment of an earlier version that has only IDENTITY_HUB_ names", async () => {
-    const calls: string[][] = [];
-    await ensureIdentityBrokerVariables({}, [], async (args) => {
-      calls.push(args);
-      return {
-        code: 0,
-        stdout:
-          "AUTH_JWKS\nIDENTITY_HUB_CLIENT_ID\nIDENTITY_HUB_CLIENT_SECRET\nIDENTITY_HUB_ISSUER\n",
-        stderr: "",
-      };
-    });
-
-    expect(calls).toEqual([
-      ["env", "list", "--names-only"],
-      ["env", "set", "--", "IDENTITY_BROKER_ISSUER", "http://127.0.0.1:1"],
-      ["env", "set", "--", "IDENTITY_BROKER_CLIENT_ID", BROKER_DISABLED],
-      ["env", "set", "--", "IDENTITY_BROKER_CLIENT_SECRET", BROKER_DISABLED],
-    ]);
-  });
-
-  it("writes no broker variable when the list fails", async () => {
-    const calls: string[][] = [];
-    await expect(
-      ensureIdentityBrokerVariables({}, [], async (args) => {
-        calls.push(args);
-        return { code: 1, stdout: "", stderr: "List failed" };
-      }),
-    ).rejects.toThrow("Could not list the Convex environment variables.");
-    expect(calls).toEqual([["env", "list", "--names-only"]]);
+    expect(calls.at(-1)).toEqual(["env", "set", "--prod", "--", "OAUTH_CLIENT_ID", CLIENT_ID]);
   });
 });
