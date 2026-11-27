@@ -295,6 +295,9 @@ importers:
       '@samebase/alchemy-convex':
         specifier: 0.47.0
         version: 0.47.0(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.0))(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.0))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(effect@4.1.4)(ws@8.22.0))(convex@1.48.0(react@19.3.1))(effect@4.1.4)
+      '@samebase/identity-broker':
+        specifier: 0.44.0
+        version: 0.44.0(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.0))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(effect@4.1.4)(ws@8.22.0))(convex@1.48.0(react@19.3.1))(effect@4.1.4)
       '@tanstack/router-plugin':
         specifier: 1.168.48
         version: 1.168.48(@tanstack/react-router@1.170.46(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(esbuild@0.27.0)(rolldown@1.2.16)
@@ -2004,6 +2007,25 @@ packages:
     peerDependencies:
       convex: ^1.46.0
 
+  '@samebase/identity-broker@0.44.0':
+    resolution: {integrity: sha512-RRyTsC4WTtKlownborx6GowIpNPNpWF4QRsTZz2Fy2R5FnJpR4eBMXIAAkLhYDijwYhG8hU+9jXbVPsHSmQg7Q==}
+    engines: {node: '>=24.11.0'}
+    peerDependencies:
+      '@alchemy.run/cloudflare': 2.0.0-beta.87
+      alchemy: 2.0.0-beta.87
+      convex: ^1.48.0
+      effect: ^4.1.4
+      fast-check: ^4.10.2
+    peerDependenciesMeta:
+      '@alchemy.run/cloudflare':
+        optional: true
+      alchemy:
+        optional: true
+      convex:
+        optional: true
+      fast-check:
+        optional: true
+
   '@sec-ant/readable-stream@0.4.1':
     resolution: {integrity: sha512-831qok9r2t8AlxLko40y2ebgSDhenenCatLVeW/uBtnHPyhHOvG0C7TvfgecV+wHzIm5KUICgzmVpWS+IMEAeg==}
 
@@ -3244,6 +3266,9 @@ packages:
   jose@5.10.0:
     resolution: {integrity: sha512-s+3Al/p9g32Iq+oqXxkW//7jk2Vig6FF1CFqzVXoTUXt2qz89YWbL+OwS17NFYEvxC35n0FKeGO2LGYSxeM2Gg==}
 
+  jose@6.2.13:
+    resolution: {integrity: sha512-7TIg10ZE1x82YediN+lcrPNvGMKge9yFHQD+Qho/b8y2adfugU3AsvvHfxV0fzyFllT6l9xCjf4RWY9g/Z9PJQ==}
+
   js-tokens@4.0.0:
     resolution: {integrity: sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==}
 
@@ -3518,6 +3543,9 @@ packages:
   npm-run-path@6.0.0:
     resolution: {integrity: sha512-9qny7Z9DsQU8Ou39ERsPU4OZQlSTP47ShQzuKZ6PRXpYLtIFgl/DEBYEXKlvcEa+9tHVcK8CF81Y2V72qaZhWA==}
     engines: {node: '>=18'}
+
+  oauth4webapi@3.8.8:
+    resolution: {integrity: sha512-8N28E+a/oxfXWBgOMt+ZP/JUf/XR+IFbvkAEPP3gznXOMv9BpAAwiIj0TFNz3tGTPc0ZQ8zmWBNgN1nAys0gng==}
 
   object-treeify@1.1.33:
     resolution: {integrity: sha512-EFVjAYfzWqWsBMRHPMAXLCDIJnpMhdWAqR7xG6M6a2cs6PMFpl/+Z20w9zDW4vkxOFfddegBKq9Rehd0bxWE7A==}
@@ -5792,6 +5820,15 @@ snapshots:
       mime: 4.1.1
       zod: 4.6.6
 
+  '@samebase/identity-broker@0.44.0(alchemy@2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.0))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(effect@4.1.4)(ws@8.22.0))(convex@1.48.0(react@19.3.1))(effect@4.1.4)':
+    dependencies:
+      effect: 4.1.4
+      jose: 6.2.13
+      oauth4webapi: 3.8.8
+    optionalDependencies:
+      alchemy: 2.0.0-beta.87(@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.0))(@types/react@19.3.0)(@voidzero-dev/vite-plus-core@1.4.0(@types/node@26.6.6)(esbuild@0.27.0)(jiti@2.7.0)(typescript@7.0.2)(yaml@2.9.1))(effect@4.1.4)(ws@8.22.0)
+      convex: 1.48.0(react@19.3.1)
+
   '@sec-ant/readable-stream@0.4.1': {}
 
   '@shadcn/registry@0.2.1':
@@ -6858,6 +6895,8 @@ snapshots:
 
   jose@5.10.0: {}
 
+  jose@6.2.13: {}
+
   js-tokens@4.0.0: {}
 
   js-yaml@5.5.0:
@@ -7054,6 +7093,8 @@ snapshots:
     dependencies:
       path-key: 4.0.0
       unicorn-magic: 0.3.0
+
+  oauth4webapi@3.8.8: {}
 
   object-treeify@1.1.33: {}
 
