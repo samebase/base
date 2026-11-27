@@ -26,6 +26,7 @@ http.route({
   handler: httpAction(async () =>
     Response.json({
       client_id: env.OAUTH_CLIENT_ID,
+      client_name: "Samebase app",
       redirect_uris: [`${env.CONVEX_SITE_URL}/auth/hub/callback`],
       token_endpoint_auth_method: "none",
       grant_types: ["authorization_code"],
