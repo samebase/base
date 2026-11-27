@@ -1,18 +1,12 @@
-// The stack has three kinds of stage:
+// The stack has two kinds of stage:
 //
 // - `prod` is the production deployment of the Convex project of this repository. It owns the
 //   project, and `alchemy destroy --stage prod` deletes the project with every deployment.
-// - `dev-<name>` is a development checkout: `pnpm run identity-broker:dev-client --stage dev-<name>`
-//   runs it on purpose,
-//   with the Convex CLI login, on the development deployment that `.env.local` selects
-//   (CONVEX_DEPLOYMENT, written by `convex dev`). It takes that deployment over, never creates a
-//   project, and `alchemy destroy --stage dev-<name>` deletes its broker client and keeps the
-//   deployment.
 // - Any other stage, such as `pr-42` for a pull request, is a preview deployment named after the
 //   stage, which `alchemy destroy` deletes.
 //
-// The push is the `deploy` script: convex-hosting builds the site, sets the Convex Auth keys,
-// uploads the site, and pushes the functions.
+// The push is the `deploy` script: convex-hosting builds the site, sets the Convex Auth keys and the
+// client id of the site (scripts/ensure-convex-auth.ts), uploads the site, and pushes the functions.
 //
 // The stack is named after the repository, `owner/name`, and its Convex project after `name`. The
 // state of every stage is in the `alchemy-state-store` project of the team, which Convex.state()
@@ -21,26 +15,13 @@
 // names its team; with the Convex CLI login, the team is the team of the deployment that .env.local
 // selects.
 //
-// Each deployment asks Samebase's public identity broker for a client, for Google and GitHub sign-in
-// through its connectors `google` and `github`, which name the app "Samebase" at Google and
-// GitHub. Production and
-// previews prove the repository with the GitHub OIDC token of the run (`id-token: write` in the
-// workflows). A `dev-` stage uses the app's initial access token, which the production registration
-// saved in the state of `prod`. Samebase reads /samebase-verification.json on the site, which
-// convex/http.ts serves from the variable SAMEBASE_REPOSITORY_ID, so the site must be live before
-// the client, and the push cannot take the client in `env`. So "Deployment" pushes and sets
-// SAMEBASE_REPOSITORY_ID, the client takes the site's URL, and "Site" takes the same deployment over
-// with adopt(true) and writes the client's three variables with no push. "Site" removes only the
-// names that leave its own `env`, so the repository id stays. The push of "Deployment" sets the off
-// values of the client's variables when they are missing (scripts/ensure-convex-auth.ts), so a
-// deployment of an earlier version with the IDENTITY_HUB_ names takes the IDENTITY_BROKER_ names in
-// one deploy: the new code loads with the off values, and "Site" then writes the client and removes
-// the IDENTITY_HUB_ names. Without a client, such as in
-// development before the first deploy to main, the variables hold the off values and the app has
-// guest sign-in.
+// A stage deployed before the sign-in at login.samebase.com holds two rows of the sign-in at
+// id.samebase.com. "IdentityHubClient" is gone from the stack, so this deploy deletes it with the
+// provider of IdentityBroker.providers(): a preview's client at the broker too, and a production
+// client only in state, because the broker refuses that delete. "Site" stays declared without
+// `env`, so this deploy removes its three variables, and `retain`, so it never deletes the
+// deployment. Once every stage ran this version, a later version can drop both.
 import { execFileSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { parseEnv } from "node:util";
 import * as Convex from "@samebase/alchemy-convex";
 import * as IdentityBroker from "@samebase/identity-broker/alchemy";
 import * as Alchemy from "alchemy";
@@ -49,24 +30,6 @@ import * as Output from "alchemy/Output";
 import * as RemovalPolicy from "alchemy/RemovalPolicy";
 import * as Effect from "effect/Effect";
 import * as Layer from "effect/Layer";
-
-/** The file of `npx convex dev`: the deployment it selects. */
-const envLocal = (() => {
-  try {
-    return parseEnv(readFileSync(".env.local", "utf8"));
-  } catch {
-    return {};
-  }
-})();
-
-/**
- * The identity broker that gives this app its clients: Samebase's public broker, deployed from
- * samebase/identity-hub. A broker of your own made from that template goes here, by its issuer.
- */
-const BROKER = { issuer: "https://id.samebase.com" };
-
-/** The commit of this run, which the broker records on a new client. */
-const softwareVersion = process.env["GITHUB_SHA"];
 
 /** The GitHub repository, `owner/name`: GITHUB_REPOSITORY in Actions, else the origin remote. */
 const repository =
@@ -80,14 +43,6 @@ if (repository === undefined) {
 
 /** The Convex project of the repository: its `name`. */
 const projectName = repository.slice(repository.indexOf("/") + 1);
-
-/**
- * The numeric id of the repository, which GitHub Actions sets in every run. The site serves it at
- * /samebase-verification.json, so a fork serves its own id with no change to any file. A `dev-`
- * stage reads it from the state of `prod` instead.
- */
-const repositoryId = process.env["GITHUB_REPOSITORY_ID"];
-const verification = repositoryId ? { env: { SAMEBASE_REPOSITORY_ID: repositoryId } } : {};
 
 export default Alchemy.Stack(
   repository,
@@ -104,99 +59,34 @@ export default Alchemy.Stack(
       include: ["src/**", "public/**", "scripts/**", "vite.config.ts", "tsconfig*.json"],
     } satisfies Convex.Source;
 
-    if (stage.startsWith("dev-")) {
-      // A development checkout, after one deploy to main and after `npx convex dev` made and
-      // selected a dev deployment and pushed the code. This stage gives that deployment its broker
-      // client and nothing else: no new deployment, no push. It is run on purpose,
-      // `pnpm run identity-broker:dev-client --stage dev-<name>`, and a Google sign-in keeps the client alive, so a
-      // checkout in use never needs it again.
-      const selected = envLocal["CONVEX_DEPLOYMENT"]?.replace(/^(dev|prod):/, "");
-      if (!selected) {
-        throw new Error("Run `pnpm run dev` once first: .env.local selects no deployment.");
-      }
-      const project = yield* Convex.Project.ref("Project", { stage: "prod" });
-      // The initial access token and the repository id, which the production deploy saved.
-      const production = IdentityBroker.Client.read("IdentityHubClient", { stage: "prod" });
-      // The site must serve /samebase-verification.json before the broker registers the client.
-      const site = yield* Convex.Deployment("Verification", {
-        project,
-        type: "dev",
-        name: selected,
-        env: { SAMEBASE_REPOSITORY_ID: production.repository },
-      }).pipe(adopt(true));
-      const client = yield* IdentityBroker.Client("IdentityHubClient", {
-        broker: BROKER,
-        connectors: ["google", "github"],
-        redirectUris: [Output.interpolate`${site.siteUrl}/auth/hub/callback`],
-        deploymentType: "development",
-        initialAccessToken: production.initialAccessToken,
-      });
-      const variables = IdentityBroker.Client.variables(client);
-      // Both rows keep the default removal policy `retain`: a destroy deletes only the broker client.
-      yield* Convex.Deployment("Site", {
-        project,
-        type: "dev",
-        name: selected,
-        env: {
-          IDENTITY_BROKER_ISSUER: variables.issuer,
-          IDENTITY_BROKER_CLIENT_ID: variables.clientId,
-          IDENTITY_BROKER_CLIENT_SECRET: variables.clientSecret,
-        },
-      }).pipe(adopt(true));
-
-      return { url: site.siteUrl };
-    }
-
     // The stage `prod` owns the project, and `alchemy destroy --stage prod` deletes it with
     // every deployment. A preview stage reads the project from the state of `prod`.
     const project =
       stage === "prod"
         ? yield* Convex.Project("Project", { name: projectName }).pipe(RemovalPolicy.destroy())
         : yield* Convex.Project.ref("Project", { stage: "prod" });
-    // Production stays with the project, which owns it: both rows keep the default removal policy
+    // Production stays with the project, which owns it: the row keeps the default removal policy
     // `retain`, and destroying the stage deletes the project. A deployment with code that is not in
-    // state still stops at "Deployment" until --adopt. A preview goes with its stage: both rows
-    // delete it on destroy, and the second delete finds it gone. adopt(true) on "Deployment" also
-    // takes over a preview with the name of this stage that an interrupted run left behind.
+    // state still stops here until --adopt. A preview goes with its stage. adopt(true) also takes
+    // over a preview with the name of this stage that an interrupted run left behind.
     const deployment =
       stage === "prod"
-        ? yield* Convex.Deployment("Deployment", {
-            project,
-            type: "prod",
-            source,
-            ...verification,
-          })
+        ? yield* Convex.Deployment("Deployment", { project, type: "prod", source })
         : yield* Convex.Deployment("Deployment", {
             project,
             type: "preview",
             name: stage,
             source,
-            ...verification,
           }).pipe(adopt(true), RemovalPolicy.destroy());
-    // The id "IdentityHubClient" and the path /auth/hub/callback stay: state and clients hold them.
-    const client = yield* IdentityBroker.Client("IdentityHubClient", {
-      broker: BROKER,
-      connectors: ["google", "github"],
-      redirectUris: [Output.interpolate`${deployment.siteUrl}/auth/hub/callback`],
-      deploymentType: stage === "prod" ? "production" : "preview",
-      ...(softwareVersion === undefined ? {} : { softwareVersion }),
-    });
-    // The client's values, or the off values while the broker suspends the client.
-    const variables = IdentityBroker.Client.variables(client);
-    const env = {
-      IDENTITY_BROKER_ISSUER: variables.issuer,
-      IDENTITY_BROKER_CLIENT_ID: variables.clientId,
-      IDENTITY_BROKER_CLIENT_SECRET: variables.clientSecret,
-    };
-    // A Convex.Deployment with `env` and no source writes the variables and pushes nothing.
-    const site =
+    // The hash of the push orders this after it: Convex refuses to remove what the old code requires.
+    const afterPush = Output.all(deployment.projectId, deployment.hash);
+    const site = { project: { projectId: Output.map(afterPush, ([projectId]) => projectId) } };
+    yield* (
       stage === "prod"
-        ? yield* Convex.Deployment("Site", { project, type: "prod", env }).pipe(adopt(true))
-        : yield* Convex.Deployment("Site", { project, type: "preview", name: stage, env }).pipe(
-            adopt(true),
-            RemovalPolicy.destroy(),
-          );
+        ? Convex.Deployment("Site", { ...site, type: "prod" })
+        : Convex.Deployment("Site", { ...site, type: "preview", name: stage })
+    ).pipe(adopt(true), RemovalPolicy.retain());
 
-    return { url: site.siteUrl };
+    return { url: deployment.siteUrl };
   }),
 );

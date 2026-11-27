@@ -26,12 +26,8 @@ type VisibleTodo = {
 
 export const Route = createFileRoute("/")({
   loader: async ({ context }) => {
-    await Promise.all([
-      // @ts-expect-error convexQuery always sets queryFn, but its type allows undefined there, which `query` rejects under exactOptionalPropertyTypes.
-      context.queryClient.query(convexQuery(api.todos.list, {})),
-      // @ts-expect-error The same as above.
-      context.queryClient.query(convexQuery(api.identityBroker.brokerSignInEnabled, {})),
-    ]);
+    // @ts-expect-error convexQuery always sets queryFn, but its type allows undefined there, which `query` rejects under exactOptionalPropertyTypes.
+    await context.queryClient.query(convexQuery(api.todos.list, {}));
   },
   component: TodoPage,
 });
@@ -43,9 +39,6 @@ function TodoPage() {
   const {
     data: { todos, viewerTodoCount },
   } = useSuspenseQuery(convexQuery(api.todos.list, {}));
-  const { data: brokerSignInEnabled } = useSuspenseQuery(
-    convexQuery(api.identityBroker.brokerSignInEnabled, {}),
-  );
   const todoLimitReached = viewerTodoCount !== null && viewerTodoCount >= TODO_LIMIT;
 
   useEffect(() => {
@@ -72,7 +65,7 @@ function TodoPage() {
       <section className="flex flex-col gap-3">
         <h1 className="text-lg">Todo list</h1>
         <SignedOut>
-          {brokerSignInEnabled ? <BrokerSignIn /> : null}
+          <BrokerSignIn />
           <GuestSignIn />
         </SignedOut>
         <SignedIn>

@@ -1,48 +1,42 @@
 # Google sign-in
 
-Guest sign-in always works. The home page also shows **Sign in** when the deployment has a client
-of Samebase's identity broker, and it needs no Google project or key of yours. The button goes to
-the broker's page, which names the app and offers Google and GitHub.
+Guest sign-in always works. The home page also shows **Sign in**, which needs no Google project, no
+key, and no registration. The button goes to the page of Samebase's identity broker,
+`https://login.samebase.com`, which names the app's host and offers Google and GitHub.
 
-Each deploy from GitHub Actions gets its client, with no Samebase account: `alchemy.run.ts` asks
-Samebase's identity broker with GitHub's token of the run (`id-token: write`) and writes it to the
-variables `IDENTITY_BROKER_ISSUER`, `IDENTITY_BROKER_CLIENT_ID`, and
-`IDENTITY_BROKER_CLIENT_SECRET`. Without a client, the variables hold their off values,
-`IDENTITY_BROKER_CLIENT_ID=broker-disabled`, and the page has only the guest button.
+## How the broker knows the app
+
+The app's client id is the address of a JSON file on its own site, a
+[Client ID Metadata Document](https://datatracker.ietf.org/doc/draft-ietf-oauth-client-id-metadata-document/):
+`<site>/oauth-client.json`, which `convex/http.ts` serves. It lists one return address,
+`<site>/auth/hub/callback`, and the authentication method `none`: the app is a public client with
+PKCE and no secret. The broker reads the file at a sign-in and keeps it for an hour.
+
+Before each push, `scripts/ensure-convex-auth.ts` writes the file's address to the variable
+`OAUTH_CLIENT_ID`, which `convex/convex.config.ts` gives to Convex Auth. The broker accepts only an
+https file on a host name with no port, so a deployment on a custom domain deploys again after the
+domain changes, and a local backend (`http://127.0.0.1`) cannot sign in.
 
 ## In development
 
-The production deploy is the proof. After one deploy to `main` and the first run of
-`pnpm run deploy:dev`, run `pnpm run identity-broker:dev-client --stage dev-<your name>` once. That
-stage of the stack gives the development deployment that `.env.local` selects a client of the broker,
-with the app's initial access token that the production deploy saved, and writes the three
-variables; it creates nothing and pushes nothing. From then on `pnpm run dev` has the Sign in
-button, and each sign-in keeps the client alive. Run the stage again if the development deployment
-was unused for two weeks and the button stopped working. `pnpm exec alchemy destroy --stage dev-<your name>`
-deletes the client and keeps the deployment.
+`pnpm run dev` in the primary checkout uses a cloud development deployment with an https site, so
+the button works there too: the broker returns to the deployment's site, and the site returns the
+browser to the page on `localhost` that started the sign-in (the Samebase patch of Convex Auth in
+`patches/` accepts any port of a loopback host). A linked worktree uses a local backend and has
+only guest sign-in.
 
-## How the broker verifies the app
+## Accounts
 
-The site serves `/samebase-verification.json` with the repository's numeric id,
-`{ "repository": "123" }`, from the variable `SAMEBASE_REPOSITORY_ID`. The deploy sets it from
-`GITHUB_REPOSITORY_ID`, and a `dev-` stage from the state of `prod`. The broker reads it at the
-site's root, and registers the client on `<site>/auth/hub/callback` only when the id matches. A fork
-serves its own id. An app on another host or callback path serves the same file at the root of its
-origin, with the id that `gh api repos/<owner>/<name> --jq .id` prints, and lists its own address in
-`redirectUris` of `IdentityBroker.Client`.
-
-The app's name at the broker is the stack's, `app` for a stack named after its repository. A user's ID
-is the provider's own, such as `google:<id>`. An account is that ID. Name and email are profile
-data, and accounts never link by email, so a guest who signs in with Google gets a new account.
+A user's ID is the provider's own, such as `google:<id>`. An account is that ID, the same at every
+broker. Name and email are profile data, and accounts never link by email, so a guest who signs in
+with Google gets a new account.
 
 ## Terms, and running your own broker
 
 The broker is a shared service under [Samebase's terms](https://samebase.com/terms), and Samebase can
-block a repository or an owner that misuses it. To run your own instead, deploy the template
-[samebase/identity-hub](https://github.com/samebase/identity-hub) and name its issuer in
-`alchemy.run.ts`, host
+block a host that misuses it. To run your own instead, host
 [`@samebase/identity-broker`](https://github.com/samebase/samebase/tree/main/packages/identity-broker)
-yourself, or connect your own auth.
+with its Client ID Metadata Document layer, and name its issuer in `convex/auth.ts`.
 
 ## Deleting an account
 
