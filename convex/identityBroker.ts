@@ -1,10 +1,9 @@
 import { vGoogleProfile } from "@convex-dev/auth/methods/google/server";
-import { BROKER_DISABLED } from "@samebase/identity-broker/client";
 import { v } from "convex/values";
-import { env, internalMutation, query } from "./_generated/server";
+import { internalMutation } from "./_generated/server";
 import { unusedGuestName } from "./guests";
 
-const { boolean, id, literal, object, string } = v;
+const { id, literal, object, string } = v;
 
 /**
  * Convex Auth calls this once for each new broker `sub`. It never looks at the email, so a person with
@@ -26,16 +25,5 @@ export const createUser = internalMutation({
       ...(profile.name ? { fullName: profile.name } : {}),
       ...(profile.emailVerified && profile.email ? { email: profile.email } : {}),
     });
-  },
-});
-
-/** True when the broker gave this deployment a client. */
-export const brokerSignInEnabled = query({
-  args: {},
-  returns: boolean(),
-  handler: async () => {
-    return (
-      Boolean(env.IDENTITY_BROKER_CLIENT_ID) && env.IDENTITY_BROKER_CLIENT_ID !== BROKER_DISABLED
-    );
   },
 });
